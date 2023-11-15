@@ -2,22 +2,39 @@
 use soroban_sdk::{contract, contractimpl};
 
 #[contract]
-pub struct DivideBeforeMultiply;
+pub struct UnsafeUnwrap;
 
 #[contractimpl]
-impl DivideBeforeMultiply {
-    pub fn hybrid_split_profit(percentage: u64, total_profit: u64) -> Option<u64> {
-        Some(percentage.checked_div(100)? * total_profit)
+impl UnsafeUnwrap {
+    pub fn unwrap_an_empty_thing() -> u64 {
+
+        let a_thing = None;
+        let result = a_thing.unwrap_or(0);
+
+        result
     }
+
+    pub fn unwrap_a_thing(n: u64) -> u64 {
+
+        let a_thing = Some(n);
+        let result = a_thing.unwrap_or(0);
+
+        result
+    }
+
 }
 
 #[cfg(test)]
 mod tests {
-    use crate::DivideBeforeMultiply;
+    use crate::UnsafeUnwrap;
 
     #[test]
-    fn hybrid_split_profit_works() {
-        let result = DivideBeforeMultiply::hybrid_split_profit(33, 100);
-        assert_eq!(result.unwrap(), 0);
+    fn unwrap_an_empty_thing_panics() {
+        UnsafeUnwrap::unwrap_an_empty_thing();
+    }
+
+    #[test]
+    fn unwrap_a_thing_panics() {
+        UnsafeUnwrap::unwrap_a_thing(100);
     }
 }

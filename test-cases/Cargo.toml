@@ -1,5 +1,5 @@
 [workspace]
-members = ["*/*"]
+members = ["*/*/*"]
 exclude = [".cargo", "target"]
 resolver = "2"
 

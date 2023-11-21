@@ -9,15 +9,18 @@ extern crate rustc_span;
 
 mod lint_message;
 
-//use lint_message::*;
+#[cfg(feature = "lint_helper")]
+use clippy_utils::diagnostics::{
+    span_lint as span_lint_clippy, span_lint_and_help as span_lint_and_help_clippy,
+};
+use lint_message::*;
 #[cfg(feature = "lint_helper")]
 use rustc_lint::{Lint, LintContext};
 #[cfg(feature = "lint_helper")]
 use rustc_span::Span;
-#[cfg(feature = "lint_helper")]
-use scout_audit_clippy_utils::diagnostics::{
+/*use scout_audit_clippy_utils::diagnostics::{
     span_lint as span_lint_clippy, span_lint_and_help as span_lint_and_help_clippy,
-};
+};*/
 #[cfg(feature = "lint_helper")]
 use serde_json::json;
 use strum::{Display, EnumIter};
@@ -25,15 +28,16 @@ use strum::{Display, EnumIter};
 /// Available detectors.
 #[derive(Debug, Display, Clone, EnumIter, PartialEq, Eq, Hash)]
 #[strum(serialize_all = "kebab-case")]
-pub enum Detector {}
+pub enum Detector {
+    OverflowCheck,
+}
 
 impl Detector {
     /// Returns the lint message for the detector.
     pub const fn get_lint_message(&self) -> &'static str {
-        ""
-        /*match self {
-            _ => "",
-        }*/
+        match self {
+            Detector::OverflowCheck => OVERFLOW_CHECK,
+        }
     }
 
     #[cfg(feature = "lint_helper")]
@@ -62,7 +66,7 @@ fn print_scout_output(lint: Lint, span: Span) {
         .map(|s| s.trim().to_string())
         .collect();
 
-    let no_span_detectors = ["CHECK_INK_VERSION"];
+    let no_span_detectors = ["OVERFLOW_CHECK"];
 
     if no_span_detectors.contains(&lint.name.to_owned().as_str()) {
         let span = json!({

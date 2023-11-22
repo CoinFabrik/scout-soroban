@@ -27,6 +27,7 @@ use strum::{Display, EnumIter};
 #[strum(serialize_all = "kebab-case")]
 pub enum Detector {
     DivideBeforeMultiply,
+    UnsafeExpect,
 }
 
 impl Detector {
@@ -34,6 +35,7 @@ impl Detector {
     pub const fn get_lint_message(&self) -> &'static str {
         match self {
             Detector::DivideBeforeMultiply => DIVIDE_BEFORE_MULTIPLY_LINT_MESSAGE,
+            Detector::UnsafeExpect => UNSAFE_EXPECT_LINT_MESSAGE,
         }
     }
 

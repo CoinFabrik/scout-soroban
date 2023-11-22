@@ -1,5 +1,5 @@
 [package]
-name = "divide-before-multiply-3"
+name = "divide-before-multiply-vulnerable-3"
 version = "0.1.0"
 edition = "2021"
 

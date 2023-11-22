@@ -9,7 +9,7 @@ extern crate rustc_span;
 
 mod lint_message;
 
-//use lint_message::*;
+use lint_message::*;
 #[cfg(feature = "lint_helper")]
 use rustc_lint::{Lint, LintContext};
 #[cfg(feature = "lint_helper")]
@@ -25,15 +25,16 @@ use strum::{Display, EnumIter};
 /// Available detectors.
 #[derive(Debug, Display, Clone, EnumIter, PartialEq, Eq, Hash)]
 #[strum(serialize_all = "kebab-case")]
-pub enum Detector {}
+pub enum Detector {
+    DivideBeforeMultiply,
+}
 
 impl Detector {
     /// Returns the lint message for the detector.
     pub const fn get_lint_message(&self) -> &'static str {
-        ""
-        /*match self {
-            _ => "",
-        }*/
+        match self {
+            Detector::DivideBeforeMultiply => DIVIDE_BEFORE_MULTIPLY_LINT_MESSAGE,
+        }
     }
 
     #[cfg(feature = "lint_helper")]

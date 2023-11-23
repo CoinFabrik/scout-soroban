@@ -30,6 +30,7 @@ use strum::{Display, EnumIter};
 #[strum(serialize_all = "kebab-case")]
 pub enum Detector {
     OverflowCheck,
+    InsufficientlyRandomValues,
 }
 
 impl Detector {
@@ -37,6 +38,7 @@ impl Detector {
     pub const fn get_lint_message(&self) -> &'static str {
         match self {
             Detector::OverflowCheck => OVERFLOW_CHECK,
+            Detector::InsufficientlyRandomValues => INSUFFICIENTLY_RANDOM_VALUES,
         }
     }
 

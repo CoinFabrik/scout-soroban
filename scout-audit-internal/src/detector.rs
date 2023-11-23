@@ -28,7 +28,6 @@ use strum::{Display, EnumIter};
 pub enum Detector {
     DivideBeforeMultiply,
     UnsafeExpect,
-    OverflowCheck,
 }
 
 impl Detector {
@@ -37,7 +36,6 @@ impl Detector {
         match self {
             Detector::DivideBeforeMultiply => DIVIDE_BEFORE_MULTIPLY_LINT_MESSAGE,
             Detector::UnsafeExpect => UNSAFE_EXPECT_LINT_MESSAGE,
-            Detector::OverflowCheck => OVERFLOW_CHECK_LINT_MESSAGE,
         }
     }
 

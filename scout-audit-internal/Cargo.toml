@@ -3,20 +3,19 @@ name = "scout-audit-internal"
 version = "0.2.1"
 edition = "2021"
 authors = [
-    "Agustin Aon <agustin.aon@coinfabrik.com>",
-    "Arturo Beccar-Varela <arturo.beccar@coinfabrik.com>",
     "José García Crosta <jose.garcia.crosta@coinfabrik.com>",
     "Facundo Lerena <facundo.lerena@coinfabrik.com>",
     "Agustin Losiggio <agustin.losiggio@coinfabrik.com>",
-    "Federico Pinho <federico.pinho@coinfabrik.com>",
+    "Matias Cabello <matias.cabello@coinfabrik.com>",
     "Ariel Waissbein <ariel.waissbein@coinfabrik.com",
+    "Arturo Beccar-Varela <arturo.beccar@coinfabrik.com>",
 ]
 license = "MIT"
-description = "Scout is an extensible open-source tool intended to assist ink! smart contract developers and auditors detect common security issues and deviations from best practices."
-homepage = "https://coinfabrik.github.io/scout"
-repository = "https://github.com/CoinFabrik/scout"
+description = "Scout is an extensible open-source tool intended to assist soroban smart contract developers and auditors detect common security issues and deviations from best practices."
+homepage = "https://github.com/CoinFabrik/scout-soroban"
+repository = "https://github.com/CoinFabrik/scout-soroban"
 readme = "../README.md"
-keywords = ["auditor", "rust", "security", "ink", "smart-contracts"]
+keywords = ["auditor", "rust", "security", "soroban", "stellar", "smart-contracts"]
 categories = ["development-tools", "command-line-utilities"]
 
 [features]

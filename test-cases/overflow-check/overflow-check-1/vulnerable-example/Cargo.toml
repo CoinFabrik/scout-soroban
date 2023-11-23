@@ -1,6 +1,6 @@
 
 [package]
-name = "overflow-check"
+name = "overflow-check-vulnerable-1"
 version = "0.1.0"
 edition = "2021"
 

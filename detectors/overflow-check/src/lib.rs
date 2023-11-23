@@ -11,10 +11,12 @@ use scout_audit_internal::Detector;
 
 dylint_linting::declare_early_lint! {
     /// ### What it does
-    /// Checks the ink! version of the contract
+    /// Checks that overflow-checks is enabled in Cargo.toml.
+    ///
     /// ### Why is this bad?
-    /// Using an outdated version of ink! could lead to security vulnerabilities, bugs, and other issues.
-    ///```
+    /// Integer overflow will trigger a panic in debug builds or will wrap in
+    /// release mode. Division by zero will cause a panic in either mode. In some applications one
+    /// wants explicitly checked, wrapping or saturating arithmetic.
     pub OVERFLOW_CHECK,
     Warn,
     Detector::OverflowCheck.get_lint_message()
@@ -59,17 +61,5 @@ impl EarlyLintPass for OverflowCheck {
                 }
             }
         }
-
-        /*let req = Version::parse(&latest_version.replace('\"', "")).unwrap();
-        let ink_version = VersionReq::parse(&ink_version.replace('\"', "")).unwrap();
-
-        if !ink_version.matches(&req) {
-            Detector::OverflowCheck.span_lint_and_help(
-                cx,
-                OVERFLOW_CHECK,
-                rustc_span::DUMMY_SP,
-                &format!("The latest ink! version is {latest_version}, and your version is {ink_version}"),
-            );
-        }*/
     }
 }

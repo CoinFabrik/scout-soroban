@@ -28,6 +28,7 @@ use strum::{Display, EnumIter};
 pub enum Detector {
     DivideBeforeMultiply,
     UnsafeExpect,
+    OverflowCheck,
 }
 
 impl Detector {
@@ -36,6 +37,7 @@ impl Detector {
         match self {
             Detector::DivideBeforeMultiply => DIVIDE_BEFORE_MULTIPLY_LINT_MESSAGE,
             Detector::UnsafeExpect => UNSAFE_EXPECT_LINT_MESSAGE,
+            Detector::OverflowCheck => OVERFLOW_CHECK_LINT_MESSAGE,
         }
     }
 
@@ -65,7 +67,7 @@ fn print_scout_output(lint: Lint, span: Span) {
         .map(|s| s.trim().to_string())
         .collect();
 
-    let no_span_detectors = ["CHECK_INK_VERSION"];
+    let no_span_detectors = ["OVERFLOW_CHECK"];
 
     if no_span_detectors.contains(&lint.name.to_owned().as_str()) {
         let span = json!({

@@ -21,7 +21,7 @@ categories = ["development-tools", "command-line-utilities"]
 [features]
 detector = ["dep:strum"]
 lint_helper = [
-   "dep:scout-audit-clippy-utils",
+    "dep:scout-audit-clippy-utils",
     "dep:serde_json"
 ]
 

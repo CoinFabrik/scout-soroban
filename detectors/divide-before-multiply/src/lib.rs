@@ -160,7 +160,7 @@ fn navigate_trough_basicblocks<'tcx>(
                 Rvalue::Use(operand) => {
                     check_operand(operand, tainted_places, &assign.0);
                 }
-                Rvalue::BinaryOp(op, operands) => {
+                Rvalue::BinaryOp(op, operands) | Rvalue::CheckedBinaryOp(op, operands) => {
                     if BinOp::Div == *op {
                         tainted_places.push(assign.0);
                     } else if BinOp::Mul == *op

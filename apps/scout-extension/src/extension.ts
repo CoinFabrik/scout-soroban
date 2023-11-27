@@ -7,8 +7,8 @@ import path from "path";
 const RUST_ANALYZER_CONFIG = "rust-analyzer.check.overrideCommand";
 
 export async function activate(_context: vscode.ExtensionContext) {
-  // Check workspace is an ink project
-  if (!isProjectInk()) return;
+  // Check workspace is an soroban project
+  if (!isProjectSoroban()) return;
 
   const config = vscode.workspace.getConfiguration();
 
@@ -44,7 +44,7 @@ export function deactivate() {
   // unused
 }
 
-function isProjectInk(): boolean {
+function isProjectSoroban(): boolean {
   const workspaceFolders = vscode.workspace.workspaceFolders;
   if (!workspaceFolders) {
     console.log("No workspace is opened.");
@@ -69,12 +69,17 @@ function isProjectInk(): boolean {
     return false;
   }
 
-  // Check if ink is a direct dependency
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-  if (!cargoTomlParsed.dependencies || !cargoTomlParsed.dependencies.ink) {
-    console.log("Ink crate is not a direct dependency in Cargo.toml.");
+  // Check if soroban-sdk is a direct dependency
+  if (
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+    !cargoTomlParsed.dependencies ||
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+    !cargoTomlParsed.dependencies["soroban-sdk"]
+  ) {
+    console.log("soroban-sdk crate is not a direct dependency in Cargo.toml.");
     return false;
   }
 
+  console.log("soroban-sdk crate is a direct dependency in Cargo.toml.")
   return true;
 }

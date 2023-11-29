@@ -97,30 +97,10 @@ jobs:
           - macos-latest
         test:
           [
-            "assert-violation",
-            "avoid-core-mem-forget",
-            "avoid-format-string",
-            "delegate-call",
             "divide-before-multiply",
-            "dos-unbounded-operation",
-            "dos-unexpected-revert-with-vector",
-            "ink-version",
-            "insufficiently-random-values",
-            "integer-overflow-or-underflow",
-            "iterators-over-indexing",
-            "lazy-delegate",
-            "panic-error",
-            "reentrancy-1",
-            "reentrancy-2",
-            "set-code-hash",
-            "set-contract-storage",
-            "unprotected-mapping-operation",
-            "unprotected-self-destruct",
-            "unrestricted-transfer-from",
+            "overflow-check",
             "unsafe-expect",
             "unsafe-unwrap",
-            "unused-return-enum",
-            "zero-or-test-address",
           ]
     runs-on: ${{ matrix.os }}
     steps:

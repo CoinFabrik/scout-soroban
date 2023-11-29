@@ -71,16 +71,13 @@ impl<'tcx> LateLintPass<'tcx> for SetStorageWarn {
 
         impl<'tcx> Visitor<'tcx> for SetContractStorageVisitor {
             fn visit_expr(&mut self, expr: &'tcx Expr<'_>) {
-                match &expr.kind {
-                    ExprKind::MethodCall(path, _, _, _) => {
-                        let method_name = path.ident.name.as_str();
-                        if method_name == "require_auth" {
-                            self.found_auth = true;
-                        } else if method_name == "storage" && !self.found_auth {
-                            self.storage_without_auth.push(expr.span);
-                        }
+                if let ExprKind::MethodCall(path, _, _, _) = &expr.kind {
+                    let method_name = path.ident.name.as_str();
+                    if method_name == "require_auth" {
+                        self.found_auth = true;
+                    } else if method_name == "storage" && !self.found_auth {
+                        self.storage_without_auth.push(expr.span);
                     }
-                    _ => {}
                 }
                 walk_expr(self, expr);
             }
@@ -98,7 +95,7 @@ impl<'tcx> LateLintPass<'tcx> for SetStorageWarn {
                 cx,
                 SET_STORAGE_WARN,
                 span,
-                "Ensure user.require_auth() is called before accessing storage.",
+                "Ensure that the caller is authorized to use storage",
             );
         }
     }

@@ -1,0 +1,146 @@
+name: Test Detectors
+
+on:
+  push:
+    branches:
+      - "main"
+    paths:
+      - "apps/cargo-scout-audit/**"
+      - "detectors/**"
+      - "test-cases/**"
+      - "Makefile"
+  pull_request:
+    paths:
+      - "apps/cargo-scout-audit/**"
+      - "detectors/**"
+      - "test-cases/**"
+      - "Makefile"
+  workflow_dispatch:
+
+env:
+  CARGO_TERM_COLOR: always
+  RUST_BACKTRACE: full
+
+jobs:
+  check-config:
+    name: Check config
+    strategy:
+      matrix:
+        os:
+          - ubuntu-latest
+          - macos-latest
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Install python dependencies
+        run: pip3 install pyyaml
+
+      - name: Check test matrix is complete
+        run: python3 scripts/check-ci-detectors-to-test.py .github/workflows/test-detectors.yml detectors
+
+      - name: Check detectors for repeated names
+        run: python3 scripts/check-detectors-repeated-names.py detectors
+
+      - name: Check detector names with underscore
+        run: python3 scripts/check-detectors-underscore-names.py detectors
+
+      - name: Check detector names different than their folders
+        run: python3 scripts/check-detectors-names-match-folder.py detectors
+
+  build:
+    name: Build
+    needs: check-config
+    strategy:
+      matrix:
+        os:
+          - ubuntu-latest
+          - macos-latest
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Cache cargo-scout dependencies
+        id: cache-cargo-scout-dependencies
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cargo
+            apps/cargo-scout-audit/target
+            detectors/target
+            detectors/Cargo.lock
+          key: ${{ runner.os }}-cargo-scout-dependencies-${{ github.run_id }}
+
+      - name: Install Rust nightly-2023-04-23
+        run: rustup install nightly-2023-04-23 --profile minimal
+
+      - name: Install dylint-link
+        run: cargo install dylint-link
+
+      - name: Compile cargo-scout-audit tests
+        working-directory: apps/cargo-scout-audit
+        run: cargo test --no-run
+
+      - name: Compile detectors
+        working-directory: detectors
+        run: cargo build --release
+
+  test:
+    name: Test
+    needs: build
+    strategy:
+      matrix:
+        os:
+          - ubuntu-latest
+          - macos-latest
+        test:
+          [
+            "assert-violation",
+            "avoid-core-mem-forget",
+            "avoid-format-string",
+            "delegate-call",
+            "divide-before-multiply",
+            "dos-unbounded-operation",
+            "dos-unexpected-revert-with-vector",
+            "ink-version",
+            "insufficiently-random-values",
+            "integer-overflow-or-underflow",
+            "iterators-over-indexing",
+            "lazy-delegate",
+            "panic-error",
+            "reentrancy-1",
+            "reentrancy-2",
+            "set-code-hash",
+            "set-contract-storage",
+            "unprotected-mapping-operation",
+            "unprotected-self-destruct",
+            "unrestricted-transfer-from",
+            "unsafe-expect",
+            "unsafe-unwrap",
+            "unused-return-enum",
+            "zero-or-test-address",
+          ]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Cache cargo-scout dependencies
+        id: cache-cargo-scout-dependencies
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cargo
+            apps/cargo-scout-audit/target
+            detectors/target
+            detectors/Cargo.lock
+          key: ${{ runner.os }}-cargo-scout-dependencies-${{ github.run_id  }}
+          fail-on-cache-miss: true
+
+      - name: Run tests
+        working-directory: apps/cargo-scout-audit
+        env:
+          INTEGRATION_TESTS_TO_RUN: ${{ matrix.test }}
+        run: cargo test -- --nocapture

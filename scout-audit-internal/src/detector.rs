@@ -9,18 +9,15 @@ extern crate rustc_span;
 
 mod lint_message;
 
-#[cfg(feature = "lint_helper")]
-use clippy_utils::diagnostics::{
-    span_lint as span_lint_clippy, span_lint_and_help as span_lint_and_help_clippy,
-};
 use lint_message::*;
 #[cfg(feature = "lint_helper")]
 use rustc_lint::{Lint, LintContext};
 #[cfg(feature = "lint_helper")]
 use rustc_span::Span;
-/*use scout_audit_clippy_utils::diagnostics::{
+#[cfg(feature = "lint_helper")]
+use scout_audit_clippy_utils::diagnostics::{
     span_lint as span_lint_clippy, span_lint_and_help as span_lint_and_help_clippy,
-};*/
+};
 #[cfg(feature = "lint_helper")]
 use serde_json::json;
 use strum::{Display, EnumIter};
@@ -29,8 +26,11 @@ use strum::{Display, EnumIter};
 #[derive(Debug, Display, Clone, EnumIter, PartialEq, Eq, Hash)]
 #[strum(serialize_all = "kebab-case")]
 pub enum Detector {
+    DivideBeforeMultiply,
     OverflowCheck,
     InsufficientlyRandomValues,
+    UnsafeExpect,
+    UnsafeUnwrap,
 }
 
 impl Detector {
@@ -39,6 +39,9 @@ impl Detector {
         match self {
             Detector::OverflowCheck => OVERFLOW_CHECK,
             Detector::InsufficientlyRandomValues => INSUFFICIENTLY_RANDOM_VALUES,
+            Detector::DivideBeforeMultiply => DIVIDE_BEFORE_MULTIPLY_LINT_MESSAGE,
+            Detector::UnsafeExpect => UNSAFE_EXPECT_LINT_MESSAGE,
+            Detector::UnsafeUnwrap => UNSAFE_UNWRAP_MESSAGE,
         }
     }
 

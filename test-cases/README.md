@@ -1,5 +1,75 @@
 # Test Cases
 
-For each [Vulnerability Class](https://coinfabrik.github.io/scout/docs/vulnerabilities#vulnerability-classes) listed in our documentation, you will find different test cases in this repository.
+For each Vulnerability Class listed in our documentation below, you will find different test cases in this repository.
 
-Check our [Contribution Guideline](https://coinfabrik.github.io/scout/docs/contribute) for instructions on how to add new test cases for Scout.
+# Vulnerabilities
+
+This section lists relevant security-related issues typically introduced during the development of smart contracts. The list, though non-exhaustive, features highly relevant items. Each issue is assigned a severity label based on the taxonomy presented below.
+
+## Vulnerability Severity
+
+This severity classification, although arbitrary, has been used in hundreds
+of security audits and helps to understand the vulnerabilities we introduce
+and measure the utility of this proof of concept.
+
+- **Critical**: These issues seriously compromise the system and must be addressed immediately.
+- **Medium**: These are potentially exploitable issues which might represent
+  a security risk in the near future. We suggest fixing them as soon as possible.
+- **Minor**: These issues represent problems that are relatively small or difficult to exploit, but might be exploited in combination with other issues. These kinds of issues do not block deployments in production environments. They should be taken into account and fixed when possible.
+- **Enhancement**: This class relates to issues stemming from deviations from best practices or stylistic conventions, which could escalate into higher-priority issues due to other changes. For instance, these issues may lead to development errors in future updates.
+
+## Vulnerability Categories
+
+We follow with a taxonomy of Vulnerabilities. Many "top vulnerability" lists
+can be found covering Ethereum/Solidity smart contracts. This list below is
+used by the Coinfabrik Audit Team, when source code (security) audits in
+Ethereum/Solidity, Stacks/Clarity, Algorand/PyTEAL /TEAL, Solana/RUST, etc.
+The team discusses the creation of the list in this
+[blogpost](https://blog.coinfabrik.com/analysis-categories/).
+
+| Category                       | Description                                                                                       |
+| ------------------------------ | ------------------------------------------------------------------------------------------------- |
+| Arithmetic                     | Proper usage of arithmetic and number representation.                                             |
+| Assembly Usage                 | Detailed analysis of implementations using assembly.                                              |
+| Authorization                  | Vulnerabilities related to insufficient access control or incorrect authorization implementation. |
+| Best practices                 | Conventions and best practices for improved code quality and vulnerability prevention.            |
+| Block attributes               | Appropriate usage of block attributes, especially when used as a source of randomness.            |
+| Centralization                 | Analysis of centralization and single points of failure.                                          |
+| Denial of Service              | Denial of service. attacks.                                                                       |
+| Gas Usage                      | Performance issues, enhancements and vulnerabilities related to use of gas.                       |
+| Known Bugs                     | Known issues that remain unresolved.                                                              |
+| MEV                            | Patterns that could lead to the exploitation of Maximal Extractable Value.                        |
+| Privacy                        | Patterns revealing sensible user or state data.                                                   |
+| Reentrancy                     | Consistency of contract state under recursive calls.                                              |
+| Unexpected transfers           | Contract behavior under unexpected or forced transfers of tokens.                                 |
+| Upgradability                  | Proxy patterns and upgradable smart contracts.                                                    |
+| Validations and error handling | Handling of errors, exceptions and parameters.                                                    |
+
+We used the above Vulnerability Categories, along with common examples of vulnerabilities detected within each category in other blockchains, as a guideline for finding and developing vulnerable examples of Stellar Soroban smart contracts.
+
+## Vulnerability Classes
+
+As a result of our research, we have so far identified thirteen types of vulnerabilities.
+
+What follows is a description of each vulnerability in the context of Stellar Soroban smart contracts. In each case, we have produced at least one [test-case](https://github.com/CoinFabrik/scout-soroban/tree/main/test-cases) smart contract that exposes one of these vulnerabilities.
+
+Check our
+[test-cases](https://github.com/CoinFabrik/scout/tree/main/test-cases)
+for code examples of these vulnerabilities and their respective remediations.
+
+
+### Divide before multiply
+
+This vulnerability class relates to the order of operations in Rust, specifically in integer arithmetic. Performing a division operation before a multiplication can lead to a loss of precision. This issue becomes significant in programs like smart contracts where numerical precision is crucial.
+
+This vulnerability falls under the [Arithmetic](#vulnerability-categories) category
+and has a Medium Severity.
+
+
+### Unsafe unrwap
+
+This vulnerability class pertains to the inappropriate usage of the `unwrap` method in Rust, which is commonly employed for error handling. The `unwrap` method retrieves the inner value of an `Option` or `Result`, but if an error or `None` occurs, it triggers a panic and crashes the program.
+
+This vulnerability again falls under the [Validations and error handling](#vulnerability-categories) category and has a Medium severity.
+
+In our example, we consider an contract that utilizes the `unwrap` method to retrieve the balance of an account from a mapping. If there is no entry for the specified account, the contract will panic and abruptly halt execution, opening avenues for malicious exploitation.

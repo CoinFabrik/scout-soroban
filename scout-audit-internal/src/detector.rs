@@ -27,8 +27,8 @@ use strum::{Display, EnumIter};
 #[strum(serialize_all = "kebab-case")]
 pub enum Detector {
     DivideBeforeMultiply,
-    UnsafeExpect,
     OverflowCheck,
+    UnsafeExpect,
     UnsafeUnwrap,
 }
 

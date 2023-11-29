@@ -27,9 +27,10 @@ use strum::{Display, EnumIter};
 #[strum(serialize_all = "kebab-case")]
 pub enum Detector {
     DivideBeforeMultiply,
-    UnsafeExpect,
     OverflowCheck,
     UnprotectedUpdateCurrentContract,
+    UnsafeExpect,
+    UnsafeUnwrap,
 }
 
 impl Detector {
@@ -42,6 +43,7 @@ impl Detector {
             Detector::UnprotectedUpdateCurrentContract => {
                 UNPROTECTED_UPDATE_CURRENT_CONTRACT_MESSAGE
             }
+            Detector::UnsafeUnwrap => UNSAFE_UNWRAP_MESSAGE,
         }
     }
 

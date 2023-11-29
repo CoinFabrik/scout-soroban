@@ -1,27 +1,29 @@
 #![no_std]
-use soroban_sdk::{contract, contractimpl};
+use soroban_sdk::{contract, contracterror, contractimpl};
 
 #[contract]
 pub struct UnsafeUnwrap;
 
+#[contracterror]
+#[derive(Copy, Clone, Debug, Eq, PartialEq, PartialOrd, Ord)]
+#[repr(u32)]
+pub enum Error {
+    CustomError = 1,
+}
+
 #[contractimpl]
 impl UnsafeUnwrap {
-    pub fn unwrap_an_empty_thing() -> u64 {
-
-        let a_thing = None;
-        let result = a_thing.unwrap_or(0);
-
-        result
+    pub fn unwrap_or_default(n: u64) -> u64 {
+        let result = Self::non_zero_or_error(n);
+        result.unwrap_or(0)
     }
 
-    pub fn unwrap_a_thing(n: u64) -> u64 {
-
-        let a_thing = Some(n);
-        let result = a_thing.unwrap_or(0);
-
-        result
+    pub fn non_zero_or_error(n: u64) -> Result<u64, Error> {
+        if n == 0 {
+            return Err(Error::CustomError);
+        }
+        Ok(n)
     }
-
 }
 
 #[cfg(test)]
@@ -29,12 +31,26 @@ mod tests {
     use crate::UnsafeUnwrap;
 
     #[test]
-    fn unwrap_an_empty_thing_panics() {
-        UnsafeUnwrap::unwrap_an_empty_thing();
+    fn test_unwrap_or_zero() {
+        // Given
+        let test_value = 0;
+
+        // When
+        let result = UnsafeUnwrap::unwrap_or_default(test_value);
+
+        // Then
+        assert_eq!(result, test_value);
     }
 
     #[test]
-    fn unwrap_a_thing_panics() {
-        UnsafeUnwrap::unwrap_a_thing(100);
+    fn test_unwrap_or_non_zero() {
+        // Given
+        let test_value = 100;
+
+        // When
+        let result = UnsafeUnwrap::unwrap_or_default(test_value);
+
+        // Then
+        assert_eq!(result, test_value);
     }
 }

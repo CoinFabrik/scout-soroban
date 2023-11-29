@@ -29,6 +29,7 @@ pub enum Detector {
     DivideBeforeMultiply,
     UnsafeExpect,
     OverflowCheck,
+    UnprotectedUpdateCurrentContract,
 }
 
 impl Detector {
@@ -38,6 +39,9 @@ impl Detector {
             Detector::DivideBeforeMultiply => DIVIDE_BEFORE_MULTIPLY_LINT_MESSAGE,
             Detector::UnsafeExpect => UNSAFE_EXPECT_LINT_MESSAGE,
             Detector::OverflowCheck => OVERFLOW_CHECK_LINT_MESSAGE,
+            Detector::UnprotectedUpdateCurrentContract => {
+                UNPROTECTED_UPDATE_CURRENT_CONTRACT_MESSAGE
+            }
         }
     }
 

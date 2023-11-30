@@ -97,7 +97,7 @@ jobs:
           - macos-latest
         test:
           [
-            "core-mem-forget"
+            "core-mem-forget",
             "divide-before-multiply",
             "overflow-check",
             "unprotected-update-current-contract-wasm",

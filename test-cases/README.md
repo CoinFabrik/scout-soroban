@@ -49,12 +49,12 @@ We used the above Vulnerability Categories, along with common examples of vulner
 
 ## Vulnerability Classes
 
-As a result of our research, we have so far identified thirteen types of vulnerabilities.
+As a result of our research, we have so far identified 4 types of vulnerabilities.
 
 What follows is a description of each vulnerability in the context of Stellar Soroban smart contracts. In each case, we have produced at least one [test-case](https://github.com/CoinFabrik/scout-soroban/tree/main/test-cases) smart contract that exposes one of these vulnerabilities.
 
 Check our
-[test-cases](https://github.com/CoinFabrik/scout/tree/main/test-cases)
+[test-cases](https://github.com/CoinFabrik/scout-soroban/tree/main/test-cases)
 for code examples of these vulnerabilities and their respective remediations.
 
 
@@ -73,3 +73,34 @@ This vulnerability class pertains to the inappropriate usage of the `unwrap` met
 This vulnerability again falls under the [Validations and error handling](#vulnerability-categories) category and has a Medium severity.
 
 In our example, we consider an contract that utilizes the `unwrap` method to retrieve the balance of an account from a mapping. If there is no entry for the specified account, the contract will panic and abruptly halt execution, opening avenues for malicious exploitation.
+
+
+### Unsafe expect
+
+In Rust, the `expect` method is commonly used for error handling. It retrieves the value from a `Result` or `Option` and panics with a specified error message if an error occurs. However, using `expect` can lead to unexpected program crashes.
+
+This vulnerability falls under the [Validations and error handling](#vulnerability-categories) category
+and has a Medium severity.
+
+In our example, we see an exploit scenario involving a contract using the `expect` method in a function that retrieves the balance of an account. If there is no entry for the account, the contract panics and halts execution, enabling malicious exploitation.
+
+### Integer overflow or underflow
+
+This type of vulnerability occurs when an arithmetic operation attempts to
+create a numeric value that is outside the valid range in substrate, e.g,
+a `u8` unsigned integer can be at most _M:=2^8-1=255_, hence the sum `M+1`
+produces an overflow.
+
+An overflow/underflow is typically caught and generates an error. When it
+is not caught, the operation will result in an inexact result which could
+lead to serious problems.
+
+We classified this type of vulnerability under
+the [Arithmetic](#vulnerability-categories) category and assigned it a
+Critical severity.
+
+In the context of Soroban, we found that this vulnerability could only be
+realized if `overflow-checks` is set to `False` in the `[profile.release]` section of the `Cargo.toml`.
+Notwithstanding, there are contexts where developers do turn off checks for
+valid reasons and hence the reason for including this vulnerability in the
+list.

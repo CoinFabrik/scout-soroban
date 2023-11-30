@@ -11,10 +11,11 @@ impl SetContractStorage {
     /// Increment an internal counter; return the new value.
     pub fn increment(env: Env, user: Address) -> u32 {
         user.require_auth();
-        let mut count: u32 = env.storage().instance().get(&COUNTER).unwrap_or(0);
+        let storage = env.storage().instance();
+        let mut count: u32 = storage.get(&COUNTER).unwrap_or(0);
         count += 1;
-        env.storage().instance().set(&COUNTER, &count);
-        env.storage().instance().bump(100, 100);
+        storage.set(&COUNTER, &count);
+        storage.bump(100, 100);
         count
     }
 }

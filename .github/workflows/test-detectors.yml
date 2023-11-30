@@ -99,6 +99,7 @@ jobs:
           [
             "divide-before-multiply",
             "overflow-check",
+            "unprotected-update-current-contract-wasm",
             "unsafe-expect",
             "unsafe-unwrap",
           ]

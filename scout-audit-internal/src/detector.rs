@@ -28,6 +28,7 @@ use strum::{Display, EnumIter};
 pub enum Detector {
     DivideBeforeMultiply,
     OverflowCheck,
+    UnprotectedUpdateCurrentContractWasm,
     UnsafeExpect,
     UnsafeUnwrap,
 }
@@ -39,6 +40,9 @@ impl Detector {
             Detector::DivideBeforeMultiply => DIVIDE_BEFORE_MULTIPLY_LINT_MESSAGE,
             Detector::UnsafeExpect => UNSAFE_EXPECT_LINT_MESSAGE,
             Detector::OverflowCheck => OVERFLOW_CHECK_LINT_MESSAGE,
+            Detector::UnprotectedUpdateCurrentContractWasm => {
+                UNPROTECTED_UPDATE_CURRENT_CONTRACT_MESSAGE
+            }
             Detector::UnsafeUnwrap => UNSAFE_UNWRAP_MESSAGE,
         }
     }

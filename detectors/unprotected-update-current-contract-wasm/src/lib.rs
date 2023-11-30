@@ -18,21 +18,21 @@ use rustc_span::Span;
 use scout_audit_internal::Detector;
 
 dylint_linting::impl_late_lint! {
-    pub UNPROTECTED_UPDATE_CURRENT_CONTRACT,
+    pub UNPROTECTED_UPDATE_CURRENT_CONTRACT_WASM,
     Warn,
-    Detector::UnprotectedUpdateCurrentContract.get_lint_message(),
-    UnprotectedUpdateCurrentContract::default()
+    Detector::UnprotectedUpdateCurrentContractWasm.get_lint_message(),
+    UnprotectedUpdateCurrentContractWasm::default()
 }
 
 #[derive(Default)]
-pub struct UnprotectedUpdateCurrentContract {}
-impl UnprotectedUpdateCurrentContract {
+pub struct UnprotectedUpdateCurrentContractWasm {}
+impl UnprotectedUpdateCurrentContractWasm {
     pub fn new() -> Self {
         Self {}
     }
 }
 
-impl<'tcx> LateLintPass<'tcx> for UnprotectedUpdateCurrentContract {
+impl<'tcx> LateLintPass<'tcx> for UnprotectedUpdateCurrentContractWasm {
     fn check_fn(
         &mut self,
         cx: &LateContext<'tcx>,
@@ -85,9 +85,9 @@ impl<'tcx> LateLintPass<'tcx> for UnprotectedUpdateCurrentContract {
         );
 
         for span in spans {
-            Detector::UnprotectedUpdateCurrentContract.span_lint(
+            Detector::UnprotectedUpdateCurrentContractWasm.span_lint(
                 cx,
-                UNPROTECTED_UPDATE_CURRENT_CONTRACT,
+                UNPROTECTED_UPDATE_CURRENT_CONTRACT_WASM,
                 span,
             )
         }

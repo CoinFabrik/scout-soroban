@@ -26,6 +26,7 @@ use strum::{Display, EnumIter};
 #[derive(Debug, Display, Clone, EnumIter, PartialEq, Eq, Hash)]
 #[strum(serialize_all = "kebab-case")]
 pub enum Detector {
+    CoreMemForget,
     DivideBeforeMultiply,
     OverflowCheck,
     UnsafeExpect,
@@ -36,6 +37,7 @@ impl Detector {
     /// Returns the lint message for the detector.
     pub const fn get_lint_message(&self) -> &'static str {
         match self {
+            Detector::CoreMemForget => CORE_MEM_FORGET_LINT_MESSAGE,
             Detector::DivideBeforeMultiply => DIVIDE_BEFORE_MULTIPLY_LINT_MESSAGE,
             Detector::UnsafeExpect => UNSAFE_EXPECT_LINT_MESSAGE,
             Detector::OverflowCheck => OVERFLOW_CHECK_LINT_MESSAGE,

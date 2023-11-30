@@ -54,9 +54,10 @@ impl<'tcx> LateLintPass<'tcx> for UnprotectedUpdateCurrentContract {
                     if path.ident.name.to_string() == "require_auth" {
                         self.require_auth_def_id =
                             self.cx.typeck_results().type_dependent_def_id(expr.hir_id);
-                    } else if path.ident.name.to_string() == "update_current_contract_wasm" &&
-                        let ExprKind::MethodCall(path2, ..) = receiver.kind &&
-                        path2.ident.name.to_string() == "deployer" {
+                    } else if path.ident.name.to_string() == "update_current_contract_wasm"
+                        && let ExprKind::MethodCall(path2, ..) = receiver.kind
+                        && path2.ident.name.to_string() == "deployer"
+                    {
                         self.update_contract_def_id =
                             self.cx.typeck_results().type_dependent_def_id(expr.hir_id);
                     }
@@ -109,12 +110,17 @@ impl<'tcx> LateLintPass<'tcx> for UnprotectedUpdateCurrentContract {
                     fn_span,
                     ..
                 } => {
-                    if let Operand::Constant(fn_const) = func &&
-                    let Const::Val(_const, ty) = fn_const.const_ &&
-                    let TyKind::FnDef(def, _) = ty.kind() {
-                        if uuf_storage.require_auth_def_id.is_some_and(|f|f==*def) {
+                    if let Operand::Constant(fn_const) = func
+                        && let Const::Val(_const, ty) = fn_const.const_
+                        && let TyKind::FnDef(def, _) = ty.kind()
+                    {
+                        if uuf_storage.require_auth_def_id.is_some_and(|f| f == *def) {
                             checked = true;
-                        } else if uuf_storage.update_contract_def_id.is_some_and(|f|f==*def) && !checked {
+                        } else if uuf_storage
+                            .update_contract_def_id
+                            .is_some_and(|f| f == *def)
+                            && !checked
+                        {
                             ret_vec.push(*fn_span);
                         }
                     }

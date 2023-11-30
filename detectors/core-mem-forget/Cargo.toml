@@ -1,5 +1,5 @@
 [package]
-name = "avoid-core-mem-forget"
+name = "core-mem-forget"
 version = "0.1.0"
 edition = "2021"
 

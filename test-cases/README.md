@@ -104,3 +104,11 @@ realized if `overflow-checks` is set to `False` in the `[profile.release]` secti
 Notwithstanding, there are contexts where developers do turn off checks for
 valid reasons and hence the reason for including this vulnerability in the
 list.
+
+
+### Insufficiently random values
+
+Using block attributes like block `timestamp()` and block `sequence()` for random number generation in Soroban smart contracts is not recommended due to the predictability of these values. Block attributes are publicly visible and deterministic, making it easy for malicious actors to anticipate their values and manipulate outcomes to their advantage. Furthermore, validators could potentially influence these attributes, further exacerbating the risk of manipulation. For truly random number generation, it's important to use a source that is both unpredictable and external to the blockchain environment, reducing the potential for malicious exploitation.
+
+This vulnerability again falls under the [Block attributes](#vulnerability-categories) category
+and has a Critical severity.

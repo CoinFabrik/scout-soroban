@@ -33,4 +33,69 @@ impl Contract {
 }
 
 #[cfg(test)]
-mod test;
+mod test {
+    use soroban_sdk::{
+        testutils::{Ledger, LedgerInfo},
+        Env,
+    };
+
+    use crate::{Contract, ContractClient};
+
+    #[test]
+    fn random_value_sequence() {
+        // Given
+        let env = Env::default();
+        let contract_id = env.register_contract(None, Contract);
+        let client = ContractClient::new(&env, &contract_id);
+
+        // When
+        let mut ledger = LedgerInfo {
+            sequence_number: 0,
+            ..Default::default()
+        };
+        env.ledger().set(ledger.clone());
+        let first_random_value = client.generate_random_value_sequence(&10);
+
+        ledger.sequence_number = 1;
+        env.ledger().set(ledger.clone());
+        let second_random_value = client.generate_random_value_sequence(&10);
+
+        ledger.sequence_number = 11;
+        env.ledger().set(ledger.clone());
+        let third_random_value = client.generate_random_value_sequence(&10);
+
+        // Then
+        assert_eq!(first_random_value, 0);
+        assert_eq!(second_random_value, 1);
+        assert_eq!(third_random_value, 1);
+    }
+
+    #[test]
+    fn random_value_timestamp() {
+        // Given
+        let env = Env::default();
+        let contract_id = env.register_contract(None, Contract);
+        let client = ContractClient::new(&env, &contract_id);
+
+        // When
+        let mut ledger = LedgerInfo {
+            timestamp: 0,
+            ..Default::default()
+        };
+        env.ledger().set(ledger.clone());
+        let first_random_value = client.generate_random_value_timestamp(&10);
+
+        ledger.timestamp = 1;
+        env.ledger().set(ledger.clone());
+        let second_random_value = client.generate_random_value_timestamp(&10);
+
+        ledger.timestamp = 11;
+        env.ledger().set(ledger.clone());
+        let third_random_value = client.generate_random_value_timestamp(&10);
+
+        // Then
+        assert_eq!(first_random_value, 0);
+        assert_eq!(second_random_value, 1);
+        assert_eq!(third_random_value, 1);
+    }
+}

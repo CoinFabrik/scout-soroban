@@ -29,8 +29,3 @@ lto = true
 [profile.release-with-logs]
 inherits = "release"
 debug-assertions = true
-
-[workspace.metadata.dylint]
-libraries = [
-    { path = "/home/tiki/trabajo/scout-soroban/detectors/insufficiently-random-values" },
-]

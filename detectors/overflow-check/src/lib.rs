@@ -32,12 +32,20 @@ impl EarlyLintPass for OverflowCheck {
 
         let toml: toml::Value = toml::from_str(&cargo_toml).unwrap();
 
-        let profiles = toml.get("profile").and_then(|p| p.as_table());
-
-        if profiles.is_some() {
-            for profile in profiles.unwrap() {
+        if let Some(profiles) = toml.get("profile").and_then(|p| p.as_table()) {
+            for profile in profiles {
                 let profile_name = profile.0;
-                let table = profile.1.as_table();
+                let mut table = profile.1.as_table();
+                let mut temp_table;
+                if table.is_some() && table.unwrap().contains_key("inherits") {
+                    let parent_name = table.unwrap().get("inherits").unwrap().as_str().unwrap();
+                    if profiles.contains_key(parent_name) {
+                        let parent_table = profiles.get(parent_name).unwrap().as_table().unwrap();
+                        temp_table = parent_table.clone();
+                        temp_table.extend(table.unwrap().clone().into_iter());
+                        table = Some(&temp_table);
+                    }
+                }
                 if table.is_some() && table.unwrap().contains_key("overflow-checks") {
                     let has_overflow_check = table
                         .unwrap()

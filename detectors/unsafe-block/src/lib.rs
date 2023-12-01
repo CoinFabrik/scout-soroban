@@ -45,10 +45,10 @@ dylint_linting::declare_late_lint! {
     /// ```
     pub UNSAFE_BLOCK,
     Warn,
-    Detector::UnsafeUnwrap.get_lint_message()
+    Detector::UnsafeBlock.get_lint_message()
 }
 
-impl<'tcx> LateLintPass<'tcx> for UnsafeUnwrap {
+impl<'tcx> LateLintPass<'tcx> for UnsafeBlock {
     fn check_fn(
         &mut self,
         cx: &rustc_lint::LateContext<'tcx>,
@@ -88,7 +88,7 @@ impl<'tcx> LateLintPass<'tcx> for UnsafeUnwrap {
 
         visitor.unsafe_blocks.iter().for_each(|span| {
             if let Some(span) = span {
-                Detector::UnsafeUnwrap.span_lint(
+                Detector::UnsafeBlock.span_lint(
                     cx,
                     UNSAFE_BLOCK,
                     *span

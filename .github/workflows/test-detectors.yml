@@ -97,6 +97,7 @@ jobs:
           - macos-latest
         test:
           [
+            "insufficiently-random-values",
             "divide-before-multiply",
             "overflow-check",
             "unsafe-expect",

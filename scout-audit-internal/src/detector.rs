@@ -27,8 +27,8 @@ use strum::{Display, EnumIter};
 #[strum(serialize_all = "kebab-case")]
 pub enum Detector {
     DivideBeforeMultiply,
-    OverflowCheck,
     InsufficientlyRandomValues,
+    OverflowCheck,
     UnsafeExpect,
     UnsafeUnwrap,
 }
@@ -37,8 +37,8 @@ impl Detector {
     /// Returns the lint message for the detector.
     pub const fn get_lint_message(&self) -> &'static str {
         match self {
-            Detector::OverflowCheck => OVERFLOW_CHECK,
-            Detector::InsufficientlyRandomValues => INSUFFICIENTLY_RANDOM_VALUES,
+            Detector::OverflowCheck => OVERFLOW_CHECK_LINT_MESSAGE,
+            Detector::InsufficientlyRandomValues => INSUFFICIENTLY_RANDOM_VALUES_LINT_MESSAGE,
             Detector::DivideBeforeMultiply => DIVIDE_BEFORE_MULTIPLY_LINT_MESSAGE,
             Detector::UnsafeExpect => UNSAFE_EXPECT_LINT_MESSAGE,
             Detector::UnsafeUnwrap => UNSAFE_UNWRAP_MESSAGE,

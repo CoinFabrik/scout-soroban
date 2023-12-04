@@ -28,6 +28,7 @@ use strum::{Display, EnumIter};
 pub enum Detector {
     CoreMemForget,
     DivideBeforeMultiply,
+    InsufficientlyRandomValues,
     OverflowCheck,
     UnprotectedUpdateCurrentContractWasm,
     UnsafeExpect,
@@ -40,12 +41,13 @@ impl Detector {
         match self {
             Detector::CoreMemForget => CORE_MEM_FORGET_LINT_MESSAGE,
             Detector::DivideBeforeMultiply => DIVIDE_BEFORE_MULTIPLY_LINT_MESSAGE,
-            Detector::UnsafeExpect => UNSAFE_EXPECT_LINT_MESSAGE,
+            Detector::InsufficientlyRandomValues => INSUFFICIENTLY_RANDOM_VALUES_LINT_MESSAGE,
             Detector::OverflowCheck => OVERFLOW_CHECK_LINT_MESSAGE,
             Detector::UnprotectedUpdateCurrentContractWasm => {
-                UNPROTECTED_UPDATE_CURRENT_CONTRACT_MESSAGE
+                UNPROTECTED_UPDATE_CURRENT_CONTRACT_LINT_MESSAGE
             }
-            Detector::UnsafeUnwrap => UNSAFE_UNWRAP_MESSAGE,
+            Detector::UnsafeExpect => UNSAFE_EXPECT_LINT_MESSAGE,
+            Detector::UnsafeUnwrap => UNSAFE_UNWRAP_LINT_MESSAGE,
         }
     }
 

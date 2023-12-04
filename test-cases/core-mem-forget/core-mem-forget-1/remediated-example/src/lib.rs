@@ -25,10 +25,13 @@ mod tests {
 
     #[test]
     fn test_forget_something() {
+        // Given
         let test_value: WithoutCopy = WithoutCopy { a: 80, b: 60 };
 
+        // When
         let result = CoreMemForget::forget_something(test_value);
 
+        // Then
         assert_eq!(result, 0);
     }
 }

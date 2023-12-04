@@ -17,29 +17,19 @@ dylint_linting::impl_pre_expansion_lint! {
     /// This is a bad practice because it can lead to memory leaks, resource leaks and logic errors.
     /// ### Example
     /// ```rust
-    ///    pub fn forget_value(&mut self) {
-    ///        let forgotten_value = self.value;
-    ///        self.value = false;
-    ///        core::mem::forget(forgotten_value);
-    ///    }
+    /// pub fn forget_something(n: WithoutCopy) -> u64 {
+    ///     core::mem::forget(n);
+    ///     0
+    /// }
+    /// ```
     ///
-    ///     ```
     /// Use instead:
-    ///```rust
-    ///    pub fn forget_value(&mut self) {
-    ///        let forgotten_value = self.value;
-    ///        self.value = false;
-    ///        let _ = forgotten_value;
-    ///    }
-    ///
-    /// // or use drop if droppable
-    ///
-    ///    pub fn drop_value(&mut self) {
-    ///        let forgotten_value = self.value;
-    ///        self.value = false;
-    ///        forget_value.drop();
-    ///    }
-    ///```
+    /// ```rust
+    /// pub fn forget_something(n: WithoutCopy) -> u64 {
+    ///     let _ = n;
+    ///     0
+    /// }
+    /// ```
 
     pub CORE_MEM_FORGET,
     Warn,
@@ -69,7 +59,6 @@ impl EarlyLintPass for CoreMemForget {
             if path.segments[1].ident.name.to_string() == "mem";
             if path.segments[2].ident.name.to_string() == "forget";
             then {
-
                 Detector::CoreMemForget.span_lint_and_help(
                     cx,
                     CORE_MEM_FORGET,

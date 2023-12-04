@@ -25,11 +25,9 @@ mod tests {
 
         assert_eq!((inverse - result) / inverse, 0);
         assert_eq!((inverse - result) / result, 0);
-
     }
 
     fn inverse_square_root_without_unsafe(n: u64) -> u64 {
         (1.0 / (n as f64).sqrt()).to_bits()
-
     }
 }

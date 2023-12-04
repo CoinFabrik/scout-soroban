@@ -25,7 +25,7 @@ cargo install cargo-dylint dylint-link
 Afterwards, install Scout with the following command:
 
 ```bash
-cargo install cargo-scout-audit
+cargo install --path apps/cargo-scout-audit
 ```
 
 To run Scout on your project, navigate to its root directory and execute the following command:
@@ -38,10 +38,12 @@ cargo scout-audit
 
 | Detector ID                                                                                                              | What it Detects                                                                                                                                                                                           | Test Cases                                                                                                                                                                                                                                               | Severity    |
 | ------------------------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------- |
-| [divide-before-multiply](https://github.com/CoinFabrik/scout-soroban/tree/main/detectors/divide-before-multiply)      | Performing a division operation before a multiplication, leading to loss of precision.    | [1](https://github.com/CoinFabrik/scout-soroban/tree/main/test-cases/divide-before-multiply/divide-before-multiply-1), [2](https://github.com/CoinFabrik/scout-soroban/tree/main/test-cases/divide-before-multiply/divide-before-multiply-1), [3](https://github.com/CoinFabrik/scout-soroban/tree/main/test-cases/divide-before-multiply/divide-before-multiply-1) | Medium    |
-| unsafe-unwrap      | Inappropriate usage of the unwrap method, causing unexpected program crashes.    | [1](https://github.com/CoinFabrik/scout-soroban/tree/main/test-cases/unsafe-unwrap/unsafe-unwrap-1)| Medium    |
+| [divide-before-multiply](https://github.com/CoinFabrik/scout-soroban/tree/main/detectors/divide-before-multiply)      | Performing a division operation before a multiplication, leading to loss of precision.    | [1](https://github.com/CoinFabrik/scout-soroban/tree/main/test-cases/divide-before-multiply/divide-before-multiply-1), [2](https://github.com/CoinFabrik/scout-soroban/tree/main/test-cases/divide-before-multiply/divide-before-multiply-2), [3](https://github.com/CoinFabrik/scout-soroban/tree/main/test-cases/divide-before-multiply/divide-before-multiply-3) | Medium    |
+| [unsafe-unwrap](https://github.com/CoinFabrik/scout-soroban/tree/main/detectors/unsafe-unwrap)      | Inappropriate usage of the unwrap method, causing unexpected program crashes.    | [1](https://github.com/CoinFabrik/scout-soroban/tree/main/test-cases/unsafe-unwrap/unsafe-unwrap-1)| Medium    |
 | [unsafe-expect](https://github.com/CoinFabrik/scout-soroban/tree/main/detectors/unsafe-expect)       | Improper usage of the expect method, leading to unexpected program crashes.    | [1](https://github.com/CoinFabrik/scout-soroban/tree/main/test-cases/unsafe-expect/unsafe-expect-1)| Medium    |
 | [overflow-check](https://github.com/CoinFabrik/scout-soroban/tree/main/detectors/overflow-check)       | An arithmetic operation overflows or underflows the available memory allocated to the variable.    | [1](https://github.com/CoinFabrik/scout-soroban/tree/main/test-cases/overflow-check/overflow-check-1)| Critical    |
+| [insufficiently-random-values](https://github.com/CoinFabrik/scout-soroban/tree/main/detectors/insufficiently-random-values)       | Avoid using block attributes for random number generation to prevent manipulation.    | [1](https://github.com/CoinFabrik/scout-soroban/tree/main/test-cases/insufficiently-random-values/insufficiently-random-values-1)| Critical    |
+| [unprotected-update-current-contract-wasm](https://github.com/CoinFabrik/scout-soroban/tree/main/detectors/unprotected-update-current-contract-wasm)       | If users are allowed to call `update_current_contract_wasm()`, they can intentionally modify the contract behaviour.    | [1](https://github.com/CoinFabrik/scout-soroban/tree/main/test-cases/unprotected-update-current-contract-wasm/unprotected-update-current-contract-wasm-1)| Critical    |
 
 
 ## Tests

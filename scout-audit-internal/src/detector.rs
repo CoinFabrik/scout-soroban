@@ -43,7 +43,6 @@ impl Detector {
             Detector::InsufficientlyRandomValues => INSUFFICIENTLY_RANDOM_VALUES_LINT_MESSAGE,
 
             Detector::DivideBeforeMultiply => DIVIDE_BEFORE_MULTIPLY_LINT_MESSAGE,
-            Detector::InsufficientlyRandomValues => INSUFFICIENTLY_RANDOM_VALUES_LINT_MESSAGE,
             Detector::OverflowCheck => OVERFLOW_CHECK_LINT_MESSAGE,
             Detector::UnprotectedUpdateCurrentContractWasm => {
                 UNPROTECTED_UPDATE_CURRENT_CONTRACT_LINT_MESSAGE

@@ -1,9 +1,9 @@
 #![no_std]
 use soroban_sdk::{contract, contractimpl};
 #[contract]
-pub struct UnsafeBlock;
+pub struct AvoidUnsafeBlock;
 #[contractimpl]
-impl UnsafeBlock {
+impl AvoidUnsafeBlock {
     pub fn unsafe_function(n: u64) -> u64 {
         let mut i = n as f64;
         let mut y = i.to_bits();
@@ -16,11 +16,11 @@ impl UnsafeBlock {
 }
 #[cfg(test)]
 mod tests {
-    use crate::UnsafeBlock;
+    use crate::AvoidUnsafeBlock;
     #[test]
     fn test_unsafe_block() {
         let test_value = 8;
-        let result = UnsafeBlock::unsafe_function(test_value);
+        let result = AvoidUnsafeBlock::unsafe_function(test_value);
         let inverse = inverse_square_root_without_unsafe(test_value);
 
         assert_eq!((inverse - result) / inverse, 0);

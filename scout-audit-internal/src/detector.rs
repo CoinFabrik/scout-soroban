@@ -45,7 +45,7 @@ impl Detector {
             Detector::UnprotectedUpdateCurrentContractWasm => {
                 UNPROTECTED_UPDATE_CURRENT_CONTRACT_MESSAGE
             }
-            Detector::UnsafeBlock => UNSAFE_BLOCK_LINT_MESSAGE,
+            Detector::AvoidUnsafeBlock => AVOID_UNSAFE_BLOCK_LINT_MESSAGE,
             Detector::UnsafeExpect => UNSAFE_EXPECT_LINT_MESSAGE,
             Detector::UnsafeUnwrap => UNSAFE_UNWRAP_MESSAGE,
         }

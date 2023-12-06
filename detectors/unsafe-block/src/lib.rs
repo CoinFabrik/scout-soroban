@@ -14,41 +14,46 @@ use scout_audit_internal::Detector;
 
 dylint_linting::declare_late_lint! {
     /// ### What it does
-    /// Checks for usage of `unwrap`
+    /// Checks for usage of `unsafe` blocks.
     ///
     /// ### Why is this bad?
-    /// `unwrap` might panic if the result value is an error or `None`.
+    /// `unsafe` blocks should not be used unless absolutely necessary.
     ///
     /// ### Example
     /// ```rust
-    /// // example code where a warning is issued
-    /// fn main() {
-    ///    let result = result_fn().unwrap("error");
-    /// }
+    ///pub fn unsafe_function(n: u64) -> u64 {
+    ///    unsafe {
+    ///        let mut i = n as f64;
+    ///        let mut y = i.to_bits();
+    ///        y = 0x5fe6ec85e7de30da - (y >> 1);
+    ///        i = f64::from_bits(y);
+    ///        i *= 1.5 - 0.5 * n as f64 * i * i;
+    ///        i *= 1.5 - 0.5 * n as f64 * i * i;
     ///
-    /// fn result_fn() -> Result<u8, Error> {
-    ///     Err(Error::new(ErrorKind::Other, "error"))
-    /// }
-    /// ```
+    ///        let result_ptr: *mut f64 = &mut i;
+    ///        let result = *result_ptr;
+    ///
+    ///        result.to_bits()
+    ///     }
+    ///}
     /// Use instead:
     /// ```rust
-    /// // example code that does not raise a warning
-    /// fn main() {
-    ///    let result = if let Ok(result) = result_fn() {
-    ///       result
-    ///   }
-    /// }
-    ///
-    /// fn result_fn() -> Result<u8, Error> {
-    ///     Err(Error::new(ErrorKind::Other, "error"))
-    /// }
+    ///pub fn unsafe_function(n: u64) -> u64 {
+    ///        let mut i = n as f64;
+    ///        let mut y = i.to_bits();
+    ///        y = 0x5fe6ec85e7de30da - (y >> 1);
+    ///        i = f64::from_bits(y);
+    ///        i *= 1.5 - 0.5 * n as f64 * i * i;
+    ///        i *= 1.5 - 0.5 * n as f64 * i * i;
+    ///        result.to_bits()
+    ///}
     /// ```
-    pub UNSAFE_BLOCK,
+    pub AVOID_UNSAFE_BLOCK,
     Warn,
-    Detector::UnsafeBlock.get_lint_message()
+    Detector::AvoidUnsafeBlock.get_lint_message()
 }
 
-impl<'tcx> LateLintPass<'tcx> for UnsafeBlock {
+impl<'tcx> LateLintPass<'tcx> for AvoidUnsafeBlock {
     fn check_fn(
         &mut self,
         cx: &rustc_lint::LateContext<'tcx>,
@@ -66,7 +71,7 @@ impl<'tcx> LateLintPass<'tcx> for UnsafeBlock {
             fn visit_expr(&mut self, expr: &'tcx Expr<'_>) {
                 match expr.kind {
                     ExprKind::Block(ref block, _) => {
-                        if block.rules == rustc_hir::BlockCheckMode::UnsafeBlock(
+                        if block.rules == rustc_hir::BlockCheckMode::AvoidUnsafeBlock(
                             rustc_hir::UnsafeSource::UserProvided,
                         ) {
                             self.unsafe_blocks.push(Some(expr.span));
@@ -88,9 +93,9 @@ impl<'tcx> LateLintPass<'tcx> for UnsafeBlock {
 
         visitor.unsafe_blocks.iter().for_each(|span| {
             if let Some(span) = span {
-                Detector::UnsafeBlock.span_lint(
+                Detector::AvoidUnsafeBlock.span_lint(
                     cx,
-                    UNSAFE_BLOCK,
+                    AVOID_UNSAFE_BLOCK,
                     *span
                 );
             }

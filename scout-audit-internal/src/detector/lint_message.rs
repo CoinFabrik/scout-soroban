@@ -1,4 +1,4 @@
-pub const CORE_MEM_FORGET_LINT_MESSAGE: &str =
+pub const AVOID_CORE_MEM_FORGET_LINT_MESSAGE: &str =
     "Use the `let _ = ...` pattern or `.drop()` method to forget the value";
 pub const DIVIDE_BEFORE_MULTIPLY_LINT_MESSAGE: &str =
     "Division before multiplication might result in a loss of precision";

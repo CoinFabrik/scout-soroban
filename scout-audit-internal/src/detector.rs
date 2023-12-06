@@ -38,7 +38,7 @@ impl Detector {
     /// Returns the lint message for the detector.
     pub const fn get_lint_message(&self) -> &'static str {
         match self {
-            Detector::CoreMemForget => CORE_MEM_FORGET_LINT_MESSAGE,
+            Detector::AvoidCoreMemForget => AVOID_CORE_MEM_FORGET_LINT_MESSAGE,
             Detector::DivideBeforeMultiply => DIVIDE_BEFORE_MULTIPLY_LINT_MESSAGE,
             Detector::UnsafeExpect => UNSAFE_EXPECT_LINT_MESSAGE,
             Detector::OverflowCheck => OVERFLOW_CHECK_LINT_MESSAGE,

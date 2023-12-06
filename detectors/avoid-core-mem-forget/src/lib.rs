@@ -41,18 +41,18 @@ dylint_linting::impl_pre_expansion_lint! {
     ///    }
     ///```
 
-    pub CORE_MEM_FORGET,
+    pub AVOID_CORE_MEM_FORGET,
     Warn,
-    Detector::CoreMemForget.get_lint_message(),
-    CoreMemForget::default()
+    Detector::AvoidCoreMemForget.get_lint_message(),
+    AvoidCoreMemForget::default()
 }
 
 #[derive(Default)]
-pub struct CoreMemForget {
+pub struct AvoidCoreMemForget {
     stack: Vec<NodeId>,
 }
 
-impl EarlyLintPass for CoreMemForget {
+impl EarlyLintPass for AvoidCoreMemForget {
     fn check_item(&mut self, _cx: &EarlyContext, item: &Item) {
         if self.in_test_item() || is_test_item(item) {
             self.stack.push(item.id);
@@ -70,9 +70,9 @@ impl EarlyLintPass for CoreMemForget {
             if path.segments[2].ident.name.to_string() == "forget";
             then {
 
-                Detector::CoreMemForget.span_lint_and_help(
+                Detector::AvoidCoreMemForget.span_lint_and_help(
                     cx,
-                    CORE_MEM_FORGET,
+                    AVOID_CORE_MEM_FORGET,
                     expr.span,
                     "Instead, use the `let _ = ...` pattern or `.drop` method to forget the value.",
                 );
@@ -102,7 +102,7 @@ fn is_test_item(item: &Item) -> bool {
     })
 }
 
-impl CoreMemForget {
+impl AvoidCoreMemForget {
     fn in_test_item(&self) -> bool {
         !self.stack.is_empty()
     }

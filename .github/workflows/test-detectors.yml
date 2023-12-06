@@ -97,7 +97,7 @@ jobs:
           - macos-latest
         test:
           [
-            "avoid-avoid-avoid-core-mem-forget",
+            "avoid-core-mem-forget",
             "divide-before-multiply",
             "insufficiently-random-values",
             "overflow-check",

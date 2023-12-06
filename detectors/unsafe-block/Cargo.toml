@@ -1,5 +1,5 @@
 [package]
-name = "unsafe-block"
+name = "avoid-unsafe-block"
 version = "0.1.0"
 edition = "2021"
 

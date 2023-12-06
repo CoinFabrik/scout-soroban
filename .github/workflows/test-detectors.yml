@@ -104,6 +104,7 @@ jobs:
             "unprotected-update-current-contract-wasm",
             "unsafe-expect",
             "unsafe-unwrap",
+            "avoid-unsafe-block"
           ]
     runs-on: ${{ matrix.os }}
     steps:

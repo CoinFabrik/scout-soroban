@@ -98,13 +98,13 @@ jobs:
         test:
           [
             "avoid-core-mem-forget",
+            "avoid-unsafe-block",
             "divide-before-multiply",
             "insufficiently-random-values",
             "overflow-check",
             "unprotected-update-current-contract-wasm",
             "unsafe-expect",
             "unsafe-unwrap",
-            "avoid-unsafe-block"
           ]
     runs-on: ${{ matrix.os }}
     steps:

@@ -9,7 +9,7 @@ use rustc_hir::{
     Expr, ExprKind,
 };
 use rustc_lint::LateLintPass;
-use rustc_span::{Span, Symbol};
+use rustc_span::Span;
 use scout_audit_internal::Detector;
 
 dylint_linting::declare_late_lint! {
@@ -69,18 +69,18 @@ impl<'tcx> LateLintPass<'tcx> for AvoidUnsafeBlock {
 
         impl<'tcx> Visitor<'tcx> for UnsafeBlockVisitor {
             fn visit_expr(&mut self, expr: &'tcx Expr<'_>) {
-                match expr.kind {
-                    ExprKind::Block(ref block, _) => {
-                        if block.rules == rustc_hir::BlockCheckMode::AvoidUnsafeBlock(
+                if let ExprKind::Block(block, _) = expr.kind {
+                    if block.rules
+                        == rustc_hir::BlockCheckMode::UnsafeBlock(
                             rustc_hir::UnsafeSource::UserProvided,
-                        ) {
-                            self.unsafe_blocks.push(Some(expr.span));
-                        } else {
-                            self.unsafe_blocks.push(None);
-                        }
+                        )
+                    {
+                        self.unsafe_blocks.push(Some(expr.span));
+                    } else {
+                        self.unsafe_blocks.push(None);
                     }
-                    _ => {}
                 }
+
                 walk_expr(self, expr);
             }
         }
@@ -93,13 +93,8 @@ impl<'tcx> LateLintPass<'tcx> for AvoidUnsafeBlock {
 
         visitor.unsafe_blocks.iter().for_each(|span| {
             if let Some(span) = span {
-                Detector::AvoidUnsafeBlock.span_lint(
-                    cx,
-                    AVOID_UNSAFE_BLOCK,
-                    *span
-                );
+                Detector::AvoidUnsafeBlock.span_lint(cx, AVOID_UNSAFE_BLOCK, *span);
             }
         });
-        
     }
 }

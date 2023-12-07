@@ -26,12 +26,12 @@ use strum::{Display, EnumIter};
 #[derive(Debug, Display, Clone, EnumIter, PartialEq, Eq, Hash)]
 #[strum(serialize_all = "kebab-case")]
 pub enum Detector {
+    AvoidUnsafeBlock,
     AvoidCoreMemForget,
     DivideBeforeMultiply,
     InsufficientlyRandomValues,
     OverflowCheck,
     UnprotectedUpdateCurrentContractWasm,
-    UnsafeBlock,
     UnsafeExpect,
     UnsafeUnwrap,
 }

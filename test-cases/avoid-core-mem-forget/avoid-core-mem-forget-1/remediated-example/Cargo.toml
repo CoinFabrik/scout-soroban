@@ -1,5 +1,5 @@
 [package]
-name = "core-mem-forget-1-vulnerable"
+name = "avoid-core-mem-forget-1-remediated"
 version = "0.1.0"
 edition = "2021"
 

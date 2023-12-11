@@ -32,14 +32,14 @@ impl ForLoopVisitor {
         if let QPath::Resolved(_, path) = path {
             // We search the path, if it has been previously defined or is a constant then we are good
             match path.res {
-                Res::Local(local_def_id) => self.constants.contains(&local_def_id),
                 Res::Def(def_kind, _) => matches!(
                     def_kind,
-                    DefKind::Const
-                        | DefKind::AnonConst
-                        | DefKind::InlineConst
+                    DefKind::AnonConst
                         | DefKind::AssocConst
+                        | DefKind::Const
+                        | DefKind::InlineConst
                 ),
+                Res::Local(hir_id) => self.constants.contains(&hir_id),
                 _ => false,
             }
         } else {
@@ -47,24 +47,26 @@ impl ForLoopVisitor {
         }
     }
 
-    fn is_expr_constant(&self, expr: &Expr) -> bool {
-        match expr.kind {
-            ExprKind::Lit(_) => true,
-            ExprKind::Array(array) => array.iter().all(|expr| self.is_expr_constant(expr)),
-            ExprKind::Field(expr, _) => self.is_expr_constant(expr),
-            ExprKind::Path(path) => self.is_qpath_constant(&path),
-            ExprKind::MethodCall(_, expr, _, _) => self.is_expr_constant(expr),
+    fn is_expr_constant(&self, current_expr: &Expr) -> bool {
+        match current_expr.kind {
+            ExprKind::Array(expr_array) => expr_array
+                .iter()
+                .all(|expr_in_array| self.is_expr_constant(expr_in_array)),
             ExprKind::Binary(_, left_expr, right_expr) => {
                 self.is_expr_constant(left_expr) && self.is_expr_constant(right_expr)
             }
-            ExprKind::Struct(_, fields, _) => {
-                fields.iter().all(|field| self.is_expr_constant(field.expr))
+            ExprKind::Cast(cast_expr, _) => self.is_expr_constant(cast_expr),
+            ExprKind::Field(field_expr, _) => self.is_expr_constant(field_expr),
+            ExprKind::Index(array_expr, index_expr, _) => {
+                self.is_expr_constant(array_expr) && self.is_expr_constant(index_expr)
             }
-            ExprKind::Repeat(expr, _) => self.is_expr_constant(expr),
-            ExprKind::Cast(expr, _) => self.is_expr_constant(expr),
-            ExprKind::Index(array, value, _) => {
-                self.is_expr_constant(array) && self.is_expr_constant(value)
-            }
+            ExprKind::Lit(_) => true,
+            ExprKind::MethodCall(_, call_expr, _, _) => self.is_expr_constant(call_expr),
+            ExprKind::Path(qpath_expr) => self.is_qpath_constant(&qpath_expr),
+            ExprKind::Repeat(repeat_expr, _) => self.is_expr_constant(repeat_expr),
+            ExprKind::Struct(_, expr_fields, _) => expr_fields
+                .iter()
+                .all(|field_expr| self.is_expr_constant(field_expr.expr)),
             _ => false,
         }
     }

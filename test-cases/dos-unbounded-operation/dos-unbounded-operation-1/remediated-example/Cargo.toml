@@ -1,5 +1,5 @@
 [package]
-name = "dos-unbounded-operation-vulnerable-1"
+name = "dos-unbounded-operation-remediated-1"
 version = "0.1.0"
 edition = "2021"
 

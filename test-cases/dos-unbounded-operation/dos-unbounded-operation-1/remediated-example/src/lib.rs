@@ -4,14 +4,16 @@ use soroban_sdk::{contract, contractimpl};
 #[contract]
 pub struct DosUnboundedOperation;
 
+const FIXED_COUNT: u64 = 500;
+
 #[contractimpl]
 impl DosUnboundedOperation {
-    pub fn unrestricted_for_loop(for_loop_count: u64) -> u64 {
-        let mut count = 0;
-        for i in 0..for_loop_count {
-            count += i;
+    pub fn safe_loop_with_const() -> u64 {
+        let mut sum = 0;
+        for i in 0..FIXED_COUNT {
+            sum += i;
         }
-        count
+        sum
     }
 }
 
@@ -25,10 +27,9 @@ mod tests {
         // ..
 
         // When
-        let for_loop_count = 1000;
-        let count = DosUnboundedOperation::unrestricted_for_loop(for_loop_count);
+        let count = DosUnboundedOperation::safe_loop_with_const();
 
         // Then
-        assert_eq!(count, 499500);
+        assert_eq!(count, 124750);
     }
 }

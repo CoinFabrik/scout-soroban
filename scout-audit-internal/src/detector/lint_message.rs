@@ -2,7 +2,6 @@ pub const AVOID_CORE_MEM_FORGET_LINT_MESSAGE: &str =
     "Use the `let _ = ...` pattern or `.drop()` method to forget the value";
 pub const AVOID_UNSAFE_BLOCK_LINT_MESSAGE: &str =
     "Avoid using unsafe blocks as it may lead to undefined behavior";
-pub const INSUFFICIENTLY_RANDOM_VALUES_LINT_MESSAGE: &str = "Use env.prng() to generate random numbers, and remember that all random numbers are under the control of validators";
 pub const INSUFFICIENTLY_RANDOM_VALUES_LINT_MESSAGE: &str =
     "Use env.prng() to generate random numbers, and remember that all random numbers are under the control of validators";
 

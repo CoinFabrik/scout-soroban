@@ -26,11 +26,12 @@ use strum::{Display, EnumIter};
 #[derive(Debug, Display, Clone, EnumIter, PartialEq, Eq, Hash)]
 #[strum(serialize_all = "kebab-case")]
 pub enum Detector {
-    AvoidUnsafeBlock,
     AvoidCoreMemForget,
+    AvoidUnsafeBlock,
     DivideBeforeMultiply,
     InsufficientlyRandomValues,
     OverflowCheck,
+    SetContractStorage,
     UnprotectedUpdateCurrentContractWasm,
     UnsafeExpect,
     UnsafeUnwrap,
@@ -45,6 +46,7 @@ impl Detector {
 
             Detector::DivideBeforeMultiply => DIVIDE_BEFORE_MULTIPLY_LINT_MESSAGE,
             Detector::OverflowCheck => OVERFLOW_CHECK_LINT_MESSAGE,
+            Detector::SetContractStorage => SET_CONTRACT_STORAGE_LINT_MESSAGE,
             Detector::UnprotectedUpdateCurrentContractWasm => {
                 UNPROTECTED_UPDATE_CURRENT_CONTRACT_LINT_MESSAGE
             }

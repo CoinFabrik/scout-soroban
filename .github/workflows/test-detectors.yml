@@ -102,6 +102,7 @@ jobs:
             "divide-before-multiply",
             "insufficiently-random-values",
             "overflow-check",
+            "set-contract-storage",
             "unprotected-update-current-contract-wasm",
             "unsafe-expect",
             "unsafe-unwrap",

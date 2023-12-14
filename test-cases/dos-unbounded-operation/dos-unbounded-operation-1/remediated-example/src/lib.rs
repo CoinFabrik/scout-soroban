@@ -4,7 +4,7 @@ use soroban_sdk::{contract, contractimpl};
 #[contract]
 pub struct DosUnboundedOperation;
 
-const FIXED_COUNT: u64 = 500;
+const FIXED_COUNT: u64 = 1000;
 
 #[contractimpl]
 impl DosUnboundedOperation {
@@ -30,6 +30,6 @@ mod tests {
         let count = DosUnboundedOperation::safe_loop_with_const();
 
         // Then
-        assert_eq!(count, 124750);
+        assert_eq!(count, 499500);
     }
 }

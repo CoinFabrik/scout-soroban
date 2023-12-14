@@ -6,7 +6,7 @@ pub struct DosUnboundedOperation;
 
 #[contractimpl]
 impl DosUnboundedOperation {
-    pub fn unrestricted_for_loop(for_loop_count: u64) -> u64 {
+    pub fn unrestricted_loop(for_loop_count: u64) -> u64 {
         let mut count = 0;
         for i in 0..for_loop_count {
             count += i;
@@ -20,13 +20,13 @@ mod tests {
     use crate::DosUnboundedOperation;
 
     #[test]
-    fn test_unrestricted_for_loop() {
+    fn test_for_loop() {
         // Given
         // ..
 
         // When
         let for_loop_count = 1000;
-        let count = DosUnboundedOperation::unrestricted_for_loop(for_loop_count);
+        let count = DosUnboundedOperation::unrestricted_loop(for_loop_count);
 
         // Then
         assert_eq!(count, 499500);

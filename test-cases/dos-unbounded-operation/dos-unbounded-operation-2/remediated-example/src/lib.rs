@@ -32,7 +32,7 @@ mod tests {
         // ...
 
         // When
-        let count = DosUnboundedOperation::safe_loop_with_vector();
+        let count = DosUnboundedOperation::safe_loop_with_struct();
 
         // Then
         assert_eq!(count, 499500);

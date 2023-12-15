@@ -118,3 +118,10 @@ and has a Critical severity.
 If users are allowed to call `update_current_contract_wasm()`, they can intentionally modify the contract behaviour, leading to the loss of all associated data/tokens and functionalities given by this contract or by others that depend on it. To prevent this, the function should be restricted to administrators or authorized users only.
 
 This vulnerability falls under the [Authorization](#vulnerability-categories) category and has a Critical severity.
+
+### Avoid core::mem::forget
+
+The `core::mem::forget` function is used to forget about a value without running its destructor. This could lead to memory leaks and logic errors.
+
+We classified this issue, a deviation from best practices which could have
+security implications, under the [Best practices](#vulnerability-categories) category and assigned it an Enhancement severity.

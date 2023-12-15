@@ -26,11 +26,12 @@ use strum::{Display, EnumIter};
 #[derive(Debug, Display, Clone, EnumIter, PartialEq, Eq, Hash)]
 #[strum(serialize_all = "kebab-case")]
 pub enum Detector {
-    CoreMemForget,
+    AvoidCoreMemForget,
     DivideBeforeMultiply,
     DosUnboundedOperation,
     InsufficientlyRandomValues,
     OverflowCheck,
+    SetContractStorage,
     UnprotectedUpdateCurrentContractWasm,
     UnsafeExpect,
     UnsafeUnwrap,
@@ -40,11 +41,12 @@ impl Detector {
     /// Returns the lint message for the detector.
     pub const fn get_lint_message(&self) -> &'static str {
         match self {
-            Detector::CoreMemForget => CORE_MEM_FORGET_LINT_MESSAGE,
+            Detector::AvoidCoreMemForget => AVOID_CORE_MEM_FORGET_LINT_MESSAGE,
             Detector::DivideBeforeMultiply => DIVIDE_BEFORE_MULTIPLY_LINT_MESSAGE,
             Detector::DosUnboundedOperation => DOS_UNBOUNDED_OPERATION_LINT_MESSAGE,
             Detector::InsufficientlyRandomValues => INSUFFICIENTLY_RANDOM_VALUES_LINT_MESSAGE,
             Detector::OverflowCheck => OVERFLOW_CHECK_LINT_MESSAGE,
+            Detector::SetContractStorage => SET_CONTRACT_STORAGE_LINT_MESSAGE,
             Detector::UnprotectedUpdateCurrentContractWasm => {
                 UNPROTECTED_UPDATE_CURRENT_CONTRACT_LINT_MESSAGE
             }

@@ -2,7 +2,7 @@
 use soroban_sdk::{contract, contractimpl, contracttype};
 
 #[contract]
-pub struct CoreMemForget;
+pub struct AvoidCoreMemForget;
 
 #[contracttype]
 #[derive(Eq, PartialEq)]
@@ -12,9 +12,9 @@ pub struct WithoutCopy {
 }
 
 #[contractimpl]
-impl CoreMemForget {
+impl AvoidCoreMemForget {
     pub fn forget_something(n: WithoutCopy) -> u64 {
-        core::mem::forget(n);
+        let _ = n;
         0
     }
 }
@@ -25,13 +25,10 @@ mod tests {
 
     #[test]
     fn test_forget_something() {
-        // Given
         let test_value: WithoutCopy = WithoutCopy { a: 80, b: 60 };
 
-        // When
-        let result = CoreMemForget::forget_something(test_value);
+        let result = AvoidCoreMemForget::forget_something(test_value);
 
-        // Then
         assert_eq!(result, 0);
     }
 }

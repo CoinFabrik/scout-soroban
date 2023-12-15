@@ -125,3 +125,24 @@ The `core::mem::forget` function is used to forget about a value without running
 
 We classified this issue, a deviation from best practices which could have
 security implications, under the [Best practices](#vulnerability-categories) category and assigned it an Enhancement severity.
+
+### Set contract storage
+
+Smart contracts can store important information in memory which changes through the contract's lifecycle. Changes happen via user interaction with the smart contract. An _unauthorized_ set contract storage vulnerability happens when a smart contract call allows a user to set or modify contract memory when they were not supposed to be authorized.
+
+Common practice is to have functions with the ability to change
+security-relevant values in memory to be only accessible to specific roles,
+e.g, only an admin can call the function `reset()` which resets auction values.
+When this does not happen, arbitrary users may alter memory which may impose
+great damage to the smart contract users.
+
+In `Soroban`, the method `env.storage()` can be used
+to modify the contract storage under a given key. When a smart contract uses
+this method, the contract needs to check if the caller should be able to
+alter this storage. If this does not happen, an arbitary caller may modify
+balances and other relevant contract storage.
+
+We classified this type of vulnerability under
+the [Authorization](#vulnerability-categories) category and assigned it a
+Critical severity.
+

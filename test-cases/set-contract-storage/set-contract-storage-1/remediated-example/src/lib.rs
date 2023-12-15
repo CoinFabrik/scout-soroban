@@ -15,7 +15,7 @@ impl SetContractStorage {
         let mut count: u32 = storage.get(&COUNTER).unwrap_or(0);
         count += 1;
         storage.set(&COUNTER, &count);
-        storage.bump(100, 100);
+        storage.extend_ttl(100, 100);
         count
     }
 }
@@ -33,7 +33,7 @@ mod tests {
         let contract_id = env.register_contract(None, SetContractStorage);
         let client = SetContractStorageClient::new(&env, &contract_id);
         env.mock_all_auths();
-        let user = <Address as testutils::Address>::random(&env);
+        let user = <Address as testutils::Address>::generate(&env);
 
         // When
         let first_increment = client.increment(&user);

@@ -146,5 +146,3 @@ We classified this type of vulnerability under
 the [Authorization](#vulnerability-categories) category and assigned it a
 Critical severity.
 
-
-

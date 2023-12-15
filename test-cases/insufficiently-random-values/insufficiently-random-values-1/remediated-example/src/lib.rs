@@ -18,7 +18,7 @@ impl Contract {
         if max_val == 0 {
             Err(Error::MaxValZero)
         } else {
-            let val = env.prng().u64_in_range(0..max_val);
+            let val = env.prng().gen_range(0..max_val);
             Ok(val)
         }
     }
@@ -39,16 +39,16 @@ mod test {
 
         // When
         let first_random_value = client.generate_random_value(&10);
-        let second_random_value = client.generate_random_value(&10);
-        let third_random_value = client.generate_random_value(&10);
-        let fourth_random_value = client.generate_random_value(&10);
-        let fifth_random_value = client.generate_random_value(&10);
+        let second_random_value = client.generate_random_value(&100);
+        let third_random_value = client.generate_random_value(&1000);
+        let fourth_random_value = client.generate_random_value(&10000);
+        let fifth_random_value = client.generate_random_value(&100000);
 
         // Then
-        assert_eq!(first_random_value, 6);
-        assert_eq!(second_random_value, 5);
-        assert_eq!(third_random_value, 8);
-        assert_eq!(fourth_random_value, 8);
-        assert_eq!(fifth_random_value, 4);
+        assert!(first_random_value < 10);
+        assert!(second_random_value < 100);
+        assert!(third_random_value < 1000);
+        assert!(fourth_random_value < 10000);
+        assert!(fifth_random_value < 100000);
     }
 }

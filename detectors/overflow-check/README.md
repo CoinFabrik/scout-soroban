@@ -27,7 +27,7 @@ crate-type = ["cdylib"]
 soroban-sdk = "20.0.0-rc2"
 
 [dev_dependencies]
-soroban-sdk = { version = "20.0.0-rc2", features = ["testutils"] }
+soroban-sdk = { version = "=20.0.0", features = ["testutils"] }
 
 [features]
 testutils = ["soroban-sdk/testutils"]
@@ -63,7 +63,7 @@ crate-type = ["cdylib"]
 soroban-sdk = "20.0.0-rc2"
 
 [dev_dependencies]
-soroban-sdk = { version = "20.0.0-rc2", features = ["testutils"] }
+soroban-sdk = { version = "=20.0.0", features = ["testutils"] }
 
 [features]
 testutils = ["soroban-sdk/testutils"]

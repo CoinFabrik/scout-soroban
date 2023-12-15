@@ -15,7 +15,7 @@ impl SetContractStorage {
         let mut count: u32 = storage.get(&COUNTER).unwrap_or(0);
         count += 1;
         storage.set(&COUNTER, &count);
-        storage.bump(100, 100);
+        storage.extend_ttl(100, 100);
         count
     }
 }

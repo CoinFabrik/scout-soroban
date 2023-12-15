@@ -119,6 +119,12 @@ If users are allowed to call `update_current_contract_wasm()`, they can intentio
 
 This vulnerability falls under the [Authorization](#vulnerability-categories) category and has a Critical severity.
 
+### Avoid core::mem::forget
+
+The `core::mem::forget` function is used to forget about a value without running its destructor. This could lead to memory leaks and logic errors.
+
+We classified this issue, a deviation from best practices which could have
+security implications, under the [Best practices](#vulnerability-categories) category and assigned it an Enhancement severity.
 
 ### Set contract storage
 

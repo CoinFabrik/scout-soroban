@@ -29,21 +29,30 @@ dylint_linting::impl_pre_expansion_lint! {
     ///
     /// ### Example
     /// ```rust
-    /// pub fn add(&mut self, value: u32)   {
-    ///    match self.value.checked_add(value) {
-    ///        Some(v) => self.value = v,
-    ///        None => panic!("Overflow error"),
-    ///    };
+    /// pub fn add(env: Env, value: u32) -> u32 {
+    ///     let storage = env.storage().instance();
+    ///     let mut count: u32 = storage.get(&COUNTER).unwrap_or(0);
+    ///     match count.checked_add(value) {
+    ///         Some(value) => count = value,
+    ///         None => panic!("Overflow error"),
+    ///     }
+    ///     storage.set(&COUNTER, &count);
+    ///     storage.extend_ttl(100, 100);
+    ///     count
     /// }
     /// ```
     /// Use instead:
     /// ```rust
-    /// pub fn add(&mut self, value: u32) -> Result<(), Error>  {
-    ///     match self.value.checked_add(value) {
-    ///         Some(v) => self.value = v,
+    /// pub fn add(env: Env, value: u32) -> Result<u32, Error> {
+    ///     let storage = env.storage().instance();
+    ///     let mut count: u32 = storage.get(&COUNTER).unwrap_or(0);
+    ///     match count.checked_add(value) {
+    ///         Some(value) => count = value,
     ///         None => return Err(Error::OverflowError),
-    ///     };
-    ///     Ok(())
+    ///     }
+    ///     storage.set(&COUNTER, &count);
+    ///     storage.extend_ttl(100, 100);
+    ///     Ok(count)
     /// }
     /// ```
     pub AVOID_PANIC_ERROR,

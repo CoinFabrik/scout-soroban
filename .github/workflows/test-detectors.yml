@@ -98,6 +98,7 @@ jobs:
         test:
           [
             "avoid-core-mem-forget",
+            "avoid-panic-error",
             "divide-before-multiply",
             "insufficiently-random-values",
             "overflow-check",

@@ -1,8 +1,8 @@
 pub const AVOID_CORE_MEM_FORGET_LINT_MESSAGE: &str =
     "Use the `let _ = ...` pattern or `.drop()` method to forget the value";
+pub const AVOID_PANIC_ERROR_LINT_MESSAGE: &str = "The panic! macro is used to stop execution when a condition is not met. Even when this does not break the execution of the contract, it is recommended to use Result instead of panic! because it will stop the execution of the caller contract";
 pub const INSUFFICIENTLY_RANDOM_VALUES_LINT_MESSAGE: &str =
     "Use env.prng() to generate random numbers, and remember that all random numbers are under the control of validators";
-
 pub const DIVIDE_BEFORE_MULTIPLY_LINT_MESSAGE: &str =
     "Division before multiplication might result in a loss of precision";
 pub const OVERFLOW_CHECK_LINT_MESSAGE: &str = "Use `overflow-checks = true` in Cargo.toml profile";

@@ -31,6 +31,7 @@ pub enum Detector {
     InsufficientlyRandomValues,
     OverflowCheck,
     SetContractStorage,
+    SorobanVersion,
     UnprotectedUpdateCurrentContractWasm,
     UnsafeExpect,
     UnsafeUnwrap,
@@ -46,6 +47,7 @@ impl Detector {
             Detector::DivideBeforeMultiply => DIVIDE_BEFORE_MULTIPLY_LINT_MESSAGE,
             Detector::OverflowCheck => OVERFLOW_CHECK_LINT_MESSAGE,
             Detector::SetContractStorage => SET_CONTRACT_STORAGE_LINT_MESSAGE,
+            Detector::SorobanVersion => SOROBAN_VERSION_LINT_MESSAGE,
             Detector::UnprotectedUpdateCurrentContractWasm => {
                 UNPROTECTED_UPDATE_CURRENT_CONTRACT_LINT_MESSAGE
             }
@@ -80,7 +82,7 @@ fn print_scout_output(lint: Lint, span: Span) {
         .map(|s| s.trim().to_string())
         .collect();
 
-    let no_span_detectors = ["OVERFLOW_CHECK"];
+    let no_span_detectors = ["OVERFLOW_CHECK", "CHECK_SOROBAN_VERSION"];
 
     if no_span_detectors.contains(&lint.name.to_owned().as_str()) {
         let span = json!({

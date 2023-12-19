@@ -102,6 +102,7 @@ jobs:
             "insufficiently-random-values",
             "overflow-check",
             "set-contract-storage",
+            "soroban-version",
             "unprotected-update-current-contract-wasm",
             "unsafe-expect",
             "unsafe-unwrap",

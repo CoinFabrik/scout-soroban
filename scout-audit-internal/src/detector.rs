@@ -27,6 +27,7 @@ use strum::{Display, EnumIter};
 #[strum(serialize_all = "kebab-case")]
 pub enum Detector {
     AvoidCoreMemForget,
+    AvoidPanicError,
     DivideBeforeMultiply,
     InsufficientlyRandomValues,
     OverflowCheck,
@@ -41,8 +42,8 @@ impl Detector {
     pub const fn get_lint_message(&self) -> &'static str {
         match self {
             Detector::AvoidCoreMemForget => AVOID_CORE_MEM_FORGET_LINT_MESSAGE,
+            Detector::AvoidPanicError => AVOID_PANIC_ERROR_LINT_MESSAGE,
             Detector::InsufficientlyRandomValues => INSUFFICIENTLY_RANDOM_VALUES_LINT_MESSAGE,
-
             Detector::DivideBeforeMultiply => DIVIDE_BEFORE_MULTIPLY_LINT_MESSAGE,
             Detector::OverflowCheck => OVERFLOW_CHECK_LINT_MESSAGE,
             Detector::SetContractStorage => SET_CONTRACT_STORAGE_LINT_MESSAGE,

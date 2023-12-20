@@ -28,8 +28,3 @@ lto = true
 [profile.release-with-logs]
 inherits = "release"
 debug-assertions = true
-
-[workspace.metadata.dylint]
-libraries = [
-    { path = "/Users/josegarcia/Desktop/coinfabrik/scout-soroban/detectors/soroban-version" },
-]

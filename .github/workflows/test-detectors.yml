@@ -100,6 +100,7 @@ jobs:
             "avoid-core-mem-forget",
             "avoid-panic-error",
             "divide-before-multiply",
+            "dos-unbounded-operation",
             "insufficiently-random-values",
             "overflow-check",
             "set-contract-storage",

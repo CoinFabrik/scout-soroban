@@ -29,6 +29,7 @@ pub enum Detector {
     AvoidCoreMemForget,
     AvoidPanicError,
     DivideBeforeMultiply,
+    DosUnboundedOperation,
     InsufficientlyRandomValues,
     OverflowCheck,
     SetContractStorage,
@@ -43,8 +44,9 @@ impl Detector {
         match self {
             Detector::AvoidCoreMemForget => AVOID_CORE_MEM_FORGET_LINT_MESSAGE,
             Detector::AvoidPanicError => AVOID_PANIC_ERROR_LINT_MESSAGE,
-            Detector::InsufficientlyRandomValues => INSUFFICIENTLY_RANDOM_VALUES_LINT_MESSAGE,
             Detector::DivideBeforeMultiply => DIVIDE_BEFORE_MULTIPLY_LINT_MESSAGE,
+            Detector::DosUnboundedOperation => DOS_UNBOUNDED_OPERATION_LINT_MESSAGE,
+            Detector::InsufficientlyRandomValues => INSUFFICIENTLY_RANDOM_VALUES_LINT_MESSAGE,
             Detector::OverflowCheck => OVERFLOW_CHECK_LINT_MESSAGE,
             Detector::SetContractStorage => SET_CONTRACT_STORAGE_LINT_MESSAGE,
             Detector::UnprotectedUpdateCurrentContractWasm => {

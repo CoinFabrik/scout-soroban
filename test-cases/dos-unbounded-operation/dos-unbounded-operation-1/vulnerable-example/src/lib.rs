@@ -17,16 +17,20 @@ impl DosUnboundedOperation {
 
 #[cfg(test)]
 mod tests {
-    use crate::DosUnboundedOperation;
+    use soroban_sdk::Env;
+
+    use crate::{DosUnboundedOperation, DosUnboundedOperationClient};
 
     #[test]
     fn test_for_loop() {
         // Given
-        // ..
+        let env = Env::default();
+        let contract_id = env.register_contract(None, DosUnboundedOperation);
+        let client = DosUnboundedOperationClient::new(&env, &contract_id);
 
         // When
         let for_loop_count = 1000;
-        let count = DosUnboundedOperation::unrestricted_loop(for_loop_count);
+        let count = client.unrestricted_loop(&for_loop_count);
 
         // Then
         assert_eq!(count, 499500);

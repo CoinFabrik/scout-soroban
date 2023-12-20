@@ -20,16 +20,18 @@ mod tests {
 
     use soroban_sdk::{BytesN, Env};
 
-    use crate::DosUnboundedOperation;
+    use crate::{DosUnboundedOperation, DosUnboundedOperationClient};
 
     #[test]
     fn test_for_loop() {
         // Given
         let env = Env::default();
+        let contract_id = env.register_contract(None, DosUnboundedOperation);
+        let client = DosUnboundedOperationClient::new(&env, &contract_id);
 
         // When
         let unknown_array = BytesN::from_array(&env, &[0; 8]);
-        let count = DosUnboundedOperation::unsafe_loop_with_array(unknown_array);
+        let count = client.unsafe_loop_with_array(&unknown_array);
 
         // Then
         assert_eq!(count, 28);

@@ -23,16 +23,20 @@ impl DosUnboundedOperation {
 #[cfg(test)]
 mod tests {
 
-    use crate::{DosUnboundedOperation, KnownData};
+    use soroban_sdk::Env;
+
+    use crate::{DosUnboundedOperation, DosUnboundedOperationClient, KnownData};
 
     #[test]
     fn test_for_loop() {
         // Given
-        // ...
+        let env = Env::default();
+        let contract_id = env.register_contract(None, DosUnboundedOperation);
+        let client = DosUnboundedOperationClient::new(&env, &contract_id);
 
         // When
         let unknown_data = KnownData { fixed_value: 1000 };
-        let count = DosUnboundedOperation::unsafe_loop_with_struct(unknown_data);
+        let count = client.unsafe_loop_with_struct(&unknown_data);
 
         // Then
         assert_eq!(count, 499500);

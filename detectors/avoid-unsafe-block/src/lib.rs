@@ -76,8 +76,6 @@ impl<'tcx> LateLintPass<'tcx> for AvoidUnsafeBlock {
                         )
                     {
                         self.unsafe_blocks.push(Some(expr.span));
-                    } else {
-                        self.unsafe_blocks.push(None);
                     }
                 }
 

@@ -10,9 +10,7 @@ Scout is an extensible open-source tool intended to assist Soroban Stellar smart
 
 This tool will help developers write secure and more robust smart contracts.
 
-Our interest in this project comes from our experience in manual auditing and our usage of comparable tools in other blockchains.
-
-Following our work with Scout on Polkadot (see [Scout for ink!](https://github.com/CoinFabrik/scout)), we are planning to develop a CLI and a VS Code plugin that can identify issues in Soroban smart contracts. This tool will include detectors for a prioritized list of vulnerabilities, with the detectors implemented as linters in the Dylint linter.
+Our interest in this project comes from our experience in manual auditing and vulnerability detectin in other blockchains (see [Scout for ink!](https://github.com/CoinFabrik/scout)).
 
 ## Quick Start
 

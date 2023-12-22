@@ -28,6 +28,7 @@ use strum::{Display, EnumIter};
 pub enum Detector {
     AvoidCoreMemForget,
     AvoidPanicError,
+    AvoidUnsafeBlock,
     DivideBeforeMultiply,
     DosUnboundedOperation,
     InsufficientlyRandomValues,
@@ -54,6 +55,7 @@ impl Detector {
             Detector::UnprotectedUpdateCurrentContractWasm => {
                 UNPROTECTED_UPDATE_CURRENT_CONTRACT_LINT_MESSAGE
             }
+            Detector::AvoidUnsafeBlock => AVOID_UNSAFE_BLOCK_LINT_MESSAGE,
             Detector::UnsafeExpect => UNSAFE_EXPECT_LINT_MESSAGE,
             Detector::UnsafeUnwrap => UNSAFE_UNWRAP_LINT_MESSAGE,
         }

@@ -99,6 +99,7 @@ jobs:
           [
             "avoid-core-mem-forget",
             "avoid-panic-error",
+            "avoid-unsafe-block",
             "divide-before-multiply",
             "dos-unbounded-operation",
             "insufficiently-random-values",

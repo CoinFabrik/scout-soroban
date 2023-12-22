@@ -8,11 +8,9 @@
 
 Scout is an extensible open-source tool intended to assist Soroban Stellar smart contract developers and auditors detect common security issues and deviations from best practices.
 
-This tool will help developers write secure and more robust smart contracts.
+This tool helps developers write secure and more robust smart contracts.
 
-Our interest in this project comes from our experience in manual auditing and our usage of comparable tools in other blockchains.
-
-Following our work with Scout on Polkadot (see [Scout for ink!](https://github.com/CoinFabrik/scout)), we are planning to develop a CLI and a VS Code plugin that can identify issues in Soroban smart contracts. This tool will include detectors for a prioritized list of vulnerabilities, with the detectors implemented as linters in the Dylint linter.
+Our interest in this project comes from our experience in manual auditing and vulnerability detection in other blockchains (see [Scout for ink!](https://github.com/CoinFabrik/scout)).
 
 ## Quick Start
 
@@ -28,11 +26,19 @@ Afterwards, install Scout with the following command:
 cargo install --path apps/cargo-scout-audit
 ```
 
+### CLI
+
 To run Scout on your project, navigate to its root directory and execute the following command:
 
 ```bash
 cargo scout-audit
 ```
+
+### VSCode Extension
+
+We built the Scout VSCode Extension to help developers write secure and more robust smart contracts. Listing security issues, and highlighting issues with squiggles and hover-over descriptions, we hope our extension will help you catch vulnerabilities during development.
+
+Install Scout from the Marketplace within the Extensions tab of Visual Studio Code. You can find the extension [here](https://marketplace.visualstudio.com/items?itemName=CoinFabrik.scout-audit).
 
 ## Detectors
 
@@ -46,6 +52,25 @@ cargo scout-audit
 | [unprotected-update-current-contract-wasm](https://github.com/CoinFabrik/scout-soroban/tree/main/detectors/unprotected-update-current-contract-wasm)       | If users are allowed to call `update_current_contract_wasm()`, they can intentionally modify the contract behaviour.    | [1](https://github.com/CoinFabrik/scout-soroban/tree/main/test-cases/unprotected-update-current-contract-wasm/unprotected-update-current-contract-wasm-1)| Critical    |
 | [avoid-core-mem-forget](https://github.com/CoinFabrik/scout-soroban/tree/main/detectors/avoid-core-mem-forget)                 | The use of `core::mem::forget()` could lead to memory leaks and logic errors.                                                | [1](https://github.com/CoinFabrik/scout-soroban/tree/main/test-cases/avoid-core-mem-forget/avoid-core-mem-forget-1)        
 | [set-contract-storage](https://github.com/CoinFabrik/scout-soroban/tree/main/detectors/set-contract-storage)                           | Insufficient access control on `env.storage()` method.                                                         | [1](https://github.com/CoinFabrik/scout-soroban/tree/main/test-cases/set-contract-storage/set-contract-storage-1), [2](https://github.com/CoinFabrik/scout-soroban/tree/main/test-cases/set-contract-storage/set-contract-storage-2), [3](https://github.com/CoinFabrik/scout-soroban/tree/main/test-cases/set-contract-storage/set-contract-storage-3)                                                                                                                                                | Critical    |
+
+## CLI Options
+
+In the table below, we specify all the options available for the CLI.
+
+| Command/Option                                                   | Explanation                                                                                                                                       |
+|------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------|
+| `cargo scout-audit`                                              | Runs the static analyzer on the current directory                                                                                                 |
+| `cargo scout-audit --help`                                       | Provides a brief explanation of all the available commands and their usage.                                                                       |
+| `cargo scout-audit --manifest-path <PATH_TO_CARGO_TOML>`         | This option is used to specify the path to the Cargo.toml file that you want to analyze.                                                          |
+| `cargo scout-audit --filter <DETECTOR_LIST_SEPARATED_BY_COMAS>`  | This option allows you to analyze code using specific detectors. Provide a comma-separated list of detectors for this purpose.                    |
+| `cargo scout-audit --exclude <DETECTOR_LIST_SEPARATED_BY_COMAS>` | With this command, you can exclude specific detectors from the analysis. You need to give a comma-separated list of the detectors to be excluded. |
+| `cargo scout-audit --list-detectors`                             | Display a list of all available detectors.                                                                                                        |
+| `cargo scout-audit --version`                                    | Displays the current version of the static analyzer.                                                                                              |
+| `cargo scout-audit --verbose`                                    | Print additional information on run                                                                                                               |
+| `cargo scout-audit --local-detectors <PATH_TO_FOLDER>`           | Uses the detectors of a local folder. This considers the sub-folders as detectors.                                                                |
+| `cargo scout-audit --output-format [text\|json\|html\|sarif]`    | Sets the output format. Selecting `json`, `html` or `sarif` will create a file with the output                                                    |
+| `cargo scout-audit --output-path <PATH_TO_OUTPUT_FILE>`          | Sets the output path. If a format was selected, this will replace the default file with the given one                                             |
+
 
 ## Tests
 

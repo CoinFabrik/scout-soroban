@@ -155,3 +155,11 @@ way to handle errors in Rust.
 
 We classified this issue, a deviation from best practices which could have
 security implications, under the [Validations and error handling](#vulnerability-categories) category and assigned it an Enhancement severity.
+
+### Avoid unsafe block
+
+The use of `unsafe` blocks in Rust is generally discouraged due to the potential risks it poses to the safety and reliability of the code. Rust's primary appeal lies in its ability to provide memory safety guarantees, which are largely enforced through its ownership and type systems. When you enter an `unsafe` block, you're effectively bypassing these safety checks. This can lead to various issues, such as undefined behavior, memory leaks, or security vulnerabilities. These blocks require the programmer to manually ensure that memory is correctly managed and accessed, which is prone to human error and can be challenging even for experienced developers. Therefore, unsafe blocks should only be used when absolutely necessary and when the safety of the operations within can be assured.
+
+We classified this issue, a deviation from best practices which could have
+security implications, under the [Validations and error handling](#vulnerability-categories) category and assigned it a Critical severity.
+

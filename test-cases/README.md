@@ -184,3 +184,10 @@ storage space, or other failures in the contract's logic.
 We classified this type of vulnerability under
 the [Denial of Service](#vulnerability-categories) category and assigned it a
 Medium severity.
+
+### Soroban version
+
+Using a pinned version of Soroban can be dangerous, as it may have bugs or security issues. Use the latest version available.
+
+We classified this issue, a deviation from best practices which could have
+security implications, under the [Best practices](#vulnerability-categories) category and assigned it an Enhancement severity.

@@ -146,3 +146,12 @@ We classified this type of vulnerability under
 the [Authorization](#vulnerability-categories) category and assigned it a
 Critical severity.
 
+### Avoid panic error
+
+The use of the `panic!` macro to stop execution when a condition is not met is
+useful for testing and prototyping but should be avoided in production code.
+Using `Result` as the return type for functions that can fail is the idiomatic
+way to handle errors in Rust.
+
+We classified this issue, a deviation from best practices which could have
+security implications, under the [Validations and error handling](#vulnerability-categories) category and assigned it an Enhancement severity.

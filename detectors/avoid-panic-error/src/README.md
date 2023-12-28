@@ -47,4 +47,4 @@ pub fn add(env: Env, value: u32) -> Result<u32, Error> {
 
 ### Implementation
 
-The detector's implementation can be found at [this link](https://github.com/CoinFabrik/scout-soroban/tree/main/detectors/panic-error).
+The detector's implementation can be found at [this link](https://github.com/CoinFabrik/scout-soroban/tree/main/detectors/avoid-panic-error).

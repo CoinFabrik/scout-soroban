@@ -146,3 +146,48 @@ We classified this type of vulnerability under
 the [Authorization](#vulnerability-categories) category and assigned it a
 Critical severity.
 
+### Avoid panic error
+
+The use of the `panic!` macro to stop execution when a condition is not met is
+useful for testing and prototyping but should be avoided in production code.
+Using `Result` as the return type for functions that can fail is the idiomatic
+way to handle errors in Rust.
+
+We classified this issue, a deviation from best practices which could have
+security implications, under the [Validations and error handling](#vulnerability-categories) category and assigned it an Enhancement severity.
+
+### Avoid unsafe block
+
+The use of `unsafe` blocks in Rust is generally discouraged due to the potential risks it poses to the safety and reliability of the code. Rust's primary appeal lies in its ability to provide memory safety guarantees, which are largely enforced through its ownership and type systems. When you enter an `unsafe` block, you're effectively bypassing these safety checks. This can lead to various issues, such as undefined behavior, memory leaks, or security vulnerabilities. These blocks require the programmer to manually ensure that memory is correctly managed and accessed, which is prone to human error and can be challenging even for experienced developers. Therefore, unsafe blocks should only be used when absolutely necessary and when the safety of the operations within can be assured.
+
+We classified this issue, a deviation from best practices which could have
+security implications, under the [Validations and error handling](#vulnerability-categories) category and assigned it a Critical severity.
+
+### DoS unbounded operation
+
+Each block in Soroban Stellar has an upper bound on the amount of gas
+that can be spent, and thus the amount of computation that can be done. This
+is the Block Gas Limit. If the gas spent by a function call on a Soroban smart
+contract exceeds this limit, the transaction will fail. Sometimes it is the
+case that the contract logic allows a malicious user to modify conditions
+so that other users are forced to exhaust gas on standard function calls.
+
+In order to prevent a single transaction from consuming all the gas in a block,
+unbounded operations must be avoided. This includes loops that do not have a
+bounded number of iterations, and recursive calls.
+
+A denial of service vulnerability allows the exploiter to hamper the
+availability of a service rendered by the smart contract. In the context
+of Soroban smart contracts, it can be caused by the exhaustion of gas,
+storage space, or other failures in the contract's logic.
+
+We classified this type of vulnerability under
+the [Denial of Service](#vulnerability-categories) category and assigned it a
+Medium severity.
+
+### Soroban version
+
+Using a pinned version of Soroban can be dangerous, as it may have bugs or security issues. Use the latest version available.
+
+We classified this issue, a deviation from best practices which could have
+security implications, under the [Best practices](#vulnerability-categories) category and assigned it an Enhancement severity.

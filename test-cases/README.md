@@ -163,3 +163,24 @@ The use of `unsafe` blocks in Rust is generally discouraged due to the potential
 We classified this issue, a deviation from best practices which could have
 security implications, under the [Validations and error handling](#vulnerability-categories) category and assigned it a Critical severity.
 
+### DoS unbounded operation
+
+Each block in Soroban Stellar has an upper bound on the amount of gas
+that can be spent, and thus the amount of computation that can be done. This
+is the Block Gas Limit. If the gas spent by a function call on a Soroban smart
+contract exceeds this limit, the transaction will fail. Sometimes it is the
+case that the contract logic allows a malicious user to modify conditions
+so that other users are forced to exhaust gas on standard function calls.
+
+In order to prevent a single transaction from consuming all the gas in a block,
+unbounded operations must be avoided. This includes loops that do not have a
+bounded number of iterations, and recursive calls.
+
+A denial of service vulnerability allows the exploiter to hamper the
+availability of a service rendered by the smart contract. In the context
+of Soroban smart contracts, it can be caused by the exhaustion of gas,
+storage space, or other failures in the contract's logic.
+
+We classified this type of vulnerability under
+the [Denial of Service](#vulnerability-categories) category and assigned it a
+Medium severity.

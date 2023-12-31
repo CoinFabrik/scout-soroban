@@ -21,7 +21,7 @@ pub fn get_detectors_configuration() -> Result<DetectorsConfigurationList> {
             "library",
             None,
             SourceId::for_git(
-                &"https://github.com/CoinFabrik/scout".into_url()?,
+                &"https://github.com/CoinFabrik/scout-soroban".into_url()?,
                 GitReference::DefaultBranch,
             )?,
         )?,

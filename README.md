@@ -31,7 +31,7 @@ cargo install --path apps/cargo-scout-audit
 To run Scout on your project, navigate to its root directory and execute the following command:
 
 ```bash
-cargo scout-audit
+cargo scout-audit-soroban
 ```
 
 ### VSCode Extension

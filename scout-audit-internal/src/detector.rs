@@ -33,6 +33,7 @@ pub enum Detector {
     InsufficientlyRandomValues,
     OverflowCheck,
     SetContractStorage,
+    UnprotectedMappingOperation,
     UnprotectedUpdateCurrentContractWasm,
     UnsafeExpect,
     UnsafeUnwrap,
@@ -49,6 +50,7 @@ impl Detector {
             Detector::InsufficientlyRandomValues => INSUFFICIENTLY_RANDOM_VALUES_LINT_MESSAGE,
             Detector::OverflowCheck => OVERFLOW_CHECK_LINT_MESSAGE,
             Detector::SetContractStorage => SET_CONTRACT_STORAGE_LINT_MESSAGE,
+            Detector::UnprotectedMappingOperation => UNPROTECTED_MAPPING_OPERATION_LINT_MESSAGE,
             Detector::UnprotectedUpdateCurrentContractWasm => {
                 UNPROTECTED_UPDATE_CURRENT_CONTRACT_LINT_MESSAGE
             }

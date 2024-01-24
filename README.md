@@ -17,13 +17,13 @@ Our interest in this project comes from our experience in manual auditing and vu
 For a quick start, make sure that [Cargo](https://doc.rust-lang.org/cargo/getting-started/installation.html) is installed on your computer. Then, install Scout dependencies by running the following command:
 
 ```bash
-cargo install cargo-dylint dylint-link
+cargo +nightly install cargo-dylint dylint-link
 ```
 
 Afterwards, install Scout with the following command:
 
 ```bash
-cargo install cargo-scout-audit-soroban
+cargo +nightly install cargo-scout-audit-soroban
 ```
 
 ### CLI

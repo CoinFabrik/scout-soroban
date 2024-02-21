@@ -68,10 +68,7 @@ impl EarlyLintPass for CheckSorobanVersion {
             }
         };
 
-        let soroban_version = match toml
-            .get("dependencies")
-            .and_then(|d| d.get("soroban-sdk").and_then(|i| i.get("version")))
-        {
+        let soroban_version = match find_soroban_version_in_dependencies(&toml) {
             Some(version) => version.to_string(),
             None => {
                 cx.sess()
@@ -91,7 +88,7 @@ impl EarlyLintPass for CheckSorobanVersion {
             }
         };
 
-        let soroban_version = match VersionReq::parse(&soroban_version.replace('\"', "")) {
+        let soroban_version = match Version::parse(&soroban_version.replace('\"', "")) {
             Ok(version) => version,
             Err(e) => {
                 cx.sess()
@@ -101,12 +98,14 @@ impl EarlyLintPass for CheckSorobanVersion {
             }
         };
 
-        if !soroban_version.matches(&req) {
+        if !soroban_version.eq(&req) {
             Detector::SorobanVersion.span_lint_and_help(
                 cx,
                 CHECK_SOROBAN_VERSION,
                 rustc_span::DUMMY_SP,
-                &format!(r#"The latest Soroban version is {latest_version}, and your version is "{soroban_version}""#),
+                &format!(
+                    r#"The latest Soroban version is {latest_version}, and your version is "{soroban_version}""#
+                ),
             );
         }
     }
@@ -131,4 +130,17 @@ fn get_version() -> Result<String, String> {
         }
         Err(_) => Err("Failed to get Soroban version from crates.io".to_string()),
     }
+}
+
+fn find_soroban_version_in_dependencies(toml: &toml::Value) -> Option<String> {
+    toml.get("dependencies").and_then(|deps| {
+        deps.get("soroban-sdk").and_then(|v| match v {
+            toml::Value::String(s) => Some(s.clone()),
+            toml::Value::Table(t) => t
+                .get("version")
+                .and_then(|v| v.as_str())
+                .map(|s| s.to_string()),
+            _ => None,
+        })
+    })
 }

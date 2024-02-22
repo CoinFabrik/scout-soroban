@@ -4,12 +4,13 @@ extern crate rustc_ast;
 extern crate rustc_hir;
 extern crate rustc_span;
 
-use std::{env, fs, io::Error, path::Path};
+use std::{io::Error, process::Command};
 
 use rustc_ast::Crate;
 use rustc_lint::{EarlyContext, EarlyLintPass, LintContext};
 use scout_audit_internal::Detector;
-use semver::*;
+use semver::Version;
+use serde_json::Value;
 
 dylint_linting::declare_early_lint! {
     /// ### What it does
@@ -24,7 +25,7 @@ dylint_linting::declare_early_lint! {
 
 impl EarlyLintPass for CheckSorobanVersion {
     fn check_crate(&mut self, cx: &EarlyContext<'_>, _: &Crate) {
-        let latest_version = match get_version() {
+        let latest_soroban_version = match get_latest_soroban_version() {
             Ok(version) => version,
             Err(e) => {
                 cx.sess()
@@ -34,51 +35,70 @@ impl EarlyLintPass for CheckSorobanVersion {
             }
         };
 
-        let manifest_dir = match env::var("CARGO_MANIFEST_DIR") {
-            Ok(dir) => dir,
+        let cargo_metadata = match get_cargo_metadata() {
+            Ok(metadata) => metadata,
             Err(e) => {
                 cx.sess()
-                    .struct_warn(format!(
-                        "Environment variable CARGO_MANIFEST_DIR not found: {}",
-                        e
-                    ))
+                    .struct_warn(format!("Failed to get cargo metadata: {}", e))
                     .emit();
                 return;
             }
         };
 
-        let cargo_toml_path = Path::new(&manifest_dir).join("Cargo.toml");
-        let cargo_toml = match fs::read_to_string(cargo_toml_path) {
-            Ok(content) => content,
-            Err(e) => {
-                cx.sess()
-                    .struct_warn(format!("Unable to read Cargo.toml: {}", e))
-                    .emit();
-                return;
-            }
-        };
-
-        let toml: toml::Value = match toml::from_str(&cargo_toml) {
-            Ok(value) => value,
-            Err(e) => {
-                cx.sess()
-                    .struct_warn(format!("Error parsing Cargo.toml: {}", e))
-                    .emit();
-                return;
-            }
-        };
-
-        let soroban_version = match find_soroban_version_in_dependencies(&toml) {
-            Some(version) => version.to_string(),
+        let cargo_toml_package_opt = match cargo_metadata["packages"].as_array() {
+            Some(packages) => packages.first(),
             None => {
                 cx.sess()
-                    .struct_warn("Soroban dependency not found in Cargo.toml")
+                    .struct_warn("Error parsing cargo metadata: packages not found")
                     .emit();
                 return;
             }
         };
 
-        let req = match Version::parse(&latest_version.replace('\"', "")) {
+        let cargo_toml_package = match cargo_toml_package_opt {
+            Some(package) => package,
+            None => {
+                cx.sess()
+                    .struct_warn("Error parsing cargo metadata: first package not found")
+                    .emit();
+                return;
+            }
+        };
+
+        let dependencies = match cargo_toml_package["dependencies"].as_array() {
+            Some(dependencies) => dependencies,
+            None => {
+                cx.sess()
+                    .struct_warn("Error parsing cargo metadata: dependencies not found")
+                    .emit();
+                return;
+            }
+        };
+
+        let current_dependency = match dependencies
+            .iter()
+            .find(|&dep| dep["name"].as_str().unwrap_or("") == "soroban-sdk")
+        {
+            Some(current_dependency) => current_dependency,
+            None => {
+                cx.sess()
+                    .struct_warn("Soroban dependency not found in dependencies")
+                    .emit();
+                return;
+            }
+        };
+
+        let current_dependency_version = match current_dependency["req"].as_str() {
+            Some(version) => version,
+            None => {
+                cx.sess()
+                    .struct_warn("Error parsing current Soroban version")
+                    .emit();
+                return;
+            }
+        };
+
+        let req = match Version::parse(&latest_soroban_version.replace('\"', "")) {
             Ok(version) => version,
             Err(e) => {
                 cx.sess()
@@ -88,7 +108,9 @@ impl EarlyLintPass for CheckSorobanVersion {
             }
         };
 
-        let soroban_version = match Version::parse(&soroban_version.replace('\"', "")) {
+        let cleaned_version = current_dependency_version.replace(&['=', '^'][..], "");
+
+        let soroban_version = match Version::parse(&cleaned_version) {
             Ok(version) => version,
             Err(e) => {
                 cx.sess()
@@ -104,14 +126,14 @@ impl EarlyLintPass for CheckSorobanVersion {
                 CHECK_SOROBAN_VERSION,
                 rustc_span::DUMMY_SP,
                 &format!(
-                    r#"The latest Soroban version is {latest_version}, and your version is "{soroban_version}""#
+                    r#"The latest Soroban version is {latest_soroban_version}, and your version is "{soroban_version}""#
                 ),
             );
         }
     }
 }
 
-fn get_version() -> Result<String, String> {
+fn get_latest_soroban_version() -> Result<String, String> {
     let response = ureq::get("https://crates.io/api/v1/crates/soroban-sdk")
         .set("User-Agent", "Scout/1.0")
         .call();
@@ -132,15 +154,15 @@ fn get_version() -> Result<String, String> {
     }
 }
 
-fn find_soroban_version_in_dependencies(toml: &toml::Value) -> Option<String> {
-    toml.get("dependencies").and_then(|deps| {
-        deps.get("soroban-sdk").and_then(|v| match v {
-            toml::Value::String(s) => Some(s.clone()),
-            toml::Value::Table(t) => t
-                .get("version")
-                .and_then(|v| v.as_str())
-                .map(|s| s.to_string()),
-            _ => None,
-        })
-    })
+fn get_cargo_metadata() -> Result<Value, String> {
+    let output = Command::new("cargo")
+        .args(["metadata", "--format-version=1", "--no-deps"])
+        .output();
+
+    match output {
+        Ok(output) if output.status.success() => serde_json::from_slice(&output.stdout)
+            .map_err(|e| format!("Error parsing cargo metadata: {}", e)),
+        Ok(output) => Err(String::from_utf8_lossy(&output.stderr).into_owned()),
+        Err(e) => Err(e.to_string()),
+    }
 }

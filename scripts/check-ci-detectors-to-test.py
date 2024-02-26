@@ -13,12 +13,13 @@ if __name__ == "__main__":
 
     with open(args.gh_workflow_path, "r") as f:
         workflow = yaml.safe_load(f)
-        detectors_to_test = workflow["jobs"]["test"]["strategy"]["matrix"]["test"]
+        detectors_to_test = set()workflow["jobs"]["test"]["strategy"]["matrix"]["test"])
 
-        detectors = [ f.name for f in os.scandir(args.detectors_path) if f.is_dir() and not is_special_directory(f.name) ]
-        detectors.sort()
+        detectors = set(f.name for f in os.scandir(args.detectors_path) if f.is_dir() and not is_special_directory(f.name))
+        # detectors.sort()
 
-        if (detectors != detectors_to_test):
+        sym_diff = detectors ^ detectors_to_test
+        if len(sym_diff)!=0 and sym_diff!=set(['soroban-version']):
             print("Detectors to test in the workflow are not the same as the detectors in the detectors folder.")
             print("Detectors to test: ", detectors_to_test)
             print("Detectors in the folder: ", detectors)

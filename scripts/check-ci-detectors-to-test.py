@@ -13,7 +13,7 @@ if __name__ == "__main__":
 
     with open(args.gh_workflow_path, "r") as f:
         workflow = yaml.safe_load(f)
-        detectors_to_test = set()workflow["jobs"]["test"]["strategy"]["matrix"]["test"])
+        detectors_to_test = set(workflow["jobs"]["test"]["strategy"]["matrix"]["test"])
 
         detectors = set(f.name for f in os.scandir(args.detectors_path) if f.is_dir() and not is_special_directory(f.name))
         # detectors.sort()

@@ -22,33 +22,6 @@ env:
   RUST_BACKTRACE: full
 
 jobs:
-  check-config:
-    name: Check config
-    strategy:
-      matrix:
-        os:
-          - ubuntu-latest
-          - macos-latest
-    runs-on: ${{ matrix.os }}
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
-
-      - name: Install python dependencies
-        run: pip3 install pyyaml
-
-      - name: Check test matrix is complete
-        run: python3 scripts/check-ci-detectors-to-test.py .github/workflows/test-detectors.yml detectors
-
-      - name: Check detectors for repeated names
-        run: python3 scripts/check-detectors-repeated-names.py detectors
-
-      - name: Check detector names with underscore
-        run: python3 scripts/check-detectors-underscore-names.py detectors
-
-      - name: Check detector names different than their folders
-        run: python3 scripts/check-detectors-names-match-folder.py detectors
-
   build:
     name: Build
     needs: check-config
@@ -97,17 +70,7 @@ jobs:
           - macos-latest
         test:
           [
-            "avoid-core-mem-forget",
-            "avoid-panic-error",
-            "avoid-unsafe-block",
-            "divide-before-multiply",
-            "dos-unbounded-operation",
-            "insufficiently-random-values",
-            "overflow-check",
-            "set-contract-storage",
-            "unprotected-update-current-contract-wasm",
-            "unsafe-expect",
-            "unsafe-unwrap",
+            "soroban-version",
           ]
     runs-on: ${{ matrix.os }}
     steps:

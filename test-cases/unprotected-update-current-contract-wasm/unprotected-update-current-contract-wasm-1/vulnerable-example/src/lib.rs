@@ -22,8 +22,6 @@ impl UpgradeableContract {
     }
 
     pub fn upgrade(e: Env, new_wasm_hash: BytesN<32>) {
-        let admin: Address = e.storage().instance().get(&DataKey::Admin).unwrap();
-
         e.deployer().update_current_contract_wasm(new_wasm_hash);
     }
 }

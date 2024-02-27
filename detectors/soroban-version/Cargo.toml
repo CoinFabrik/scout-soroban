@@ -8,10 +8,8 @@ crate-type = ["cdylib"]
 
 [dependencies]
 dylint_linting = { workspace = true }
-if_chain = { workspace = true }
 semver = "1.0.4"
 serde_json = "1.0"
-toml = "0.8.8"
 ureq = { version = "2.7.1", features = ["json"] }
 
 scout-audit-internal = { workspace = true }

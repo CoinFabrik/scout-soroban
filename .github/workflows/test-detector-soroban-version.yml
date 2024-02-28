@@ -24,7 +24,6 @@ env:
 jobs:
   build:
     name: Build
-    needs: check-config
     strategy:
       matrix:
         os:

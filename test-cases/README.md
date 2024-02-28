@@ -191,3 +191,4 @@ Using a pinned version of Soroban can be dangerous, as it may have bugs or secur
 
 We classified this issue, a deviation from best practices which could have
 security implications, under the [Best practices](#vulnerability-categories) category and assigned it an Enhancement severity.
+

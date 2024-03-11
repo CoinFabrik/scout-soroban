@@ -28,11 +28,13 @@ use strum::{Display, EnumIter};
 pub enum Detector {
     AvoidCoreMemForget,
     AvoidPanicError,
+    AvoidUnsafeBlock,
     DivideBeforeMultiply,
     DosUnboundedOperation,
     InsufficientlyRandomValues,
     OverflowCheck,
     SetContractStorage,
+    SorobanVersion,
     UnprotectedMappingOperation,
     UnprotectedUpdateCurrentContractWasm,
     UnsafeExpect,
@@ -45,11 +47,13 @@ impl Detector {
         match self {
             Detector::AvoidCoreMemForget => AVOID_CORE_MEM_FORGET_LINT_MESSAGE,
             Detector::AvoidPanicError => AVOID_PANIC_ERROR_LINT_MESSAGE,
+            Detector::AvoidUnsafeBlock => AVOID_UNSAFE_BLOCK_LINT_MESSAGE,
             Detector::DivideBeforeMultiply => DIVIDE_BEFORE_MULTIPLY_LINT_MESSAGE,
             Detector::DosUnboundedOperation => DOS_UNBOUNDED_OPERATION_LINT_MESSAGE,
             Detector::InsufficientlyRandomValues => INSUFFICIENTLY_RANDOM_VALUES_LINT_MESSAGE,
             Detector::OverflowCheck => OVERFLOW_CHECK_LINT_MESSAGE,
             Detector::SetContractStorage => SET_CONTRACT_STORAGE_LINT_MESSAGE,
+            Detector::SorobanVersion => SOROBAN_VERSION_LINT_MESSAGE,
             Detector::UnprotectedMappingOperation => UNPROTECTED_MAPPING_OPERATION_LINT_MESSAGE,
             Detector::UnprotectedUpdateCurrentContractWasm => {
                 UNPROTECTED_UPDATE_CURRENT_CONTRACT_LINT_MESSAGE
@@ -85,7 +89,7 @@ fn print_scout_output(lint: Lint, span: Span) {
         .map(|s| s.trim().to_string())
         .collect();
 
-    let no_span_detectors = ["OVERFLOW_CHECK"];
+    let no_span_detectors = ["OVERFLOW_CHECK", "CHECK_SOROBAN_VERSION"];
 
     if no_span_detectors.contains(&lint.name.to_owned().as_str()) {
         let span = json!({

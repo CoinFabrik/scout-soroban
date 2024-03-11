@@ -6,6 +6,8 @@ extern crate rustc_hir;
 extern crate rustc_middle;
 extern crate rustc_span;
 
+use std::collections::HashSet;
+
 use rustc_hir::{
     intravisit::{walk_expr, Visitor},
     Expr, ExprKind,
@@ -82,6 +84,7 @@ impl<'tcx> LateLintPass<'tcx> for UnprotectedUpdateCurrentContractWasm {
             BasicBlock::from_u32(0),
             false,
             &uuf_storage,
+            &mut HashSet::new(),
         );
 
         for span in spans {
@@ -97,11 +100,12 @@ impl<'tcx> LateLintPass<'tcx> for UnprotectedUpdateCurrentContractWasm {
             bb: BasicBlock,
             auth_checked: bool,
             uuf_storage: &UnprotectedUpdateFinder,
+            visited: &mut HashSet<BasicBlock>,
         ) -> Vec<Span> {
-            let mut ret_vec: Vec<Span> = Vec::<Span>::new();
-            if bbs[bb].terminator.is_none() {
-                return ret_vec;
+            if !visited.insert(bb) || bbs[bb].terminator.is_none() {
+                return Vec::new();
             }
+            let mut ret_vec: Vec<Span> = Vec::<Span>::new();
             let mut checked = auth_checked;
             match &bbs[bb].terminator().kind {
                 TerminatorKind::Call {
@@ -130,6 +134,7 @@ impl<'tcx> LateLintPass<'tcx> for UnprotectedUpdateCurrentContractWasm {
                             *utarget,
                             checked,
                             uuf_storage,
+                            visited,
                         ));
                     }
                 }
@@ -140,6 +145,7 @@ impl<'tcx> LateLintPass<'tcx> for UnprotectedUpdateCurrentContractWasm {
                             *target,
                             checked,
                             uuf_storage,
+                            visited,
                         ));
                     }
                 }
@@ -151,6 +157,7 @@ impl<'tcx> LateLintPass<'tcx> for UnprotectedUpdateCurrentContractWasm {
                         *target,
                         checked,
                         uuf_storage,
+                        visited,
                     ));
                 }
                 TerminatorKind::Yield { resume, .. } => {
@@ -159,6 +166,7 @@ impl<'tcx> LateLintPass<'tcx> for UnprotectedUpdateCurrentContractWasm {
                         *resume,
                         checked,
                         uuf_storage,
+                        visited,
                     ));
                 }
                 TerminatorKind::FalseEdge { real_target, .. }
@@ -168,6 +176,7 @@ impl<'tcx> LateLintPass<'tcx> for UnprotectedUpdateCurrentContractWasm {
                         *real_target,
                         checked,
                         uuf_storage,
+                        visited,
                     ));
                 }
                 TerminatorKind::InlineAsm { destination, .. } => {
@@ -177,6 +186,7 @@ impl<'tcx> LateLintPass<'tcx> for UnprotectedUpdateCurrentContractWasm {
                             *udestination,
                             checked,
                             uuf_storage,
+                            visited,
                         ));
                     }
                 }

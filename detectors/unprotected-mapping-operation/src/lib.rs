@@ -36,7 +36,7 @@ struct UnprotectedMappingOperationFinder<'tcx, 'tcx_ref> {
     unauthorized_span: Vec<UnauthorizedAddress>,
 }
 
-const SOROBAN_MAP_WITH_ADDRESS: &str = "soroban_sdk::Map<soroban_sdk::Address";
+const SOROBAN_MAP: &str = "soroban_sdk::Map";
 const SOROBAN_ADDRESS: &str = "soroban_sdk::Address";
 
 impl<'tcx> LateLintPass<'tcx> for UnprotectedMappingOperation {
@@ -99,7 +99,11 @@ impl<'tcx> Visitor<'tcx> for UnprotectedMappingOperationFinder<'tcx, '_> {
             // Get the method expression type and check if it's a map with address
             let method_expr_type = self.get_node_type(method_expr.hir_id);
 
-            if method_expr_type.contains(SOROBAN_MAP_WITH_ADDRESS) {
+            println!("Method expression type: {}", method_expr_type);
+
+            if method_expr_type.starts_with(SOROBAN_MAP)
+                && method_expr_type.contains(SOROBAN_ADDRESS)
+            {
                 // Iterate through the method arguments and check if any of them is an address and not authed
                 method_args.iter().for_each(|arg| {
                     if_chain! {

@@ -99,8 +99,6 @@ impl<'tcx> Visitor<'tcx> for UnprotectedMappingOperationFinder<'tcx, '_> {
             // Get the method expression type and check if it's a map with address
             let method_expr_type = self.get_node_type(method_expr.hir_id);
 
-            println!("Method expression type: {}", method_expr_type);
-
             if method_expr_type.starts_with(SOROBAN_MAP)
                 && method_expr_type.contains(SOROBAN_ADDRESS)
             {

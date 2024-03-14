@@ -192,3 +192,8 @@ Using a pinned version of Soroban can be dangerous, as it may have bugs or secur
 We classified this issue, a deviation from best practices which could have
 security implications, under the [Best practices](#vulnerability-categories) category and assigned it an Enhancement severity.
 
+### Unprotected mapping operation
+
+Modifying mappings with an arbitrary key given by the user could lead to unintented modifications of critical data, modifying data belonging to other users, causing denial of service, unathorized access, and other potential issues.
+
+This vulnerability falls under the [Validations and error handling](#vulnerability-categories) category and has a Critical severity.

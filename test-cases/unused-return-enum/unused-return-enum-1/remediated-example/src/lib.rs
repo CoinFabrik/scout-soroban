@@ -19,7 +19,7 @@ impl UnusedReturnEnum {
     pub fn get_percentage_difference(balance1: u128, balance2: u128) -> Result<u128, Error> {
         let absolute_difference = balance1.abs_diff(balance2);
         let sum = balance1 + balance2;
-        
+
         match 100u128.checked_mul(absolute_difference / sum) {
             Some(result) => Ok(result),
             None => Err(Error::Overflow),

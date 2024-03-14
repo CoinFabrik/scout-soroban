@@ -20,10 +20,6 @@ impl UnusedReturnEnum {
         let absolute_difference = balance1.abs_diff(balance2);
         let sum = balance1 + balance2;
 
-        let _ignore = 100u128
-            .checked_mul(absolute_difference / sum)
-            .ok_or(Error::Overflow)?;
-
         match 100u128.checked_mul(absolute_difference / sum) {
             Some(result) => result,
             None => panic!("Overflow"),

@@ -1,6 +1,6 @@
 #![no_std]
 
-use soroban_sdk::{contract, contracterror, contractimpl, testutils::arbitrary::arbitrary::Result};
+use soroban_sdk::{contract, contracterror, contractimpl};
 
 #[contract]
 pub struct UnusedReturnEnum;
@@ -17,8 +17,8 @@ pub enum Error {
 impl UnusedReturnEnum {
     /// Returns the percentage difference between two values.
     pub fn get_percentage_difference(balance1: u128, balance2: u128) -> Result<u128, Error> {
-        let absolute_difference = value1.abs_diff(value2);
-        let sum = value1 + value2;
+        let absolute_difference = balance1.abs_diff(balance2);
+        let sum = balance1 + balance2;
         let result = 100u128
             .checked_mul(absolute_difference / sum)
             .ok_or(Error::Overflow)?;

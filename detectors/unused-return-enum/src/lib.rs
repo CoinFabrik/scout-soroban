@@ -100,7 +100,10 @@ impl<'tcx> LateLintPass<'tcx> for UnusedReturnEnum {
 
         walk_expr(&mut visitor, body.value);
 
-        if !visitor.found_return && (visitor.count_err == 0 || visitor.count_ok == 0) {
+        if !visitor.found_return
+            && !visitor.found_try
+            && (visitor.count_err == 0 || visitor.count_ok == 0)
+        {
             visitor.span.iter().for_each(|span| {
                 Detector::UnusedReturnEnum.span_lint_and_help(
                     cx,

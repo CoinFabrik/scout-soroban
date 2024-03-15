@@ -1,6 +1,6 @@
 #![no_std]
 
-use soroban_sdk::{contract, contracterror, contractimpl, testutils::arbitrary::arbitrary::Result};
+use soroban_sdk::{contract, contracterror, contractimpl};
 
 #[contract]
 pub struct UnusedReturnEnum;

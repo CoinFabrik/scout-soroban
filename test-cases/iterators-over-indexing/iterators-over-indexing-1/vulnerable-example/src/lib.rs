@@ -4,6 +4,7 @@ use soroban_sdk::{
     contract,
     contractimpl,
     contracttype,
+    contracterror,
     Env,
     vec,
     Vec,
@@ -18,19 +19,27 @@ enum DataKey {
 #[contract]
 pub struct IteratorsOverIndexingVulnerableContract;
 
+#[contracterror]
+#[derive(Copy, Clone, Debug, Eq, PartialEq, PartialOrd, Ord)]
+#[repr(u32)]
+pub enum Error {
+    NoData = 1,
+    IntegerOverflow = 2,
+}
+
 #[contractimpl]
 impl IteratorsOverIndexingVulnerableContract {
     pub fn init(e: Env){
         e.storage().instance().set::<DataKey, Vec<i32>>(&DataKey::Data, &vec![&e, 1_i32, 2_i32, 3_i32, 4_i32]);
     }
 
-    pub fn sum(e: Env) -> i32{
-        let mut ret = 0;
-        let vec = e.storage().instance().get::<DataKey, Vec<i32>>(&DataKey::Data).unwrap();
+    pub fn sum(e: Env) -> Result<i32, Error>{
+        let mut ret = 0_i32;
+        let vec = e.storage().instance().get::<DataKey, Vec<i32>>(&DataKey::Data).ok_or(Error::NoData)?;
         for i in 0..4{
-            ret += vec.get(i).unwrap();
+            ret = ret.checked_add(vec.get(i).ok_or(Error::NoData)?).ok_or(Error::IntegerOverflow)?;
         }
-        ret
+        Ok(ret)
     }
 }
 

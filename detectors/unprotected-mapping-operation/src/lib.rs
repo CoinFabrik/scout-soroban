@@ -12,7 +12,8 @@ use rustc_hir::{
     Expr, ExprKind, HirId, Param, PatKind, QPath, StmtKind,
 };
 use rustc_lint::{LateContext, LateLintPass};
-use rustc_span::Span;
+use rustc_middle::ty::{Ty, TyKind};
+use rustc_span::{Span, Symbol};
 use scout_audit_internal::Detector;
 
 dylint_linting::declare_late_lint! {
@@ -82,7 +83,7 @@ impl<'tcx> Visitor<'tcx> for UnprotectedMappingOperationFinder<'tcx, '_> {
             block.stmts.iter().for_each(|stmt| {
                 if_chain! {
                     if let StmtKind::Local(local) = &stmt.kind;
-                    if self.get_node_type(local.hir_id) == SOROBAN_ADDRESS;
+                    if self.get_node_type(local.hir_id).to_string() == SOROBAN_ADDRESS;
                     if let PatKind::Binding(_, target_hir_id, _, _) = &local.pat.kind;
                     if let Some(init) = &local.init;
                     let source_hir_id = self.get_expr_hir_id(init);
@@ -99,34 +100,39 @@ impl<'tcx> Visitor<'tcx> for UnprotectedMappingOperationFinder<'tcx, '_> {
             // Get the method expression type and check if it's a map with address
             let method_expr_type = self.get_node_type(method_expr.hir_id);
 
-            if method_expr_type.starts_with(SOROBAN_MAP)
-                && method_expr_type.contains(SOROBAN_ADDRESS)
-            {
-                // Iterate through the method arguments and check if any of them is an address and not authed
-                method_args.iter().for_each(|arg| {
-                    if_chain! {
-                        if let Some(id) = self.get_expr_hir_id(arg);
-                        if self.get_node_type(id).contains(SOROBAN_ADDRESS);
-                        then {
-                            // Obtain the linked_addresses record in wich the address id is contained
-                            let linked_address = self.get_linked_address(id);
+            if_chain! {
+                if let ExprKind::Field(_, _) = &method_expr.kind;
+                if let TyKind::Adt(adt_def, args) = method_expr_type.kind();
+                if self.cx.tcx.def_path_str(adt_def.did()) == SOROBAN_MAP;
+                if let Some(first_arg) = args.first();
+                if first_arg.to_string() == SOROBAN_ADDRESS;
+                then {
+                    // Iterate through the method arguments and check if any of them is an address and not authed
+                    method_args.iter().for_each(|arg| {
+                        if_chain! {
+                            if let Some(id) = self.get_expr_hir_id(arg);
+                            if self.get_node_type(id).to_string().contains(SOROBAN_ADDRESS);
+                            then {
+                                // Obtain the linked_addresses record in wich the address id is contained
+                                let linked_address = self.get_linked_address(id);
 
-                            // If the address does not exist, of if it does but the AuthStatus is false, then we need to add it to the unauthorized_span
-                            if linked_address.is_none() || !linked_address.unwrap().0.authed {
-                                self.unauthorized_span.push(UnauthorizedAddress {
-                                    span: expr.span,
-                                    name: self.cx.tcx.hir().name(id).to_string(),
-                                });
+                                // If the address does not exist, of if it does but the AuthStatus is false, then we need to add it to the unauthorized_span
+                                if linked_address.is_none() || !linked_address.unwrap().0.authed {
+                                    self.unauthorized_span.push(UnauthorizedAddress {
+                                        span: expr.span,
+                                        name: self.cx.tcx.hir().name(id).to_string(),
+                                    });
+                                }
                             }
                         }
-                    }
-                });
+                    });
+                }
             }
 
             // Check if the method call is a require_auth call and if it is, then we need to update the AuthStatus
             if_chain! {
-                if method_expr_type.contains(SOROBAN_ADDRESS);
-                if method_path.ident.name.as_str() == "require_auth";
+                if method_expr_type.to_string() == SOROBAN_ADDRESS;
+                if method_path.ident.name == Symbol::intern("require_auth");
                 if let Some(id) = self.get_expr_hir_id(method_expr);
                 then {
                     self.auth_address(id)
@@ -141,15 +147,15 @@ impl<'tcx> Visitor<'tcx> for UnprotectedMappingOperationFinder<'tcx, '_> {
 impl<'tcx> UnprotectedMappingOperationFinder<'tcx, '_> {
     fn parse_body_params(&mut self, params: &'tcx [Param<'_>]) {
         params.iter().for_each(|param| {
-            if self.get_node_type(param.hir_id) == SOROBAN_ADDRESS {
+            if self.get_node_type(param.hir_id).to_string() == SOROBAN_ADDRESS {
                 self.linked_addresses
                     .push((AuthStatus { authed: false }, vec![param.pat.hir_id]));
             }
         });
     }
 
-    fn get_node_type(&self, hir_id: HirId) -> String {
-        self.cx.typeck_results().node_type(hir_id).to_string()
+    fn get_node_type(&self, hir_id: HirId) -> Ty<'tcx> {
+        self.cx.typeck_results().node_type(hir_id)
     }
 
     fn insert_new_address(&mut self, source_hir_id: HirId, target_hir_id: HirId) {

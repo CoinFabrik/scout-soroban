@@ -179,16 +179,17 @@ impl<'tcx> LateLintPass<'tcx> for UnprotectedUpdateCurrentContractWasm {
                         visited,
                     ));
                 }
-                TerminatorKind::InlineAsm { destination, .. } => {
-                    if let Some(udestination) = destination {
-                        ret_vec.append(&mut navigate_trough_basicblocks(
-                            bbs,
-                            *udestination,
-                            checked,
-                            uuf_storage,
-                            visited,
-                        ));
-                    }
+                TerminatorKind::InlineAsm {
+                    destination: Some(udestination),
+                    ..
+                } => {
+                    ret_vec.append(&mut navigate_trough_basicblocks(
+                        bbs,
+                        *udestination,
+                        checked,
+                        uuf_storage,
+                        visited,
+                    ));
                 }
                 _ => {}
             }

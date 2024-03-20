@@ -298,18 +298,20 @@ fn navigate_trough_basicblocks<'tcx>(
                     spans,
                 );
             }
-            TerminatorKind::InlineAsm { destination, .. } => {
-                if let Option::Some(dest) = destination {
-                    navigate_trough_basicblocks(
-                        *dest,
-                        bbs,
-                        def_ids,
-                        tainted_places,
-                        visited_bbs,
-                        spans,
-                    );
-                }
+            TerminatorKind::InlineAsm {
+                destination: Some(dest),
+                ..
+            } => {
+                navigate_trough_basicblocks(
+                    *dest,
+                    bbs,
+                    def_ids,
+                    tainted_places,
+                    visited_bbs,
+                    spans,
+                );
             }
+
             _ => {}
         }
     }

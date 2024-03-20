@@ -16,3 +16,4 @@ pub const UNPROTECTED_UPDATE_CURRENT_CONTRACT_LINT_MESSAGE: &str =
     "This update_current_contract_wasm is called without access control";
 pub const UNSAFE_EXPECT_LINT_MESSAGE: &str = "Unsafe usage of `expect`";
 pub const UNSAFE_UNWRAP_LINT_MESSAGE: &str = "Unsafe usage of `unwrap`";
+pub const UNUSED_RETURN_ENUM_LINT_MESSAGE : &str = "If any of the variants (Ok/Err) is not used, the code could be simplified or it could imply a bug";

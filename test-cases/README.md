@@ -197,3 +197,13 @@ security implications, under the [Best practices](#vulnerability-categories) cat
 Modifying mappings with an arbitrary key given by the user could lead to unintented modifications of critical data, modifying data belonging to other users, causing denial of service, unathorized access, and other potential issues.
 
 This vulnerability falls under the [Validations and error handling](#vulnerability-categories) category and has a Critical severity.
+### Unused return enum
+
+`Rust` messages can return a `Result` `enum` with a custom error type. This is
+useful for the caller to know what went wrong when the message fails. The
+definition of the `Result` type enum consists of two variants: Ok and Err. If
+any of the variants is not used, the code could be simplified or it could imply
+a bug.
+
+We put this vulnerability under the [Validations and error handling category](#vulnerability-categories)
+with a Minor Severity.

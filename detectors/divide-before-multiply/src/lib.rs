@@ -20,7 +20,7 @@ use rustc_middle::mir::{
 use rustc_middle::ty::TyKind;
 use rustc_span::def_id::DefId;
 use rustc_span::Span;
-use scout_audit_internal::Detector;
+use scout_audit_internal::{DetectorImpl, SorobanDetector as Detector};
 
 dylint_linting::declare_late_lint! {
     /// ### What it does
@@ -45,7 +45,7 @@ dylint_linting::declare_late_lint! {
     /// ```
     pub DIVIDE_BEFORE_MULTIPLY,
     Warn,
-    Detector::DivideBeforeMultiply.get_lint_message()
+    ""
 }
 
 fn get_divisions_inside_expr(expr: &Expr<'_>) -> Vec<Span> {
@@ -298,23 +298,21 @@ fn navigate_trough_basicblocks<'tcx>(
                     spans,
                 );
             }
-            TerminatorKind::InlineAsm { destination, .. } => {
-                if let Option::Some(dest) = destination {
-                    navigate_trough_basicblocks(
-                        *dest,
-                        bbs,
-                        def_ids,
-                        tainted_places,
-                        visited_bbs,
-                        spans,
-                    );
-                }
+            TerminatorKind::InlineAsm {
+                destination: Some(dest),
+                ..
+            } => {
+                navigate_trough_basicblocks(
+                    *dest,
+                    bbs,
+                    def_ids,
+                    tainted_places,
+                    visited_bbs,
+                    spans,
+                );
             }
-            TerminatorKind::GeneratorDrop
-            | TerminatorKind::UnwindResume
-            | TerminatorKind::UnwindTerminate(_)
-            | TerminatorKind::Return
-            | TerminatorKind::Unreachable => {}
+
+            _ => {}
         }
     }
 }

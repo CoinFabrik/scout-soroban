@@ -8,12 +8,12 @@ use rustc_hir::intravisit::{walk_expr, FnKind, Visitor};
 use rustc_hir::{Body, Expr, ExprKind, FnDecl, FnRetTy, MatchSource, QPath, TyKind};
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_span::{def_id::LocalDefId, sym, Span};
-use scout_audit_internal::Detector;
+use scout_audit_internal::{DetectorImpl, SorobanDetector as Detector};
 
 dylint_linting::declare_late_lint! {
     pub UNUSED_RETURN_ENUM,
     Warn,
-    Detector::UnusedReturnEnum.get_lint_message()
+    ""
 }
 
 #[derive(Debug)]

@@ -23,7 +23,7 @@ cargo +nightly install cargo-dylint dylint-link
 Afterwards, install Scout with the following command:
 
 ```bash
-cargo install +nightly cargo-scout-audit
+cargo +nightly install cargo-scout-audit
 ```
 
 ### CLI

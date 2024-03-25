@@ -68,6 +68,9 @@ jobs:
       - name: Install clippy
         run: rustup component add clippy --toolchain nightly
 
+      - name: Install dylint-link
+        run: cargo install dylint-link
+
       - name: Lint Code in Detectors
         run: |
           cd detectors && cargo clippy --all-targets --all-features -- -D warnings

@@ -105,7 +105,6 @@ jobs:
             "insufficiently-random-values",
             "overflow-check",
             "set-contract-storage",
-            "unprotected-mapping-operation",
             "unprotected-update-current-contract-wasm",
             "unsafe-expect",
             "unsafe-unwrap",

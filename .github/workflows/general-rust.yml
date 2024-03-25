@@ -100,6 +100,9 @@ jobs:
       - name: Install Rust nightly
         run: rustup install nightly --profile minimal
 
+      - name: Install rust-src, rustc-dev, and llvm-tools-preview
+        run: rustup component add rust-src rustc-dev llvm-tools-preview
+
       - name: Install cargo-udeps
         run: cargo install cargo-udeps
 

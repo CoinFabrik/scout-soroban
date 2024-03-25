@@ -35,7 +35,6 @@ pub enum Detector {
     OverflowCheck,
     SetContractStorage,
     SorobanVersion,
-    UnprotectedMappingOperation,
     UnprotectedUpdateCurrentContractWasm,
     UnsafeExpect,
     UnsafeUnwrap,
@@ -48,17 +47,16 @@ impl Detector {
         match self {
             Detector::AvoidCoreMemForget => AVOID_CORE_MEM_FORGET_LINT_MESSAGE,
             Detector::AvoidPanicError => AVOID_PANIC_ERROR_LINT_MESSAGE,
-            Detector::AvoidUnsafeBlock => AVOID_UNSAFE_BLOCK_LINT_MESSAGE,
             Detector::DivideBeforeMultiply => DIVIDE_BEFORE_MULTIPLY_LINT_MESSAGE,
             Detector::DosUnboundedOperation => DOS_UNBOUNDED_OPERATION_LINT_MESSAGE,
             Detector::InsufficientlyRandomValues => INSUFFICIENTLY_RANDOM_VALUES_LINT_MESSAGE,
             Detector::OverflowCheck => OVERFLOW_CHECK_LINT_MESSAGE,
             Detector::SetContractStorage => SET_CONTRACT_STORAGE_LINT_MESSAGE,
             Detector::SorobanVersion => SOROBAN_VERSION_LINT_MESSAGE,
-            Detector::UnprotectedMappingOperation => UNPROTECTED_MAPPING_OPERATION_LINT_MESSAGE,
             Detector::UnprotectedUpdateCurrentContractWasm => {
                 UNPROTECTED_UPDATE_CURRENT_CONTRACT_LINT_MESSAGE
             }
+            Detector::AvoidUnsafeBlock => AVOID_UNSAFE_BLOCK_LINT_MESSAGE,
             Detector::UnsafeExpect => UNSAFE_EXPECT_LINT_MESSAGE,
             Detector::UnsafeUnwrap => UNSAFE_UNWRAP_LINT_MESSAGE,
             Detector::UnusedReturnEnum => UNUSED_RETURN_ENUM_LINT_MESSAGE,

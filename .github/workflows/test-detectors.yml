@@ -43,6 +43,9 @@ jobs:
       - name: Update Rust Toolchain
         run: rustup update
 
+      - name: Install Rust nightly
+        run: rustup install nightly --profile minimal
+
       - name: Install dylint and dylint-link
         run: cargo +nightly install cargo-dylint dylint-link
 

@@ -34,7 +34,7 @@ jobs:
         run: rustup install nightly --profile minimal
 
       - name: Install rustfmt
-        run: rustup component add rustfmt
+        run: rustup component add rustfmt --toolchain nightly
 
       - name: Check Formatting in Detectors
         run: |

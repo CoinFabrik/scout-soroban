@@ -103,6 +103,9 @@ jobs:
       - name: Install cargo-udeps
         run: cargo install cargo-udeps
 
+      - name: Install dylint-link
+        run: cargo install dylint-link
+
       - name: Check Unused Dependencies in Detectors
         run: |
           cd detectors

@@ -38,12 +38,11 @@ jobs:
 
       - name: Check Formatting in Detectors
         run: |
-          cd detectors
-          cargo +nightly fmt -- --check
+          cd detectors && cargo +nightly fmt -- --check -v
 
       - name: Check Formatting in Test Cases
         run: |
-          find test-cases -name Cargo.toml -execdir cargo +nightly fmt -- --check \;
+          find test-cases -name Cargo.toml -execdir cargo +nightly fmt -- --check -v \;
 
   clippy:
     name: Lint with Clippy
@@ -67,12 +66,11 @@ jobs:
         run: rustup install nightly --profile minimal
 
       - name: Install clippy
-        run: rustup component add clippy
+        run: rustup component add clippy --toolchain nightly
 
       - name: Lint Code in Detectors
         run: |
-          cd detectors
-          cargo clippy --all-targets --all-features -- -D warnings
+          cd detectors && cargo clippy --all-targets --all-features -- -D warnings
 
       - name: Lint Code in Test Cases
         run: |

@@ -109,7 +109,6 @@ jobs:
             "unprotected-update-current-contract-wasm",
             "unsafe-expect",
             "unsafe-unwrap",
-            "unused-return-enum",
           ]
     runs-on: ${{ matrix.os }}
     steps:

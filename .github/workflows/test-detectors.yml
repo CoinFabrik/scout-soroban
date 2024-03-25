@@ -5,13 +5,11 @@ on:
     branches:
       - "main"
     paths:
-      - "apps/cargo-scout-audit/**"
       - "detectors/**"
       - "test-cases/**"
       - "Makefile"
   pull_request:
     paths:
-      - "apps/cargo-scout-audit/**"
       - "detectors/**"
       - "test-cases/**"
       - "Makefile"
@@ -22,36 +20,8 @@ env:
   RUST_BACKTRACE: full
 
 jobs:
-  check-config:
-    name: Check config
-    strategy:
-      matrix:
-        os:
-          - ubuntu-latest
-          - macos-latest
-    runs-on: ${{ matrix.os }}
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v3
-
-      - name: Install python dependencies
-        run: pip3 install pyyaml
-
-      - name: Check test matrix is complete
-        run: python3 scripts/check-ci-detectors-to-test.py .github/workflows/test-detectors.yml detectors
-
-      - name: Check detectors for repeated names
-        run: python3 scripts/check-detectors-repeated-names.py detectors
-
-      - name: Check detector names with underscore
-        run: python3 scripts/check-detectors-underscore-names.py detectors
-
-      - name: Check detector names different than their folders
-        run: python3 scripts/check-detectors-names-match-folder.py detectors
-
   build:
     name: Build
-    needs: check-config
     strategy:
       matrix:
         os:
@@ -60,75 +30,63 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Cache cargo-scout dependencies
         id: cache-cargo-scout-dependencies
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: |
             ~/.cargo
-            apps/cargo-scout-audit/target
-            detectors/target
-            detectors/Cargo.lock
           key: ${{ runner.os }}-cargo-scout-dependencies-${{ github.run_id }}
 
-      - name: Install Rust nightly-2023-09-29
-        run: rustup install nightly-2023-09-29 --profile minimal
+      - name: Update Rust Toolchain
+        run: rustup update
 
-      - name: Install dylint-link
-        run: cargo install dylint-link
+      - name: Install dylint and dylint-link
+        run: cargo +nightly install cargo-dylint dylint-link
 
-      - name: Compile cargo-scout-audit tests
-        working-directory: apps/cargo-scout-audit
-        run: cargo test --no-run
+      - name: Install cargo-scout-audit
+        run: cargo +nightly install cargo-scout-audit
 
-      - name: Compile detectors
-        working-directory: detectors
-        run: cargo build --release
+  prepare-test-matrix:
+    name: Prepare Test Matrix
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-  test:
-    name: Test
-    needs: build
+      - id: set-matrix
+        run: |
+          echo "::set-output name=matrix::$(find test-cases -mindepth 1 -maxdepth 1 -type d -printf '"%f", ' | sed 's/, $//')"
+
+  integration-tests:
+    name: Integration Tests
+    needs: [build, prepare-test-matrix]
     strategy:
+      fail-fast: false
       matrix:
         os:
           - ubuntu-latest
           - macos-latest
-        test:
-          [
-            "avoid-core-mem-forget",
-            "avoid-panic-error",
-            "avoid-unsafe-block",
-            "divide-before-multiply",
-            "dos-unbounded-operation",
-            "insufficiently-random-values",
-            "overflow-check",
-            "set-contract-storage",
-            "unprotected-update-current-contract-wasm",
-            "unsafe-expect",
-            "unsafe-unwrap",
-            "unused-return-enum",
-          ]
+        test-case: ${{fromJson(needs.prepare-test-matrix.outputs.matrix)}}
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
-      - name: Cache cargo-scout dependencies
-        id: cache-cargo-scout-dependencies
-        uses: actions/cache@v3
+      - name: Cache cargo dependencies
+        uses: actions/cache@v4
         with:
           path: |
             ~/.cargo
-            apps/cargo-scout-audit/target
-            detectors/target
-            detectors/Cargo.lock
-          key: ${{ runner.os }}-cargo-scout-dependencies-${{ github.run_id  }}
+            target
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
           fail-on-cache-miss: true
 
-      - name: Run tests
-        working-directory: apps/cargo-scout-audit
-        env:
-          INTEGRATION_TESTS_TO_RUN: ${{ matrix.test }}
-        run: cargo test -- --nocapture
+      - name: Run integration test for a specific test case
+        run: |
+          cd ${{ matrix.test-case }}
+          cargo test

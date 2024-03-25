@@ -23,7 +23,7 @@ cargo +nightly install cargo-dylint dylint-link
 Afterwards, install Scout with the following command:
 
 ```bash
-cargo +nightly install cargo-scout-audit-soroban
+cargo install cargo-scout-audit
 ```
 
 ### CLI
@@ -31,7 +31,7 @@ cargo +nightly install cargo-scout-audit-soroban
 To run Scout on your project, navigate to its root directory and execute the following command:
 
 ```bash
-cargo scout-audit-soroban
+cargo scout-audit
 ```
 
 ### VSCode Extension

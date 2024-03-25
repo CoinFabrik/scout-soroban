@@ -10,7 +10,7 @@ use rustc_hir::{
 };
 use rustc_lint::LateLintPass;
 use rustc_span::Span;
-use scout_audit_internal::Detector;
+use scout_audit_internal::{DetectorImpl, SorobanDetector as Detector};
 
 dylint_linting::declare_late_lint! {
     /// ### What it does
@@ -50,7 +50,7 @@ dylint_linting::declare_late_lint! {
     /// ```
     pub AVOID_UNSAFE_BLOCK,
     Warn,
-    Detector::AvoidUnsafeBlock.get_lint_message()
+    ""
 }
 
 impl<'tcx> LateLintPass<'tcx> for AvoidUnsafeBlock {

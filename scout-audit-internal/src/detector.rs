@@ -39,6 +39,7 @@ pub enum Detector {
     UnprotectedUpdateCurrentContractWasm,
     UnsafeExpect,
     UnsafeUnwrap,
+    UnusedReturnEnum,
 }
 
 impl Detector {
@@ -60,6 +61,7 @@ impl Detector {
             }
             Detector::UnsafeExpect => UNSAFE_EXPECT_LINT_MESSAGE,
             Detector::UnsafeUnwrap => UNSAFE_UNWRAP_LINT_MESSAGE,
+            Detector::UnusedReturnEnum => UNUSED_RETURN_ENUM_LINT_MESSAGE,
         }
     }
 

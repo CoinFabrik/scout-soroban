@@ -1,6 +1,6 @@
 
 [package]
-name = "unprotected-mapping-operation"
+name = "unprotected-mapping-operation-vulnerable-1"
 version = "0.1.0"
 edition = "2021"
 

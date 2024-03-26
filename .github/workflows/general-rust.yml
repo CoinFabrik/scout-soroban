@@ -52,7 +52,7 @@ jobs:
           path: |
             ~/.cargo
             ~/.rustup
-            test-cases/**/target
+            **/target
           key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
 
       - name: Update Rust Toolchain
@@ -87,7 +87,7 @@ jobs:
           path: |
             ~/.cargo
             ~/.rustup
-            test-cases/**/target
+            **/target
           key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
 
       - name: Update Rust Toolchain
@@ -103,4 +103,4 @@ jobs:
         run: cargo install cargo-udeps --force
 
       - name: Check Unused Dependencies in Test Cases
-        run: find test-cases -name Cargo.toml -execdir cargo +nightly udeps --all-targets \;
+        run: find test-cases -name Cargo.toml -execdir bash -c 'cargo +nightly udeps --all-targets || exit 255' \;

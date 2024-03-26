@@ -36,7 +36,7 @@ jobs:
         with:
           path: |
             ~/.cargo
-            target
+            **/target
           key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
           restore-keys: |
             ${{ runner.os }}-cargo-
@@ -85,7 +85,7 @@ jobs:
         with:
           path: |
             ~/.cargo
-            target
+            **/target
           key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
 
       - name: Run unit tests for a specific detector

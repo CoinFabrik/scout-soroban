@@ -7,30 +7,63 @@ on:
     paths:
       - "detectors/**"
       - "test-cases/**"
-      - "Makefile"
   pull_request:
     paths:
       - "detectors/**"
       - "test-cases/**"
-      - "Makefile"
 
 env:
   CARGO_TERM_COLOR: always
 
 jobs:
-  format:
-    name: Check Rust Format
+  setup:
+    name: Setup
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
 
+      - name: Cache Rust Tools and Targets
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo
+            test-cases/**/target
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-
+
       - name: Update Rust Toolchain
         run: rustup update
 
       - name: Install Rust nightly
         run: rustup install nightly --profile minimal
+
+      - name: Install dylint-link
+        run: cargo install dylint-link
+
+      - name: Update cargo
+        run: cargo update
+
+  format:
+    name: Check Rust Format
+    runs-on: ubuntu-latest
+    needs: setup
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Cache Rust Dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo
+            test-cases/**/target
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-
 
       - name: Install rustfmt
         run: rustup component add rustfmt --toolchain nightly
@@ -45,6 +78,7 @@ jobs:
   clippy:
     name: Lint with Clippy
     runs-on: ubuntu-latest
+    needs: setup
 
     steps:
       - name: Checkout Code
@@ -55,19 +89,13 @@ jobs:
         with:
           path: |
             ~/.cargo
+            test-cases/**/target
           key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
-
-      - name: Update Rust Toolchain
-        run: rustup update
-
-      - name: Install Rust nightly
-        run: rustup install nightly --profile minimal
+          restore-keys: |
+            ${{ runner.os }}-cargo-
 
       - name: Install clippy
         run: rustup component add clippy --toolchain nightly
-
-      - name: Install dylint-link
-        run: cargo install dylint-link
 
       - name: Lint Code in Detectors
         working-directory: detectors
@@ -79,6 +107,7 @@ jobs:
   udeps:
     name: Check Unused Dependencies
     runs-on: ubuntu-latest
+    needs: setup
 
     steps:
       - name: Checkout Code
@@ -89,22 +118,13 @@ jobs:
         with:
           path: |
             ~/.cargo
+            test-cases/**/target
           key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
-
-      - name: Update Rust Toolchain
-        run: rustup update
-
-      - name: Install Rust nightly
-        run: rustup install nightly --profile minimal
-
-      - name: Install rust-src, rustc-dev, and llvm-tools-preview
-        run: rustup component add rust-src rustc-dev llvm-tools-preview
+          restore-keys: |
+            ${{ runner.os }}-cargo-
 
       - name: Install cargo-udeps
         run: cargo install cargo-udeps
-
-      - name: Install dylint-link
-        run: cargo install dylint-link
 
       - name: Check Unused Dependencies in Test Cases
         run: find test-cases -name Cargo.toml -execdir cargo +nightly udeps --all-targets \;

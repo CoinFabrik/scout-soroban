@@ -103,4 +103,4 @@ jobs:
       - name: Check Unused Dependencies in Test Cases
         run: |
           set -e
-          find test-cases -name Cargo.toml -execdir bash -c 'cargo +nightly udeps --all-targets' \;
+          find test-cases -name Cargo.toml -execdir bash -c 'cargo update && cargo +nightly udeps --all-targets || exit 255' \;

@@ -37,12 +37,11 @@ jobs:
         run: rustup component add rustfmt --toolchain nightly
 
       - name: Check Formatting in Detectors
-        run: |
-          cd detectors && cargo +nightly fmt -- --check -v
+        working-directory: detectors
+        run: cargo +nightly fmt -- --check -v
 
       - name: Check Formatting in Test Cases
-        run: |
-          find test-cases -name Cargo.toml -execdir cargo +nightly fmt -- --check -v \;
+        run: find test-cases -name Cargo.toml -execdir cargo +nightly fmt -- --check -v \;
 
   clippy:
     name: Lint with Clippy
@@ -72,12 +71,11 @@ jobs:
         run: cargo install dylint-link
 
       - name: Lint Code in Detectors
-        run: |
-          cd detectors && cargo clippy --all-targets --all-features -- -D warnings
+        working-directory: detectors
+        run: cargo clippy --all-targets --all-features -- -D warnings
 
       - name: Lint Code in Test Cases
-        run: |
-          find test-cases -name Cargo.toml -execdir cargo clippy --all-targets --all-features -- -D warnings \;
+        run: find test-cases -name Cargo.toml -execdir cargo clippy --all-targets --all-features -- -D warnings \;
 
   udeps:
     name: Check Unused Dependencies with cargo-udeps
@@ -110,10 +108,8 @@ jobs:
         run: cargo install dylint-link
 
       - name: Check Unused Dependencies in Detectors
-        run: |
-          cd detectors
-          cargo +nightly udeps --all-targets
+        working-directory: detectors
+        run: cargo +nightly udeps --all-targets
 
       - name: Check Unused Dependencies in Test Cases
-        run: |
-          find test-cases -name Cargo.toml -execdir cargo +nightly udeps --all-targets \;
+        run: find test-cases -name Cargo.toml -execdir cargo +nightly udeps --all-targets \;

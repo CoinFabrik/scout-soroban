@@ -19,8 +19,24 @@ env:
   RUST_BACKTRACE: full
 
 jobs:
+  validate-detectors:
+    name: Validate
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.9"
+
+      - name: Validate detectors
+        run: python scripts/validate-detectors.py
+
   build:
     name: Build
+    needs: validate-detectors
     strategy:
       matrix:
         os:

@@ -78,7 +78,7 @@ jobs:
         run: find test-cases -name Cargo.toml -execdir cargo clippy --all-targets --all-features -- -D warnings \;
 
   udeps:
-    name: Check Unused Dependencies with cargo-udeps
+    name: Check Unused Dependencies
     runs-on: ubuntu-latest
 
     steps:

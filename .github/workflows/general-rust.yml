@@ -103,4 +103,6 @@ jobs:
         run: cargo install cargo-udeps --force
 
       - name: Check Unused Dependencies in Test Cases
-        run: find test-cases -name Cargo.toml -execdir bash -c 'cargo +nightly udeps --all-targets || exit 255' \;
+        run: |
+          set -e
+          find test-cases -name Cargo.toml -execdir bash -c 'cargo +nightly udeps --all-targets' \;

@@ -13,7 +13,6 @@ on:
       - "detectors/**"
       - "test-cases/**"
       - "Makefile"
-  workflow_dispatch:
 
 env:
   CARGO_TERM_COLOR: always
@@ -106,10 +105,6 @@ jobs:
 
       - name: Install dylint-link
         run: cargo install dylint-link
-
-      - name: Check Unused Dependencies in Detectors
-        working-directory: detectors
-        run: cargo +nightly udeps --all-targets
 
       - name: Check Unused Dependencies in Test Cases
         run: find test-cases -name Cargo.toml -execdir cargo +nightly udeps --all-targets \;

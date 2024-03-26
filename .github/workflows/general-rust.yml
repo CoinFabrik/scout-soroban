@@ -41,10 +41,7 @@ jobs:
         run: rustup install nightly --profile minimal
 
       - name: Install dylint-link
-        run: cargo install dylint-link
-
-      - name: Update cargo
-        run: cargo update
+        run: cargo install dylint-link --force
 
   format:
     name: Check Rust Format
@@ -124,7 +121,7 @@ jobs:
             ${{ runner.os }}-cargo-
 
       - name: Install cargo-udeps
-        run: cargo install cargo-udeps
+        run: cargo install cargo-udeps --force
 
       - name: Check Unused Dependencies in Test Cases
         run: find test-cases -name Cargo.toml -execdir cargo +nightly udeps --all-targets \;

@@ -23,6 +23,11 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.9"
+
       - name: Update Rust Toolchain
         run: rustup update
 
@@ -32,12 +37,8 @@ jobs:
       - name: Install rustfmt
         run: rustup component add rustfmt --toolchain nightly
 
-      - name: Check Formatting in Detectors
-        working-directory: detectors
-        run: cargo +nightly fmt -- --check -v
-
-      - name: Format Code in Test Cases
-        run: find test-cases -name Cargo.toml -print0 | xargs -0 -I{} bash -c 'cd "$(dirname {})" && cargo +nightly fmt -- --check -v || exit 255'
+      - name: Check Format
+        run: python scripts/run-fmt.py
 
   clippy:
     name: Lint with Clippy
@@ -45,6 +46,11 @@ jobs:
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.9"
 
       - name: Cache Rust Dependencies
         uses: actions/cache@v4
@@ -66,12 +72,8 @@ jobs:
       - name: Install clippy
         run: rustup component add clippy --toolchain nightly
 
-      - name: Lint Code in Detectors
-        working-directory: detectors
-        run: cargo clippy --all-targets --all-features -- -D warnings
-
-      - name: Lint Code in Test Cases
-        run: find test-cases -name Cargo.toml -print0 | xargs -0 -I {} sh -c 'cd $(dirname {}) && cargo clippy --all-targets --all-features -- -D warnings || exit 255'
+      - name: Lint with Clippy
+        run: python scripts/run-clippy.py
 
   udeps:
     name: Check Unused Dependencies

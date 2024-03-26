@@ -63,7 +63,7 @@ jobs:
 
       - id: set-matrix
         run: |
-         echo "matrix=$(find test-cases -mindepth 1 -maxdepth 1 -type d -exec basename {} \; | jq -R -cs 'split("\n")[:-1]')" >> $GITHUB_OUTPUT
+          echo "matrix=$(find test-cases -mindepth 1 -maxdepth 1 -type d -exec basename {} \; | jq -R -cs 'split("\n")[:-1]')" >> $GITHUB_OUTPUT
 
   integration-tests:
     name: Integration Tests
@@ -87,7 +87,6 @@ jobs:
             ~/.cargo
             target
           key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
-          fail-on-cache-miss: true
 
       - name: Run integration test for a specific test case
         run: |

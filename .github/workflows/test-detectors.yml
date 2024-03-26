@@ -92,8 +92,9 @@ jobs:
             target
           key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
 
-      - name: Run integration test for a specific test case
+      - name: Run unit tests for a specific detector
         working-directory: test-cases
         run: |
           cd ${{ matrix.detector }}
-          cargo test
+          find . -name Cargo.toml -execdir cargo test \;
+

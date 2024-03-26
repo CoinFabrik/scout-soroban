@@ -36,8 +36,8 @@ jobs:
         working-directory: detectors
         run: cargo +nightly fmt -- --check -v
 
-      - name: Check Formatting in Test Cases
-        run: find test-cases -name Cargo.toml -execdir cargo +nightly fmt -- --check -v \;
+      - name: Format Code in Test Cases
+        run: find test-cases -name Cargo.toml -print0 | xargs -0 -I{} bash -c 'cd "$(dirname {})" && cargo +nightly fmt -- --check -v || exit 255'
 
   clippy:
     name: Lint with Clippy
@@ -71,7 +71,7 @@ jobs:
         run: cargo clippy --all-targets --all-features -- -D warnings
 
       - name: Lint Code in Test Cases
-        run: find test-cases -name Cargo.toml -execdir cargo clippy --all-targets --all-features -- -D warnings \;
+        run: find test-cases -name Cargo.toml -print0 | xargs -0 -I {} sh -c 'cd $(dirname {}) && cargo clippy --all-targets --all-features -- -D warnings || exit 255'
 
   udeps:
     name: Check Unused Dependencies
@@ -101,6 +101,4 @@ jobs:
         run: cargo install cargo-udeps --force
 
       - name: Check Unused Dependencies in Test Cases
-        run: |
-          set -e
-          find test-cases -name Cargo.toml -execdir bash -c 'cargo update && cargo +nightly udeps --all-targets || exit 255' \;
+        run: find test-cases -name Cargo.toml -print0 | xargs -0 -I{} bash -c 'cd "$(dirname {})" && cargo update && cargo +nightly udeps --all-targets || exit 255'

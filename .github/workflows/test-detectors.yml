@@ -111,4 +111,4 @@ jobs:
         working-directory: test-cases
         run: |
           cd ${{ matrix.detector }}
-          find . -name Cargo.toml -execdir cargo test \;
+          find . -name Cargo.toml -print0 | xargs -0 -I{} bash -c 'cd "$(dirname {})" && cargo test || exit 255'

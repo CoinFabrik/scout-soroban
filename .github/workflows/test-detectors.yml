@@ -63,7 +63,7 @@ jobs:
 
       - id: set-matrix
         run: |
-          echo "name=matrix::$(find test-cases -mindepth 1 -maxdepth 1 -type d -printf '"%f", ' | sed 's/, $//')" >> $GITHUB_OUTPUT
+         echo "matrix=$(find test-cases -mindepth 1 -maxdepth 1 -type d -exec basename {} \; | jq -R -cs 'split("\n")[:-1]')" >> $GITHUB_OUTPUT
 
   integration-tests:
     name: Integration Tests

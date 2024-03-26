@@ -32,13 +32,15 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Cache cargo-scout dependencies
-        id: cache-cargo-scout-dependencies
+      - name: Cache cargo dependencies
         uses: actions/cache@v4
         with:
           path: |
             ~/.cargo
-          key: ${{ runner.os }}-cargo-scout-dependencies-${{ github.run_id }}
+            target
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-
 
       - name: Update Rust Toolchain
         run: rustup update
@@ -63,7 +65,7 @@ jobs:
 
       - id: set-matrix
         run: |
-          echo "matrix=$(find test-cases -mindepth 1 -maxdepth 1 -type d -exec basename {} \; | jq -R -cs 'split("\n")[:-1]')" >> $GITHUB_OUTPUT
+          echo "matrix=$(find test-cases -name Cargo.toml -exec dirname {} \; | jq -R -cs 'split("\n")[:-1]')" >> $GITHUB_OUTPUT
 
   unit-tests:
     name: Integration Tests
@@ -89,34 +91,5 @@ jobs:
           key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
 
       - name: Run integration test for a specific test case
-        working-directory: test-cases/${{ matrix.test-case }}
+        working-directory: ${{ matrix.test-case }}
         run: cargo test
-
-  integration-tests:
-    name: Integration Tests
-    needs: [build, prepare-test-matrix]
-    strategy:
-      fail-fast: false
-      matrix:
-        os:
-          - ubuntu-latest
-          - macos-latest
-        test-case: ${{fromJson(needs.prepare-test-matrix.outputs.matrix)}}
-    runs-on: ${{ matrix.os }}
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Cache cargo-scout dependencies
-        id: cache-cargo-scout-dependencies
-        uses: actions/cache@v3
-        with:
-          path: |
-            ~/.cargo
-            target
-          key: ${{ runner.os }}-cargo-scout-dependencies-${{ github.run_id  }}
-          fail-on-cache-miss: true
-
-      - name: Run integration test for a specific test case
-        working-directory: test-cases/${{ matrix.test-case }}
-        run: cargo test --features integration-tests

@@ -29,6 +29,7 @@ jobs:
         with:
           path: |
             ~/.cargo
+            ~/.rustup
             test-cases/**/target
           key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
           restore-keys: |
@@ -57,10 +58,14 @@ jobs:
         with:
           path: |
             ~/.cargo
+            ~/.rustup
             test-cases/**/target
           key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
           restore-keys: |
             ${{ runner.os }}-cargo-
+
+      - name: Use Rust nightly
+        run: rustup default nightly
 
       - name: Install rustfmt
         run: rustup component add rustfmt --toolchain nightly
@@ -86,6 +91,7 @@ jobs:
         with:
           path: |
             ~/.cargo
+            ~/.rustup
             test-cases/**/target
           key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
           restore-keys: |
@@ -115,6 +121,7 @@ jobs:
         with:
           path: |
             ~/.cargo
+            ~/.rustup
             test-cases/**/target
           key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
           restore-keys: |

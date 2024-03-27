@@ -39,7 +39,7 @@ jobs:
         run: rustup component add rustfmt --toolchain nightly
 
       - name: Check Format
-        run: python scripts/run-fmt.py
+        run: python scripts/run-fmt.py --dir test-cases detectors
 
   clippy:
     name: Lint with Clippy
@@ -74,4 +74,25 @@ jobs:
         run: rustup component add clippy --toolchain nightly
 
       - name: Lint with Clippy
-        run: python scripts/run-clippy.py
+        run: python scripts/run-clippy.py --dir test-cases detectors
+
+  udeps:
+    name: Check for unused dependencies
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.9"
+
+      - name: Update Rust Toolchain
+        run: rustup update
+
+      - name: Install cargo-udeps
+        run: cargo install cargo-udeps
+
+      - name: Check for unused dependencies
+        run: python scripts/run-udeps.py --dir test-cases detectors

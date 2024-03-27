@@ -1,3 +1,4 @@
+import argparse
 import os
 import subprocess
 import time
@@ -11,6 +12,12 @@ ENDC = "\033[0m"
 def run_clippy(directories):
     errors = []
     for directory in directories:
+        if not os.path.isdir(directory):
+            errors.append(
+                f"Error: The specified path '{directory}' is not a directory or does not exist."
+            )
+            continue
+
         print(f"\n{GREEN}Running clippy in {directory}:{ENDC}")
         for root, _, files in os.walk(directory):
             if "Cargo.toml" in files:
@@ -54,8 +61,19 @@ def print_clippy_errors(errors):
 
 
 if __name__ == "__main__":
-    directories = ["test-cases", "detectors"]
-    errors = run_clippy(directories)
+    parser = argparse.ArgumentParser(
+        description="Run cargo-clippy for specified directories"
+    )
+    parser.add_argument(
+        "--dir",
+        nargs="+",
+        required=True,
+        help="Specify the directories to run cargo-clippy on. Multiple directories can be specified.",
+    )
+
+    args = parser.parse_args()
+
+    errors = run_clippy(args.dir)
     print_clippy_errors(errors)
     if errors:
         exit(1)

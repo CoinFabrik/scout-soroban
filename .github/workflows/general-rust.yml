@@ -83,6 +83,11 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.9"
+
       - name: Cache Rust Dependencies
         uses: actions/cache@v4
         with:
@@ -98,10 +103,7 @@ jobs:
         run: rustup install nightly --profile minimal
 
       - name: Install dylint-link
-        run: cargo install dylint-link --force
+        run: cargo install dylint-link cargo-udeps --force
 
-      - name: Install cargo-udeps
-        run: cargo install cargo-udeps --force
-
-      - name: Check Unused Dependencies in Test Cases
-        run: find test-cases -name Cargo.toml -print0 | xargs -0 -I{} bash -c 'cd "$(dirname {})" && cargo update && cargo +nightly udeps --all-targets || exit 255'
+      - name: Find unused dependencies
+        run: python scripts/run-udeps.py

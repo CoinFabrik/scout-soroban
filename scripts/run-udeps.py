@@ -13,7 +13,7 @@ def run_udeps(directories):
             if 'Cargo.toml' in files:
                 print(f"Checking unused dependencies in: {root}")
                 subprocess.run(['cargo', 'update'], cwd=root)
-                result = subprocess.run(['cargo', '+nightly', 'udeps', '--no-default-features', '--frozen', '--backend=save-analysis'], cwd=root, capture_output=True, text=True)
+                result = subprocess.run(['cargo', '+nightly', 'udeps', '--no-default-features', '--locked', '--backend=save-analysis'], cwd=root, capture_output=True, text=True)
                 if result.returncode != 0:
                     print(f"\n{RED}Unused dependencies found in: {root}{ENDC}\n")
                     error_message = result.stderr.strip()

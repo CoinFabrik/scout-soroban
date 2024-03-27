@@ -59,13 +59,14 @@ jobs:
           path: |
             ~/.cargo
             ~/.rustup
+            **/target
           key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
 
       - name: Update Rust Toolchain
         run: rustup update
 
       - name: Install Rust nightly
-        run: rustup install nightly-2023-12-16 --profile minimal
+        run: rustup install nightly --profile minimal
 
       - name: Install dylint-link
         run: cargo install dylint-link
@@ -94,13 +95,13 @@ jobs:
           path: |
             ~/.cargo
             ~/.rustup
-          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          key: ${{ runner.os }}-cargo-udeps-${{ hashFiles('**/Cargo.lock') }}
 
       - name: Update Rust Toolchain
         run: rustup update
 
       - name: Install Rust nightly
-        run: rustup install nightly-2023-12-16 --profile minimal
+        run: rustup install nightly-2023-12-16
 
       - name: Install cargo-udeps
         run: cargo install cargo-udeps

@@ -48,7 +48,8 @@ jobs:
           - macos-latest
     runs-on: ${{ matrix.os }}
     outputs:
-      status: ${{ job.status }}
+      ubuntu-status: ${{ (matrix.os == 'ubuntu-latest' && job.status) || 'not-applicable' }}
+      macos-status: ${{ (matrix.os == 'macos-latest' && job.status) || 'not-applicable' }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -114,8 +115,16 @@ jobs:
         with:
           path: |
             ~/.cargo
-            **/target
           key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+
+      - name: Cache build artifacts for ${{ matrix.detector }}
+        uses: actions/cache@v4
+        with:
+          path: |
+            target
+          key: ${{ runner.os }}-${{ matrix.detector }}-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-${{ matrix.detector }}-
 
       - name: Run unit tests for a specific detector
         run: python scripts/run-tests.py --detector=${{ matrix.detector }}
@@ -136,8 +145,8 @@ jobs:
             | Component               | Status |
             |-------------------------|--------|
             | Detector Validation     | ${{ (needs.validate-detectors.outputs.status == 'success' && '✅ Successful') || '❌ Failed' }} |
-            | Build on Ubuntu         | ${{ (contains(needs.build.result, 'ubuntu-latest') && needs.build.outputs.status == 'success' && '✅ Successful') || '❌ Failed' }} |
-            | Build on macOS          | ${{ (contains(needs.build.result, 'macos-latest') && needs.build.outputs.status == 'success' && '✅ Successful') || '❌ Failed' }} |
+            | Build on Ubuntu         | ${{ (needs.build.outputs.ubuntu-status == 'success' && '✅ Successful') || '❌ Failed' }} |
+            | Build on macOS          | ${{ (needs.build.outputs.macos-status == 'success' && '✅ Successful') || '❌ Failed' }} |
             | Tests Execution         | ${{ (needs.test.outputs.status == 'success' && '✅ Successful') || '❌ Failed' }} |
 
             The workflow has completed. Please check the statuses above for more details. Great job! 🚀

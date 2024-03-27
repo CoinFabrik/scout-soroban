@@ -20,6 +20,8 @@ jobs:
   format:
     name: Check Rust Format
     runs-on: ubuntu-latest
+    outputs:
+      status: ${{ job.status }}
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
@@ -44,6 +46,8 @@ jobs:
   clippy:
     name: Lint with Clippy
     runs-on: ubuntu-latest
+    outputs:
+      status: ${{ job.status }}
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
@@ -79,6 +83,8 @@ jobs:
   udeps:
     name: Check for unused dependencies
     runs-on: ubuntu-latest
+    outputs:
+      status: ${{ job.status }}
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
@@ -110,3 +116,24 @@ jobs:
 
       - name: Check for unused dependencies
         run: python scripts/run-udeps.py --dir test-cases detectors
+
+  comment-on-pr:
+    name: Comment on PR
+    runs-on: ubuntu-latest
+    needs: [format, clippy, udeps]
+    steps:
+      - name: Create or Update PR Comment
+        uses: peter-evans/create-or-update-comment@v4.0.0
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          issue-number: ${{ github.event.pull_request.number }}
+          body: |
+            🎉 **General Rust Workflow Summary** 🎉
+
+            | Component                 | Status |
+            |---------------------------|--------|
+            | Check Rust Format         | ${{ (needs.format.outputs.status == 'success' && '✅ Successful') || '❌ Failed' }} |
+            | Lint with Clippy          | ${{ (needs.clippy.outputs.status == 'success' && '✅ Successful') || '❌ Failed' }} |
+            | Check for unused deps (udeps) | ${{ (needs.udeps.outputs.status == 'success' && '✅ Successful') || '❌ Failed' }} |
+
+            The workflow has completed. Please check the statuses above for more details. Great job! 🚀

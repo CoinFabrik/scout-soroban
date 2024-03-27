@@ -78,7 +78,7 @@ jobs:
 
   udeps:
     name: Check Unused Dependencies
-    runs-on: ubuntu-latest
+    runs-on: macos-latest
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4

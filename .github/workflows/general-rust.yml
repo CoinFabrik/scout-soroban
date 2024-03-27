@@ -91,6 +91,12 @@ jobs:
       - name: Update Rust Toolchain
         run: rustup update
 
+      - name: Install Rust nightly
+        run: rustup install nightly-2023-12-16
+
+      - name: Default to nightly
+        run: rustup default nightly-2023-12-16
+
       - name: Install cargo-udeps
         run: cargo install cargo-udeps
 

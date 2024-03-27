@@ -36,6 +36,14 @@ jobs:
       - name: Validate detectors
         run: python scripts/validate-detectors.py
 
+      - name: Create or Update Comment
+        uses: peter-evans/create-or-update-comment@v4.0.0
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          issue-number: ${{ github.event.pull_request.number }}
+          body: |
+            ✅ All detectors are valid.
+
   build:
     name: Build
     needs: validate-detectors

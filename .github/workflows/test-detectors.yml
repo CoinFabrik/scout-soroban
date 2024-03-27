@@ -5,130 +5,148 @@ on:
     branches:
       - "main"
     paths:
-      - "apps/cargo-scout-audit/**"
       - "detectors/**"
       - "test-cases/**"
-      - "Makefile"
   pull_request:
     paths:
-      - "apps/cargo-scout-audit/**"
       - "detectors/**"
       - "test-cases/**"
-      - "Makefile"
-  workflow_dispatch:
 
 env:
   CARGO_TERM_COLOR: always
   RUST_BACKTRACE: full
+  PYTHONUNBUFFERED: 1
 
 jobs:
-  check-config:
-    name: Check config
-    strategy:
-      matrix:
-        os:
-          - ubuntu-latest
-          - macos-latest
-    runs-on: ${{ matrix.os }}
+  validate-detectors:
+    name: Validate
+    runs-on: ubuntu-latest
+    outputs:
+      status: ${{ job.status }}
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
-      - name: Install python dependencies
-        run: pip3 install pyyaml
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.9"
 
-      - name: Check test matrix is complete
-        run: python3 scripts/check-ci-detectors-to-test.py .github/workflows/test-detectors.yml detectors
+      - name: Install dependencies
+        run: pip install fuzzywuzzy
 
-      - name: Check detectors for repeated names
-        run: python3 scripts/check-detectors-repeated-names.py detectors
-
-      - name: Check detector names with underscore
-        run: python3 scripts/check-detectors-underscore-names.py detectors
-
-      - name: Check detector names different than their folders
-        run: python3 scripts/check-detectors-names-match-folder.py detectors
+      - name: Validate detectors
+        run: python scripts/validate-detectors.py
 
   build:
     name: Build
-    needs: check-config
+    needs: validate-detectors
     strategy:
       matrix:
         os:
           - ubuntu-latest
           - macos-latest
     runs-on: ${{ matrix.os }}
+    outputs:
+      ubuntu-status: ${{ (matrix.os == 'ubuntu-latest' && job.status) || 'not-applicable' }}
+      macos-status: ${{ (matrix.os == 'macos-latest' && job.status) || 'not-applicable' }}
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
-      - name: Cache cargo-scout dependencies
-        id: cache-cargo-scout-dependencies
-        uses: actions/cache@v3
+      - name: Cache cargo dependencies
+        uses: actions/cache@v4
         with:
           path: |
             ~/.cargo
-            apps/cargo-scout-audit/target
-            detectors/target
-            detectors/Cargo.lock
-          key: ${{ runner.os }}-cargo-scout-dependencies-${{ github.run_id }}
+            **/target
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-
 
-      - name: Install Rust nightly-2023-09-29
-        run: rustup install nightly-2023-09-29 --profile minimal
+      - name: Update Rust Toolchain
+        run: rustup update
 
-      - name: Install dylint-link
-        run: cargo install dylint-link
+      - name: Install Rust nightly
+        run: rustup install nightly --profile minimal
 
-      - name: Compile cargo-scout-audit tests
-        working-directory: apps/cargo-scout-audit
-        run: cargo test --no-run
+      - name: Install dylint, dylint-link and cargo-scout-audit
+        run: cargo +nightly install cargo-dylint dylint-link cargo-scout-audit
 
-      - name: Compile detectors
-        working-directory: detectors
-        run: cargo build --release
+  prepare-detector-matrix:
+    name: Prepare Detector Matrix
+    runs-on: ubuntu-latest
+    needs: build
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - id: set-matrix
+        working-directory: test-cases
+        run: |
+          echo "matrix=$(find . -mindepth 1 -maxdepth 1 -type d -exec basename {} \; | jq -R -cs 'split("\n")[:-1]')" >> $GITHUB_OUTPUT
 
   test:
-    name: Test
-    needs: build
+    name: Test detector
+    needs: [build, prepare-detector-matrix]
     strategy:
+      fail-fast: false
       matrix:
         os:
           - ubuntu-latest
           - macos-latest
-        test:
-          [
-            "avoid-core-mem-forget",
-            "avoid-panic-error",
-            "avoid-unsafe-block",
-            "divide-before-multiply",
-            "dos-unbounded-operation",
-            "insufficiently-random-values",
-            "overflow-check",
-            "set-contract-storage",
-            "unprotected-update-current-contract-wasm",
-            "unsafe-expect",
-            "unsafe-unwrap",
-            "unused-return-enum",
-          ]
+        detector: ${{fromJson(needs.prepare-detector-matrix.outputs.matrix)}}
     runs-on: ${{ matrix.os }}
+    outputs:
+      status: ${{ job.status }}
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
-      - name: Cache cargo-scout dependencies
-        id: cache-cargo-scout-dependencies
-        uses: actions/cache@v3
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.9"
+
+      - name: Cache cargo dependencies
+        uses: actions/cache@v4
         with:
           path: |
             ~/.cargo
-            apps/cargo-scout-audit/target
-            detectors/target
-            detectors/Cargo.lock
-          key: ${{ runner.os }}-cargo-scout-dependencies-${{ github.run_id  }}
-          fail-on-cache-miss: true
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
 
-      - name: Run tests
-        working-directory: apps/cargo-scout-audit
-        env:
-          INTEGRATION_TESTS_TO_RUN: ${{ matrix.test }}
-        run: cargo test -- --nocapture
+      - name: Cache build artifacts for ${{ matrix.detector }}
+        uses: actions/cache@v4
+        with:
+          path: |
+            test-cases/${{ matrix.detector }}/**/target
+          key: ${{ runner.os }}-${{ matrix.detector }}-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-${{ matrix.detector }}-
+
+      - name: Run unit tests for a specific detector
+        run: python scripts/run-tests.py --detector=${{ matrix.detector }}
+
+  comment-on-pr:
+    name: Comment on PR
+    runs-on: ubuntu-latest
+    needs: [validate-detectors, build, test]
+    steps:
+      - name: Create or Update PR Comment
+        uses: peter-evans/create-or-update-comment@v4.0.0
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          issue-number: ${{ github.event.pull_request.number }}
+          body: |
+            🎉 **Test Detectors Workflow Summary** 🎉
+
+            | Component               | Status |
+            |-------------------------|--------|
+            | Detector Validation     | ${{ (needs.validate-detectors.outputs.status == 'success' && '✅ Successful') || '❌ Failed' }} |
+            | Build on Ubuntu         | ${{ (needs.build.outputs.ubuntu-status == 'success' && '✅ Successful') || '❌ Failed' }} |
+            | Build on macOS          | ${{ (needs.build.outputs.macos-status == 'success' && '✅ Successful') || '❌ Failed' }} |
+            | Tests Execution         | ${{ (needs.test.outputs.status == 'success' && '✅ Successful') || '❌ Failed' }} |
+
+            The workflow has completed. Please check the statuses above for more details. Great job! 🚀

@@ -11,6 +11,12 @@ pub struct WithoutCopy {
     pub b: u64,
 }
 
+impl Drop for WithoutCopy {
+    fn drop(&mut self) {
+        // Prevent clippy warning
+    }
+}
+
 #[contractimpl]
 impl AvoidCoreMemForget {
     pub fn forget_something(n: WithoutCopy) -> u64 {

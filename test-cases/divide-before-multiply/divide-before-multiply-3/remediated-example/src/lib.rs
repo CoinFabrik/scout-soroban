@@ -7,7 +7,7 @@ pub struct DivideBeforeMultiply;
 #[contractimpl]
 impl DivideBeforeMultiply {
     pub fn hybrid_split_profit(percentage: u64, total_profit: u64) -> Option<u64> {
-        Some((percentage * total_profit).checked_div(100)?)
+        (percentage * total_profit).checked_div(100)
     }
 }
 

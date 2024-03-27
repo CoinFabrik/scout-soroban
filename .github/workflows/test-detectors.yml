@@ -7,16 +7,15 @@ on:
     paths:
       - "detectors/**"
       - "test-cases/**"
-      - "Makefile"
   pull_request:
     paths:
       - "detectors/**"
       - "test-cases/**"
-      - "Makefile"
 
 env:
   CARGO_TERM_COLOR: always
   RUST_BACKTRACE: full
+  PYTHONUNBUFFERED: 1
 
 jobs:
   validate-detectors:

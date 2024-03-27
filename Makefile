@@ -1,31 +1,19 @@
-ci: fmt lint test
-ci-check: fmt-check lint test
-
-fmt: fmt-rust
-fmt-check: fmt-rust-check
-lint: lint-cargo-scout-audit lint-detectors lint-scout-audit-internal
+ci: fmt-rust lint test
+ci-no-test: fmt-rust lint
 
 fmt-rust:
 	@echo "Formatting Rust code..."
-	@./scripts/list-cargo-directories.sh | ./scripts/run-cargo-fmt.sh
+	@python3 scripts/run-fmt.py
 
-fmt-rust-check:
-	@echo "Checking Rust code formatting..."
-	@./scripts/list-cargo-directories.sh | ./scripts/run-cargo-fmt.sh --check
-
-lint-cargo-scout-audit:
-	@echo "Linting cargo-scout-audit..."
-	@cd apps/cargo-scout-audit && cargo clippy --all --all-features --quiet -- -D warnings
-
-lint-detectors:
-	@echo "Linting detectors..."
-	@cd detectors && ../scripts/list-cargo-directories.sh | ../scripts/run-cargo-clippy.sh
-
-lint-scout-audit-internal:
-	@echo "Linting scout-audit-internal..."
-	@cd scout-audit-internal && cargo clippy --all --all-features --quiet -- -D warnings
+lint:
+	@echo "Linting detectors and test-cases..."
+	@python3 scripts/run-clippy.py
 
 test:
-	@echo "Running tests..."
-	@cd apps/cargo-scout-audit && cargo test --all --all-features -- --nocapture
-	@cd test-cases && ../scripts/list-cargo-directories.sh | ../scripts/run-cargo-test.sh
+	@echo "Generating test matrix and running tests..."
+	@for detector in test-cases/*; do \
+		if [ -d "$$detector" ]; then \
+			detector_name=$$(basename $$detector); \
+			python3 scripts/run-tests.py --detector=$$detector_name; \
+		fi \
+	done

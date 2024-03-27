@@ -105,7 +105,6 @@ impl<'a, 'b> Visitor<'a> for VectorAccessVisitor<'a, 'b> {
             let (_, index_path) = path_to_resolved(&index_qpath)?;
             let index_hir_id = resolution_to_local(&index_path.res)?;
             if *index_hir_id == self.index_id{
-                dbg!(6);
                 self.has_vector_access = true;
             }
             Ok(())

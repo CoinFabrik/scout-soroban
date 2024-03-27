@@ -59,7 +59,6 @@ jobs:
           path: |
             ~/.cargo
             ~/.rustup
-            **/target
           key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
 
       - name: Update Rust Toolchain
@@ -88,6 +87,14 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: "3.9"
+
+      - name: Cache Rust Dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo
+            ~/.rustup
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
 
       - name: Update Rust Toolchain
         run: rustup update

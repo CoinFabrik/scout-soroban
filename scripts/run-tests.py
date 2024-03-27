@@ -56,13 +56,13 @@ if __name__ == "__main__":
     parser.add_argument(
         "--detector",
         type=str,
-        help='The detector to run tests for, e.g., "./unsafe-unwrap"',
+        help='The detector to run tests for, e.g., "unsafe-unwrap"',
     )
 
     args = parser.parse_args()
 
     if args.detector:
-        errors = run_tests(args.detector.strip("./"))
+        errors = run_tests(args.detector)
         print_tests_errors(errors)
         if errors:
             exit(1)

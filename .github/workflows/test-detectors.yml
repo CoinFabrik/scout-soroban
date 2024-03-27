@@ -86,7 +86,7 @@ jobs:
       - id: set-matrix
         working-directory: test-cases
         run: |
-          echo "matrix=$(find . -mindepth 1 -maxdepth 1 -type d | jq -R -cs 'split("\n")[:-1]')" >> $GITHUB_OUTPUT
+          echo "matrix=$(find . -mindepth 1 -maxdepth 1 -type d -exec basename {} \; | jq -R -cs 'split("\n")[:-1]')" >> $GITHUB_OUTPUT
 
   test:
     name: Test detector
@@ -121,7 +121,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: |
-            target
+            test-cases/${{ matrix.detector }}/target
           key: ${{ runner.os }}-${{ matrix.detector }}-${{ hashFiles('**/Cargo.lock') }}
           restore-keys: |
             ${{ runner.os }}-${{ matrix.detector }}-

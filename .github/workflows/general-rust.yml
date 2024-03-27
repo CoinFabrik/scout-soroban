@@ -112,7 +112,7 @@ jobs:
         run: rustup default nightly-2023-12-16
 
       - name: Install cargo-udeps
-        run: cargo install cargo-udeps
+        run: cargo install dylint-link cargo-udeps
 
       - name: Check for unused dependencies
         run: python scripts/run-udeps.py --dir test-cases detectors

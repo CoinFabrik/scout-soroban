@@ -44,7 +44,6 @@ jobs:
         os:
           - ubuntu-latest
           - macos-latest
-          - windows-latest
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout repository
@@ -93,7 +92,6 @@ jobs:
         os:
           - ubuntu-latest
           - macos-latest
-          - windows-latest
         detector: ${{fromJson(needs.prepare-detector-matrix.outputs.matrix)}}
     runs-on: ${{ matrix.os }}
     steps:

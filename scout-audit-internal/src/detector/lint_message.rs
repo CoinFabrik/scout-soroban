@@ -17,3 +17,5 @@ pub const UNPROTECTED_UPDATE_CURRENT_CONTRACT_LINT_MESSAGE: &str =
 pub const UNSAFE_EXPECT_LINT_MESSAGE: &str = "Unsafe usage of `expect`";
 pub const UNSAFE_UNWRAP_LINT_MESSAGE: &str = "Unsafe usage of `unwrap`";
 pub const UNUSED_RETURN_ENUM_LINT_MESSAGE : &str = "If any of the variants (Ok/Err) is not used, the code could be simplified or it could imply a bug";
+pub const ITERATORS_OVER_INDEXING_LINT_MESSAGE: &str =
+    "Hardcoding an index could lead to panic if the top bound is out of bounds.";

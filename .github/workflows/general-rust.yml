@@ -89,14 +89,6 @@ jobs:
         with:
           python-version: "3.9"
 
-      - name: Cache Rust Dependencies
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.cargo
-            ~/.rustup
-          key: ${{ runner.os }}-cargo-udeps-${{ hashFiles('**/Cargo.lock') }}
-
       - name: Update Rust Toolchain
         run: rustup update
 
@@ -104,7 +96,7 @@ jobs:
         run: rustup install nightly-2023-12-16
 
       - name: Default to nightly
-        run: rustup default nightly
+        run: rustup default nightly-2023-12-16
 
       - name: Install cargo-udeps
         run: cargo install cargo-udeps

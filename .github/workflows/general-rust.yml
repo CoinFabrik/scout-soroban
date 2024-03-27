@@ -65,10 +65,10 @@ jobs:
         run: rustup update
 
       - name: Install Rust nightly
-        run: rustup install nightly --profile minimal
+        run: rustup install nightly-2023-12-16 --profile minimal
 
       - name: Install dylint-link
-        run: cargo install dylint-link --force
+        run: cargo install dylint-link
 
       - name: Install clippy
         run: rustup component add clippy --toolchain nightly
@@ -88,14 +88,19 @@ jobs:
         with:
           python-version: "3.9"
 
+      - name: Cache Rust Dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo
+            ~/.rustup
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+
       - name: Update Rust Toolchain
         run: rustup update
 
       - name: Install Rust nightly
-        run: rustup install nightly-2023-12-16
-
-      - name: Default to nightly
-        run: rustup default nightly-2023-12-16
+        run: rustup install nightly-2023-12-16 --profile minimal
 
       - name: Install cargo-udeps
         run: cargo install cargo-udeps

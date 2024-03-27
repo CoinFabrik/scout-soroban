@@ -25,7 +25,6 @@ def run_udeps(directories):
                 result = subprocess.run(
                     [
                         "cargo",
-                        "+nightly",
                         "udeps",
                         "--all-targets",
                     ],

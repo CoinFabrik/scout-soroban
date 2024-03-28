@@ -134,6 +134,7 @@ jobs:
 
       - name: Read Ubuntu build status
         id: ubuntu_status
+        working-directory: build-status-ubuntu-latest
         run: |
           ls
           cat status-ubuntu-latest.txt
@@ -141,6 +142,7 @@ jobs:
 
       - name: Read macOS build status
         id: macos_status
+        working-directory: build-status-macos-latest
         run: |
           ls
           cat status-macos-latest.txt

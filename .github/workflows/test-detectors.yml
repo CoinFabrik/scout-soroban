@@ -47,9 +47,6 @@ jobs:
           - ubuntu-latest
           - macos-latest
     runs-on: ${{ matrix.os }}
-    outputs:
-      ubuntu-status: ${{ (matrix.os == 'ubuntu-latest' && job.status) || 'not-applicable' }}
-      macos-status: ${{ (matrix.os == 'macos-latest' && job.status) || 'not-applicable' }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -59,7 +56,6 @@ jobs:
         with:
           path: |
             ~/.cargo
-            **/target
           key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
           restore-keys: |
             ${{ runner.os }}-cargo-
@@ -72,6 +68,15 @@ jobs:
 
       - name: Install dylint, dylint-link and cargo-scout-audit
         run: cargo +nightly install cargo-dylint dylint-link cargo-scout-audit
+
+      - name: Determine build status and write to file
+        run: echo "${{ job.status }}" > status-${{ matrix.os }}.txt
+
+      - name: Upload build status artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-status-${{ matrix.os }}
+          path: status-${{ matrix.os }}.txt
 
   prepare-detector-matrix:
     name: Prepare Detector Matrix
@@ -117,27 +122,41 @@ jobs:
             ~/.cargo
           key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
 
-      - name: Cache build artifacts for ${{ matrix.detector }}
-        uses: actions/cache@v4
-        with:
-          path: |
-            test-cases/${{ matrix.detector }}/**/target
-          key: ${{ runner.os }}-${{ matrix.detector }}-${{ hashFiles('**/Cargo.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-${{ matrix.detector }}-
-
       - name: Run unit tests for a specific detector
         run: python scripts/run-tests.py --detector=${{ matrix.detector }}
 
   comment-on-pr:
     name: Comment on PR
     runs-on: ubuntu-latest
+    if: ${{ always() }}
     needs: [validate-detectors, build, test]
     steps:
+      - name: Download build status artifacts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: build-status-*
+
+      - name: Read Ubuntu build status
+        id: ubuntu_status
+        run: echo "status=$(cat status-ubuntu-latest.txt)" >> $GITHUB_OUTPUT
+
+      - name: Read macOS build status
+        id: macos_status
+        run: echo "status=$(cat status-macos-latest.txt)" >> $GITHUB_OUTPUT
+
+      - name: Find comment
+        id: find_comment
+        uses: peter-evans/find-comment@v3
+        with:
+          issue-number: ${{ github.event.pull_request.number }}
+          comment-author: "github-actions[bot]"
+          body-includes: "🎉 **Test Detectors Workflow Summary** 🎉"
+
       - name: Create or Update PR Comment
         uses: peter-evans/create-or-update-comment@v4.0.0
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
+          comment-id: ${{ steps.find_comment.outputs.comment-id }}
           issue-number: ${{ github.event.pull_request.number }}
           body: |
             🎉 **Test Detectors Workflow Summary** 🎉
@@ -145,8 +164,8 @@ jobs:
             | Component               | Status |
             |-------------------------|--------|
             | Detector Validation     | ${{ (needs.validate-detectors.outputs.status == 'success' && '✅ Successful') || '❌ Failed' }} |
-            | Build on Ubuntu         | ${{ (needs.build.outputs.ubuntu-status == 'success' && '✅ Successful') || '❌ Failed' }} |
-            | Build on macOS          | ${{ (needs.build.outputs.macos-status == 'success' && '✅ Successful') || '❌ Failed' }} |
+            | Build on Ubuntu         | ${{ (steps.ubuntu_status.outputs.status == 'success' && '✅ Successful') || '❌ Failed' }} |
+            | Build on macOS          | ${{ (steps.macos_status.outputs.status == 'success' && '✅ Successful') || '❌ Failed' }} |
             | Tests Execution         | ${{ (needs.test.outputs.status == 'success' && '✅ Successful') || '❌ Failed' }} |
 
             The workflow has completed. Please check the statuses above for more details. Great job! 🚀

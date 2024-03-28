@@ -123,10 +123,18 @@ jobs:
     if: ${{ always()}}
     needs: [format, clippy, udeps]
     steps:
+      - name: Find comment
+        id: find_comment
+        uses: peter-evans/find-comment@v1
+        with:
+          issue-number: ${{ github.event.pull_request.number }}
+          body-includes: "🎉 **General Rust Workflow Summary** 🎉"
+
       - name: Create or Update PR Comment
         uses: peter-evans/create-or-update-comment@v4.0.0
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
+          comment-id: ${{ steps.find_comment.outputs.comment-id }}
           issue-number: ${{ github.event.pull_request.number }}
           body: |
             🎉 **General Rust Workflow Summary** 🎉

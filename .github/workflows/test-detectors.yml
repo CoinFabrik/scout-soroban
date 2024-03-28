@@ -131,12 +131,9 @@ jobs:
     steps:
       - name: Download build status artifacts
         uses: actions/download-artifact@v4
-        with:
-          pattern: build-status-*
 
       - name: Read Ubuntu build status
         id: ubuntu_status
-        working-directory: status-ubuntu-latest
         run: |
           ls
           cat status-ubuntu-latest.txt
@@ -144,7 +141,6 @@ jobs:
 
       - name: Read macOS build status
         id: macos_status
-        working-directory: status-macos-latest
         run: |
           ls
           cat status-macos-latest.txt
@@ -163,6 +159,7 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           comment-id: ${{ steps.find_comment.outputs.comment-id }}
+          edit-mode: replace
           issue-number: ${{ github.event.pull_request.number }}
           body: |
             🎉 **Test Detectors Workflow Summary** 🎉

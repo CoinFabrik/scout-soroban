@@ -135,6 +135,7 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           comment-id: ${{ steps.find_comment.outputs.comment-id }}
+          edit-mode: replace
           issue-number: ${{ github.event.pull_request.number }}
           body: |
             🎉 **General Rust Workflow Summary** 🎉

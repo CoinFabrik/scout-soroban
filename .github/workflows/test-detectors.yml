@@ -56,9 +56,7 @@ jobs:
         with:
           path: |
             ~/.cargo
-          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-cargo-
+          key: ${{ runner.os }}-tests-${{ hashFiles('**/Cargo.lock') }}
 
       - name: Update Rust Toolchain
         run: rustup update
@@ -120,7 +118,7 @@ jobs:
         with:
           path: |
             ~/.cargo
-          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          key: ${{ runner.os }}-tests-${{ hashFiles('**/Cargo.lock') }}
 
       - name: Run unit tests for a specific detector
         run: python scripts/run-tests.py --detector=${{ matrix.detector }}
@@ -138,15 +136,17 @@ jobs:
 
       - name: Read Ubuntu build status
         id: ubuntu_status
+        working-directory: status-ubuntu-latest
         run: |
-          ls -l
+          ls
           cat status-ubuntu-latest.txt
           echo "status=$(cat status-ubuntu-latest.txt)" >> $GITHUB_OUTPUT
 
       - name: Read macOS build status
         id: macos_status
+        working-directory: status-macos-latest
         run: |
-          ls -l
+          ls
           cat status-macos-latest.txt
           echo "status=$(cat status-macos-latest.txt)" >> $GITHUB_OUTPUT
 

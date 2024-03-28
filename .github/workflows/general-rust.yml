@@ -63,7 +63,7 @@ jobs:
           path: |
             ~/.cargo
             ~/.rustup
-          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          key: ${{ runner.os }}-cargo-clippy-${{ hashFiles('**/Cargo.lock') }}
 
       - name: Update Rust Toolchain
         run: rustup update
@@ -100,7 +100,7 @@ jobs:
           path: |
             ~/.cargo
             ~/.rustup
-          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          key: ${{ runner.os }}-cargo-udeps-${{ hashFiles('**/Cargo.lock') }}
 
       - name: Update Rust Toolchain
         run: rustup update

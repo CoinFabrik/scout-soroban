@@ -54,8 +54,7 @@ jobs:
       - name: Cache cargo dependencies
         uses: actions/cache@v4
         with:
-          path: |
-            ~/.cargo
+          path: ~/.cargo
           key: ${{ runner.os }}-tests-${{ hashFiles('**/Cargo.lock') }}
 
       - name: Update Rust Toolchain
@@ -88,8 +87,7 @@ jobs:
 
       - id: set-matrix
         working-directory: test-cases
-        run: |
-          echo "matrix=$(find . -mindepth 1 -maxdepth 1 -type d -exec basename {} \; | jq -R -cs 'split("\n")[:-1]')" >> $GITHUB_OUTPUT
+        run: echo "matrix=$(find . -mindepth 1 -maxdepth 1 -type d -exec basename {} \; | jq -R -cs 'split("\n")[:-1]')" >> $GITHUB_OUTPUT
 
   test:
     name: Test detector
@@ -116,8 +114,7 @@ jobs:
       - name: Cache cargo dependencies
         uses: actions/cache@v4
         with:
-          path: |
-            ~/.cargo
+          path: ~/.cargo
           key: ${{ runner.os }}-tests-${{ hashFiles('**/Cargo.lock') }}
 
       - name: Run unit tests for a specific detector
@@ -135,25 +132,18 @@ jobs:
       - name: Read Ubuntu build status
         id: ubuntu_status
         working-directory: build-status-ubuntu-latest
-        run: |
-          ls
-          cat status-ubuntu-latest.txt
-          echo "status=$(cat status-ubuntu-latest.txt)" >> $GITHUB_OUTPUT
+        run: echo "status=$(cat status-ubuntu-latest.txt)" >> $GITHUB_OUTPUT
 
       - name: Read macOS build status
         id: macos_status
         working-directory: build-status-macos-latest
-        run: |
-          ls
-          cat status-macos-latest.txt
-          echo "status=$(cat status-macos-latest.txt)" >> $GITHUB_OUTPUT
+        run: echo "status=$(cat status-macos-latest.txt)" >> $GITHUB_OUTPUT
 
       - name: Find comment
         id: find_comment
         uses: peter-evans/find-comment@v3
         with:
           issue-number: ${{ github.event.pull_request.number }}
-          comment-author: "github-actions[bot]"
           body-includes: "🎉 **Test Detectors Workflow Summary** 🎉"
 
       - name: Create or Update PR Comment
@@ -173,4 +163,4 @@ jobs:
             | Build on macOS          | ${{ (steps.macos_status.outputs.status == 'success' && '✅ Successful') || '❌ Failed' }} |
             | Tests Execution         | ${{ (needs.test.outputs.status == 'success' && '✅ Successful') || '❌ Failed' }} |
 
-            The workflow has completed. Please check the statuses above for more details. Great job! 🚀
+            The workflow has completed. Great job! 🚀

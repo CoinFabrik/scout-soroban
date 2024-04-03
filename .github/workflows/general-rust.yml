@@ -125,7 +125,7 @@ jobs:
     steps:
       - name: Find comment
         id: find_comment
-        uses: peter-evans/find-comment@v1
+        uses: peter-evans/find-comment@v3
         with:
           issue-number: ${{ github.event.pull_request.number }}
           body-includes: "🎉 **General Rust Workflow Summary** 🎉"
@@ -146,4 +146,4 @@ jobs:
             | Lint with Clippy          | ${{ (needs.clippy.outputs.status == 'success' && '✅ Successful') || '❌ Failed' }} |
             | Check for unused deps (udeps) | ${{ (needs.udeps.outputs.status == 'success' && '✅ Successful') || '❌ Failed' }} |
 
-            The workflow has completed. Please check the statuses above for more details. Great job! 🚀
+            The workflow has completed. Great job! 🚀

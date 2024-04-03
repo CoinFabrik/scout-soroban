@@ -14,7 +14,7 @@ use rustc_ast::{
 use rustc_lint::{EarlyContext, EarlyLintPass};
 use rustc_span::{sym, Span};
 use scout_audit_clippy_utils::sym;
-use scout_audit_internal::Detector;
+use scout_audit_internal::{DetectorImpl, SorobanDetector as Detector};
 
 dylint_linting::impl_pre_expansion_lint! {
     /// ### What it does
@@ -57,7 +57,7 @@ dylint_linting::impl_pre_expansion_lint! {
     /// ```
     pub AVOID_PANIC_ERROR,
     Warn,
-    Detector::AvoidPanicError.get_lint_message(),
+    "",
     AvoidPanicError::default()
 }
 
@@ -182,6 +182,6 @@ fn capitalize_err_msg(s: &str) -> String {
 fn is_test_token_present(token_stream: &TokenStream) -> bool {
     token_stream.trees().any(|tree| match tree {
         TokenTree::Token(token, _) => token.is_ident_named(sym::test),
-        TokenTree::Delimited(_, _, token_stream) => is_test_token_present(token_stream),
+        TokenTree::Delimited(_, _, _, token_stream) => is_test_token_present(token_stream),
     })
 }

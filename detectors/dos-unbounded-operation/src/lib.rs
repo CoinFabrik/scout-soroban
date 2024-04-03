@@ -14,7 +14,7 @@ use rustc_hir::{
 };
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_span::{def_id::LocalDefId, Span};
-use scout_audit_internal::Detector;
+use scout_audit_internal::{DetectorImpl, SorobanDetector as Detector};
 
 dylint_linting::declare_late_lint!(
     pub DOS_UNBOUNDED_OPERATION,
@@ -92,12 +92,11 @@ impl<'tcx> Visitor<'tcx> for ForLoopVisitor {
             if let ExprKind::Call(call_func, call_args) = match_expr.kind;
             // Check the function call
             if let ExprKind::Path(qpath) = &call_func.kind;
-            if let QPath::LangItem(LangItem::IntoIterIntoIter, _, _) = qpath;
+            if let QPath::LangItem(LangItem::IntoIterIntoIter, _) = qpath;
             // Check if a Range is used
             if let ExprKind::Struct(struct_lang_item, struct_expr, _) = call_args.first().unwrap().kind;
             if let QPath::LangItem(
                 LangItem::Range | LangItem::RangeInclusiveStruct | LangItem::RangeInclusiveNew,
-                _,
                 _,
             ) = struct_lang_item;
             // Get the start and end of the range

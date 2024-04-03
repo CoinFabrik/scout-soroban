@@ -192,3 +192,13 @@ Using an old version of Soroban can be dangerous, as it may have bugs or securit
 We classified this issue, a deviation from best practices which could have
 security implications, under the [Best practices](#vulnerability-categories) category and assigned it an Enhancement severity.
 
+### Unused return enum
+
+`Rust` messages can return a `Result` `enum` with a custom error type. This is
+useful for the caller to know what went wrong when the message fails. The
+definition of the `Result` type enum consists of two variants: Ok and Err. If
+any of the variants is not used, the code could be simplified or it could imply
+a bug.
+
+We put this vulnerability under the [Validations and error handling category](#vulnerability-categories)
+with a Minor Severity.

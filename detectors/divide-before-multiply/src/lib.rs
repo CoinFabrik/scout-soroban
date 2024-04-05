@@ -27,7 +27,7 @@ dylint_linting::declare_late_lint! {
     /// Checks the existence of a division before a multiplication.
     ///
     /// ### Why is this bad?
-    /// Division between two integers might return zero.
+    /// Performing a division operation before multiplication can lead to a loss of precision. It might even result in an unintended zero value.
     ///
     /// ### Example
     /// ```rust

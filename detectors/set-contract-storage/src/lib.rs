@@ -11,7 +11,8 @@ use rustc_hir::{Body, FnDecl};
 use rustc_hir::{Expr, ExprKind};
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_span::Span;
-use scout_audit_internal::{DetectorImpl, SorobanDetector as Detector};
+
+const LINT_MESSAGE: &str = "Abitrary users should not have control over keys because it implies writing any value of left mapping, lazy variable, or the main struct of the contract located in position 0 of the storage";
 
 dylint_linting::declare_late_lint! {
     /// ### What it does
@@ -38,7 +39,14 @@ dylint_linting::declare_late_lint! {
     /// ```
     pub SET_STORAGE_WARN,
     Warn,
-    ""
+    LINT_MESSAGE,
+    {
+        name: "Set Contract Storage",
+        long_message: "In ink! the function set_contract_storage(key: &K, value: &V) can be used to modify the contract storage under a given key. When a smart contract uses this function, the contract needs to check if the caller should be able to alter this storage. If this does not happen, an arbitary caller may modify balances and other relevant contract storage.    ",
+        severity: "Critical",
+        help: "https://coinfabrik.github.io/scout/docs/vulnerabilities/set-contract-storage",
+        vulnerability_class: "Authorization",
+    }
 }
 
 impl<'tcx> LateLintPass<'tcx> for SetStorageWarn {
@@ -78,10 +86,12 @@ impl<'tcx> LateLintPass<'tcx> for SetStorageWarn {
         walk_expr(&mut visitor, body.value);
 
         for span in visitor.storage_without_auth {
-            Detector::SetContractStorage.span_lint_and_help(
+            scout_audit_clippy_utils::diagnostics::span_lint_and_help(
                 cx,
                 SET_STORAGE_WARN,
                 span,
+                LINT_MESSAGE,
+                None,
                 "Ensure that the caller is authorized to use storage",
             );
         }

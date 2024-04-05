@@ -10,7 +10,8 @@ use rustc_hir::{
 };
 use rustc_lint::LateLintPass;
 use rustc_span::Span;
-use scout_audit_internal::{DetectorImpl, SorobanDetector as Detector};
+
+const LINT_MESSAGE: &str = "Avoid using unsafe blocks as it may lead to undefined behavior";
 
 dylint_linting::declare_late_lint! {
     /// ### What it does
@@ -50,7 +51,14 @@ dylint_linting::declare_late_lint! {
     /// ```
     pub AVOID_UNSAFE_BLOCK,
     Warn,
-    ""
+    LINT_MESSAGE,
+    {
+        name: "Avoid unsafe block",
+        long_message: "The unsafe block is used to bypass Rust's safety checks. It is recommended to avoid using unsafe blocks as much as possible, and to use them only when necessary.    ",
+        severity: "Enhancement",
+        help: "https://github.com/CoinFabrik/scout-soroban/tree/main/detectors/avoid-unsafe-block",
+        vulnerability_class: "Best practices",
+    }
 }
 
 impl<'tcx> LateLintPass<'tcx> for AvoidUnsafeBlock {
@@ -91,7 +99,12 @@ impl<'tcx> LateLintPass<'tcx> for AvoidUnsafeBlock {
 
         visitor.unsafe_blocks.iter().for_each(|span| {
             if let Some(span) = span {
-                Detector::AvoidUnsafeBlock.span_lint(cx, AVOID_UNSAFE_BLOCK, *span);
+                scout_audit_clippy_utils::diagnostics::span_lint(
+                    cx,
+                    AVOID_UNSAFE_BLOCK,
+                    *span,
+                    LINT_MESSAGE,
+                );
             }
         });
     }

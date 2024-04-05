@@ -5,7 +5,8 @@ extern crate rustc_hir;
 use if_chain::if_chain;
 use rustc_hir::{BinOpKind, Expr, ExprKind};
 use rustc_lint::{LateContext, LateLintPass};
-use scout_audit_internal::{DetectorImpl, SorobanDetector as Detector};
+
+const LINT_MESSAGE: &str = "Use env.prng() to generate random numbers, and remember that all random numbers are under the control of validators";
 
 dylint_linting::declare_late_lint! {
     /// ### What it does
@@ -21,7 +22,14 @@ dylint_linting::declare_late_lint! {
     ///
     pub INSUFFICIENTLY_RANDOM_VALUES,
     Warn,
-    ""
+    LINT_MESSAGE,
+    {
+        name: "Insufficiently Random Values",
+        long_message: "Use env.prng() to generate random numbers, and remember that all random numbers are under the control of validators.",
+        severity: "Critical",
+        help: "https://github.com/CoinFabrik/scout-soroban/tree/main/detectors/insufficiently-random-values",
+        vulnerability_class: "Block attributes",
+    }
 }
 
 impl<'tcx> LateLintPass<'tcx> for InsufficientlyRandomValues {
@@ -33,10 +41,12 @@ impl<'tcx> LateLintPass<'tcx> for InsufficientlyRandomValues {
             if path.ident.as_str() == "timestamp" ||
                 path.ident.as_str() == "sequence";
             then {
-                Detector::InsufficientlyRandomValues.span_lint_and_help(
+                scout_audit_clippy_utils::diagnostics::span_lint_and_help(
                     cx,
                     INSUFFICIENTLY_RANDOM_VALUES,
                     expr.span,
+                    LINT_MESSAGE,
+                    None,
                     &format!("This expression seems to use ledger().{}() as a pseudo random number",path.ident.as_str()),
                 );
             }

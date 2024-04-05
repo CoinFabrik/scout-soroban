@@ -17,20 +17,19 @@ use rustc_middle::mir::{BasicBlock, BasicBlocks, Const, Operand, TerminatorKind}
 use rustc_middle::ty::TyKind;
 use rustc_span::def_id::DefId;
 use rustc_span::Span;
-use scout_audit_internal::{DetectorImpl, SorobanDetector as Detector};
 
-dylint_linting::impl_late_lint! {
+const LINT_MESSAGE: &str = "This update_current_contract_wasm is called without access control";
+
+dylint_linting::declare_late_lint! {
     pub UNPROTECTED_UPDATE_CURRENT_CONTRACT_WASM,
     Warn,
-    "",
-    UnprotectedUpdateCurrentContractWasm::default()
-}
-
-#[derive(Default)]
-pub struct UnprotectedUpdateCurrentContractWasm {}
-impl UnprotectedUpdateCurrentContractWasm {
-    pub fn new() -> Self {
-        Self {}
+    LINT_MESSAGE,
+    {
+        name: "Unprotected Update Current Contract Wasm",
+        long_message: "If users are allowed to call update_current_contract_wasm, they can intentionally modify the contract behaviour, leading to the loss of all associated data/tokens and functionalities given by this contract or by others that depend on it. To prevent this, the function should be restricted to administrators or authorized users only.    ",
+        severity: "Critical",
+        help: "https://github.com/CoinFabrik/scout-soroban/tree/main/detectors/unprotected-update-current-contract-wasm",
+        vulnerability_class: "Authorization",
     }
 }
 
@@ -88,11 +87,12 @@ impl<'tcx> LateLintPass<'tcx> for UnprotectedUpdateCurrentContractWasm {
         );
 
         for span in spans {
-            Detector::UnprotectedUpdateCurrentContractWasm.span_lint(
+            scout_audit_clippy_utils::diagnostics::span_lint(
                 cx,
                 UNPROTECTED_UPDATE_CURRENT_CONTRACT_WASM,
                 span,
-            )
+                LINT_MESSAGE,
+            );
         }
 
         fn navigate_trough_basicblocks<'tcx>(

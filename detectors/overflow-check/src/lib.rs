@@ -7,7 +7,8 @@ extern crate rustc_span;
 use std::fs;
 
 use rustc_lint::EarlyLintPass;
-use scout_audit_internal::{DetectorImpl, SorobanDetector as Detector};
+
+const LINT_MESSAGE: &str = "Use `overflow-checks = true` in Cargo.toml profile";
 
 dylint_linting::declare_early_lint! {
     /// ### What it does
@@ -19,7 +20,14 @@ dylint_linting::declare_early_lint! {
     /// wants explicitly checked, wrapping or saturating arithmetic.
     pub OVERFLOW_CHECK,
     Warn,
-    ""
+    LINT_MESSAGE,
+    {
+        name: "Overflow Check",
+        long_message: "An overflow/underflow is typically caught and generates an error. When it is not caught, the operation will result in an inexact result which could lead to serious problems.",
+        severity: "Critical",
+        help: "https://github.com/CoinFabrik/scout-soroban/tree/main/detectors/overflow-check",
+        vulnerability_class: "Arithmetic",
+    }
 }
 
 impl EarlyLintPass for OverflowCheck {
@@ -52,18 +60,22 @@ impl EarlyLintPass for OverflowCheck {
                         .get("overflow-checks")
                         .is_some_and(|f| f.as_bool().unwrap_or(false));
                     if !has_overflow_check {
-                        Detector::OverflowCheck.span_lint_and_help(
+                        scout_audit_clippy_utils::diagnostics::span_lint_and_help(
                             cx,
                             OVERFLOW_CHECK,
                             rustc_span::DUMMY_SP,
+                            LINT_MESSAGE,
+                            None,
                             &format!("Enable overflow-checks on profile.{profile_name}"),
                         );
                     }
                 } else {
-                    Detector::OverflowCheck.span_lint_and_help(
+                    scout_audit_clippy_utils::diagnostics::span_lint_and_help(
                         cx,
                         OVERFLOW_CHECK,
                         rustc_span::DUMMY_SP,
+                        LINT_MESSAGE,
+                        None,
                         &format!("Enable overflow-checks on profile.{profile_name}"),
                     );
                 }

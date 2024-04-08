@@ -23,7 +23,7 @@ cargo +nightly install cargo-dylint dylint-link
 Afterwards, install Scout with the following command:
 
 ```bash
-cargo install cargo-scout-audit
+cargo +nightly install cargo-scout-audit
 ```
 
 ### CLI
@@ -55,8 +55,9 @@ Install Scout from the Marketplace within the Extensions tab of Visual Studio Co
 | [avoid-panic-error](https://github.com/CoinFabrik/scout-soroban/tree/main/detectors/avoid-panic-error)                           | Code panics on error instead of using descriptive enum.| [1](https://github.com/CoinFabrik/scout-soroban/tree/main/test-cases/avoid-panic-error/avoid-panic-error-1)                                                                                                                                              | Enhancement    |
 | [avoid-unsafe-block](https://github.com/CoinFabrik/scout-soroban/tree/main/detectors/avoid-unsafe-block)                           | Using unsafe blocks in risks code safety and reliability.| [1](https://github.com/CoinFabrik/scout-soroban/tree/main/test-cases/avoid-unsafe-block/avoid-unsafe-block-1)                                                                                                                                              | Critical   |
 | [dos-unbounded-operation](https://github.com/CoinFabrik/scout-soroban/tree/main/detectors/dos-unbounded-operation)                           | DoS due to unbounded operation. | [1](https://github.com/CoinFabrik/scout-soroban/tree/main/test-cases/dos-unbounded-operation/dos-unbounded-operation-1), [2](https://github.com/CoinFabrik/scout-soroban/tree/main/test-cases/dos-unbounded-operation/dos-unbounded-operation-2), [3](https://github.com/CoinFabrik/scout-soroban/tree/main/test-cases/dos-unbounded-operation/dos-unbounded-operation-3)                                                                                                                                              | Medium  |
-| [soroban-version](https://github.com/CoinFabrik/scout-soroban/tree/main/detectors/soroban-version)                           | Using a pinned version of Soroban can be dangerous, as it may have bugs or security issues. Use the latest version available. | [1](https://github.com/CoinFabrik/scout-soroban/tree/main/test-cases/soroban-version/soroban-version-1)                 | Enhancement  |
+| [soroban-version](https://github.com/CoinFabrik/scout-soroban/tree/main/detectors/soroban-version)                           | Using an old version of Soroban can be dangerous, as it may have bugs or security issues. Use the latest version available. | [1](https://github.com/CoinFabrik/scout-soroban/tree/main/test-cases/soroban-version/soroban-version-1)                 | Enhancement  |
 | [unused-return-enum](https://github.com/CoinFabrik/scout-soroban/tree/main/detectors/unused-return-enum)                           | Return enum from a function is not completely used. | [1](https://github.com/CoinFabrik/scout-soroban/tree/main/test-cases/unused-return-enum/unused-return-enum-1), [2](https://github.com/CoinFabrik/scout-soroban/tree/main/test-cases/unused-return-enum/unused-return-enum-2)                   | Minor  |
+
 
 ## CLI Options
 

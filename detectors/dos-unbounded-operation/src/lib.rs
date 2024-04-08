@@ -1,25 +1,32 @@
 #![feature(rustc_private)]
 #![recursion_limit = "256"]
-extern crate rustc_ast;
+
 extern crate rustc_hir;
 extern crate rustc_span;
 
 use if_chain::if_chain;
-use rustc_hir::def::DefKind;
-use rustc_hir::StmtKind;
 use rustc_hir::{
-    def::Res,
+    def::{DefKind, Res},
     intravisit::{walk_body, walk_expr, FnKind, Visitor},
-    Body, Expr, ExprKind, FnDecl, HirId, LangItem, MatchSource, QPath,
+    Body, Expr, ExprKind, FnDecl, HirId, LangItem, MatchSource, QPath, StmtKind,
 };
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_span::{def_id::LocalDefId, Span};
-use scout_audit_internal::{DetectorImpl, SorobanDetector as Detector};
+use scout_audit_clippy_utils::diagnostics::span_lint_and_help;
+
+const LINT_MESSAGE: &str = "In order to prevent a single transaction from consuming all the gas in a block, unbounded operations must be avoided";
 
 dylint_linting::declare_late_lint!(
     pub DOS_UNBOUNDED_OPERATION,
     Warn,
-    "This loop seems to do not have a fixed number of iterations"
+    LINT_MESSAGE,
+    {
+        name: "Denial of Service: Unbounded Operation",
+        long_message: "In order to prevent a single transaction from consuming all the gas in a block, unbounded operations must be avoided. This includes loops that do not have a bounded number of iterations, and recursive calls.    ",
+        severity: "Medium",
+        help: "https://github.com/CoinFabrik/scout-soroban/tree/main/detectors/dos-unbounded-operation",
+        vulnerability_class: "Denial of Service",
+    }
 );
 
 struct ForLoopVisitor {
@@ -130,10 +137,12 @@ impl<'tcx> LateLintPass<'tcx> for DosUnboundedOperation {
         walk_body(&mut visitor, body);
 
         for span in visitor.span_constant {
-            Detector::DosUnboundedOperation.span_lint_and_help(
+            span_lint_and_help(
                 cx,
                 DOS_UNBOUNDED_OPERATION,
                 span,
+                LINT_MESSAGE,
+                None,
                 "This loop seems to do not have a fixed number of iterations",
             );
         }

@@ -13,8 +13,5 @@ toml = "0.8.8"
 
 scout-audit-clippy-utils = { workspace = true }
 
-[dev-dependencies]
-dylint_testing = { workspace = true }
-
 [package.metadata.rust-analyzer]
 rustc_private = true

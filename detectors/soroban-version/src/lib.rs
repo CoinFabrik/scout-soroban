@@ -1,13 +1,14 @@
 #![feature(rustc_private)]
 
 extern crate rustc_ast;
-extern crate rustc_hir;
 extern crate rustc_span;
 
 use std::{io::Error, process::Command};
 
 use rustc_ast::Crate;
 use rustc_lint::{EarlyContext, EarlyLintPass, LintContext};
+use rustc_span::DUMMY_SP;
+use scout_audit_clippy_utils::diagnostics::span_lint_and_help;
 use semver::Version;
 use serde_json::Value;
 
@@ -19,7 +20,7 @@ dylint_linting::declare_early_lint! {
     ///
     /// ### Why is this bad?
     /// Using an outdated version of soroban could lead to security vulnerabilities, bugs, and other issues.
-    pub CHECK_SOROBAN_VERSION,
+    pub SOROBAN_VERSION,
     Warn,
     LINT_MESSAGE,
     {
@@ -31,7 +32,7 @@ dylint_linting::declare_early_lint! {
     }
 }
 
-impl EarlyLintPass for CheckSorobanVersion {
+impl EarlyLintPass for SorobanVersion {
     fn check_crate(&mut self, cx: &EarlyContext<'_>, _: &Crate) {
         let latest_soroban_version = match get_latest_soroban_version() {
             Ok(version) => version,
@@ -129,10 +130,10 @@ impl EarlyLintPass for CheckSorobanVersion {
         };
 
         if !soroban_version.eq(&req) {
-            scout_audit_clippy_utils::diagnostics::span_lint_and_help(
+            span_lint_and_help(
                 cx,
-                CHECK_SOROBAN_VERSION,
-                rustc_span::DUMMY_SP,
+                SOROBAN_VERSION,
+                DUMMY_SP,
                 LINT_MESSAGE,
                 None,
                 &format!(

@@ -1,7 +1,6 @@
 #![feature(rustc_private)]
 #![feature(let_chains)]
 
-extern crate rustc_ast;
 extern crate rustc_hir;
 extern crate rustc_middle;
 extern crate rustc_span;
@@ -9,14 +8,19 @@ extern crate rustc_span;
 use std::collections::HashSet;
 
 use rustc_hir::{
-    intravisit::{walk_expr, Visitor},
-    Expr, ExprKind,
+    intravisit::{walk_expr, FnKind, Visitor},
+    Body, Expr, ExprKind, FnDecl,
 };
 use rustc_lint::{LateContext, LateLintPass};
-use rustc_middle::mir::{BasicBlock, BasicBlocks, Const, Operand, TerminatorKind};
-use rustc_middle::ty::TyKind;
-use rustc_span::def_id::DefId;
-use rustc_span::Span;
+use rustc_middle::{
+    mir::{BasicBlock, BasicBlocks, Const, Operand, TerminatorKind},
+    ty::TyKind,
+};
+use rustc_span::{
+    def_id::{DefId, LocalDefId},
+    Span, Symbol,
+};
+use scout_audit_clippy_utils::diagnostics::span_lint;
 
 const LINT_MESSAGE: &str = "This update_current_contract_wasm is called without access control";
 
@@ -37,11 +41,11 @@ impl<'tcx> LateLintPass<'tcx> for UnprotectedUpdateCurrentContractWasm {
     fn check_fn(
         &mut self,
         cx: &LateContext<'tcx>,
-        _: rustc_hir::intravisit::FnKind<'tcx>,
-        _: &'tcx rustc_hir::FnDecl<'tcx>,
-        body: &'tcx rustc_hir::Body<'tcx>,
+        _: FnKind<'tcx>,
+        _: &'tcx FnDecl<'tcx>,
+        body: &'tcx Body<'tcx>,
         _: Span,
-        localdef: rustc_span::def_id::LocalDefId,
+        localdef: LocalDefId,
     ) {
         struct UnprotectedUpdateFinder<'tcx, 'tcx_ref> {
             cx: &'tcx_ref LateContext<'tcx>,
@@ -52,12 +56,12 @@ impl<'tcx> LateLintPass<'tcx> for UnprotectedUpdateCurrentContractWasm {
         impl<'tcx> Visitor<'tcx> for UnprotectedUpdateFinder<'tcx, '_> {
             fn visit_expr(&mut self, expr: &'tcx Expr<'_>) {
                 if let ExprKind::MethodCall(path, receiver, ..) = expr.kind {
-                    if path.ident.name.to_string() == "require_auth" {
+                    if path.ident.name == Symbol::intern("require_auth") {
                         self.require_auth_def_id =
                             self.cx.typeck_results().type_dependent_def_id(expr.hir_id);
-                    } else if path.ident.name.to_string() == "update_current_contract_wasm"
+                    } else if path.ident.name == Symbol::intern("update_current_contract_wasm")
                         && let ExprKind::MethodCall(path2, ..) = receiver.kind
-                        && path2.ident.name.to_string() == "deployer"
+                        && path2.ident.name == Symbol::intern("deployer")
                     {
                         self.update_contract_def_id =
                             self.cx.typeck_results().type_dependent_def_id(expr.hir_id);
@@ -87,7 +91,7 @@ impl<'tcx> LateLintPass<'tcx> for UnprotectedUpdateCurrentContractWasm {
         );
 
         for span in spans {
-            scout_audit_clippy_utils::diagnostics::span_lint(
+            span_lint(
                 cx,
                 UNPROTECTED_UPDATE_CURRENT_CONTRACT_WASM,
                 span,

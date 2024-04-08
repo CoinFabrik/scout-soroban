@@ -1,5 +1,4 @@
 #![feature(rustc_private)]
-#![warn(unused_extern_crates)]
 
 extern crate rustc_ast;
 extern crate rustc_span;
@@ -13,7 +12,7 @@ use rustc_ast::{
 };
 use rustc_lint::{EarlyContext, EarlyLintPass};
 use rustc_span::{sym, Span};
-use scout_audit_clippy_utils::sym;
+use scout_audit_clippy_utils::{diagnostics::span_lint_and_help, sym};
 
 const LINT_MESSAGE: &str = "The panic! macro is used to stop execution when a condition is not met. Even when this does not break the execution of the contract, it is recommended to use Result instead of panic! because it will stop the execution of the caller contract";
 
@@ -58,7 +57,7 @@ dylint_linting::impl_pre_expansion_lint! {
     /// ```
     pub AVOID_PANIC_ERROR,
     Warn,
-    "",
+    LINT_MESSAGE,
     AvoidPanicError::default(),
     {
         name: "Avoid panic! macro",
@@ -126,7 +125,7 @@ fn check_macro_call(cx: &EarlyContext, span: Span, mac: &P<MacCall>) {
         if let TokenKind::Literal(lit) = token.kind;
         if lit.kind == LitKind::Str;
         then {
-            scout_audit_clippy_utils::diagnostics::span_lint_and_help(
+            span_lint_and_help(
                 cx,
                 AVOID_PANIC_ERROR,
                 span,

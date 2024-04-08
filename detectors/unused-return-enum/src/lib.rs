@@ -4,10 +4,13 @@ extern crate rustc_hir;
 extern crate rustc_span;
 
 use if_chain::if_chain;
-use rustc_hir::intravisit::{walk_expr, FnKind, Visitor};
-use rustc_hir::{Body, Expr, ExprKind, FnDecl, FnRetTy, MatchSource, QPath, TyKind};
+use rustc_hir::{
+    intravisit::{walk_expr, FnKind, Visitor},
+    Body, Expr, ExprKind, FnDecl, FnRetTy, MatchSource, QPath, TyKind,
+};
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_span::{def_id::LocalDefId, sym, Span};
+use scout_audit_clippy_utils::diagnostics::span_lint_and_help;
 
 const LINT_MESSAGE : &str = "If any of the variants (Ok/Err) is not used, the code could be simplified or it could imply a bug";
 
@@ -113,7 +116,7 @@ impl<'tcx> LateLintPass<'tcx> for UnusedReturnEnum {
             && (visitor.count_err == 0 || visitor.count_ok == 0)
         {
             visitor.span.iter().for_each(|span| {
-                scout_audit_clippy_utils::diagnostics::span_lint_and_help(
+                span_lint_and_help(
                     cx,
                     UNUSED_RETURN_ENUM,
                     *span,

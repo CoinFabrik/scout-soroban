@@ -1,13 +1,13 @@
 #![feature(rustc_private)]
 
 extern crate rustc_ast;
-extern crate rustc_hir;
 extern crate rustc_span;
 
 use if_chain::if_chain;
 use rustc_ast::{Expr, ExprKind, Item, NodeId};
 use rustc_lint::{EarlyContext, EarlyLintPass};
 use rustc_span::sym;
+use scout_audit_clippy_utils::diagnostics::span_lint_and_help;
 
 const LINT_MESSAGE: &str = "Use the `let _ = ...` pattern or `.drop()` method to forget the value";
 
@@ -77,7 +77,7 @@ impl EarlyLintPass for AvoidCoreMemForget {
             if path.segments[1].ident.name.to_string() == "mem";
             if path.segments[2].ident.name.to_string() == "forget";
             then {
-                scout_audit_clippy_utils::diagnostics::span_lint_and_help(
+                span_lint_and_help(
                     cx,
                     AVOID_CORE_MEM_FORGET,
                     expr.span,

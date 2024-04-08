@@ -8,18 +8,23 @@ extern crate rustc_span;
 use std::collections::HashSet;
 
 use if_chain::if_chain;
-use rustc_hir::intravisit::walk_expr;
-use rustc_hir::intravisit::Visitor;
-use rustc_hir::BinOpKind;
-use rustc_hir::{Expr, ExprKind};
-use rustc_lint::{LateContext, LateLintPass};
-use rustc_middle::mir::{
-    BasicBlock, BasicBlockData, BasicBlocks, BinOp, Const, Operand, Place, Rvalue, StatementKind,
-    TerminatorKind,
+use rustc_hir::{
+    intravisit::{walk_expr, FnKind, Visitor},
+    BinOpKind, Body, Expr, ExprKind, FnDecl,
 };
-use rustc_middle::ty::TyKind;
-use rustc_span::def_id::DefId;
-use rustc_span::Span;
+use rustc_lint::{LateContext, LateLintPass};
+use rustc_middle::{
+    mir::{
+        BasicBlock, BasicBlockData, BasicBlocks, BinOp, Const, Operand, Place, Rvalue,
+        StatementKind, TerminatorKind,
+    },
+    ty::TyKind,
+};
+use rustc_span::{
+    def_id::{DefId, LocalDefId},
+    Span,
+};
+use scout_audit_clippy_utils::diagnostics::span_lint_and_help;
 
 const LINT_MESSAGE: &str = "Division before multiplication might result in a loss of precision";
 
@@ -329,11 +334,11 @@ impl<'tcx> LateLintPass<'tcx> for DivideBeforeMultiply {
     fn check_fn(
         &mut self,
         cx: &LateContext<'tcx>,
-        _: rustc_hir::intravisit::FnKind<'tcx>,
-        _: &'tcx rustc_hir::FnDecl<'tcx>,
-        body: &'tcx rustc_hir::Body<'tcx>,
+        _: FnKind<'tcx>,
+        _: &'tcx FnDecl<'tcx>,
+        body: &'tcx Body<'tcx>,
         _: Span,
-        localdef: rustc_span::def_id::LocalDefId,
+        localdef: LocalDefId,
     ) {
         let mut visitor = DefIdFinder {
             checked_div: None,
@@ -361,7 +366,7 @@ impl<'tcx> LateLintPass<'tcx> for DivideBeforeMultiply {
             );
 
             for span in spans {
-                scout_audit_clippy_utils::diagnostics::span_lint_and_help(
+                span_lint_and_help(
                     cx,
                     DIVIDE_BEFORE_MULTIPLY,
                     span,
@@ -372,13 +377,13 @@ impl<'tcx> LateLintPass<'tcx> for DivideBeforeMultiply {
             }
         }
     }
-    fn check_expr(&mut self, cx: &LateContext<'tcx>, expr: &'tcx rustc_hir::Expr<'tcx>) {
+    fn check_expr(&mut self, cx: &LateContext<'tcx>, expr: &'tcx Expr<'tcx>) {
         if_chain! {
             if let ExprKind::Binary(op, _lexpr, _rexpr) = expr.kind;
             if BinOpKind::Mul == op.node;
             then{
                 for division in get_divisions_inside_expr(expr) {
-                    scout_audit_clippy_utils::diagnostics::span_lint_and_help(
+                    span_lint_and_help(
                         cx,
                         DIVIDE_BEFORE_MULTIPLY,
                         division,

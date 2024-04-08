@@ -1,10 +1,13 @@
 #![feature(rustc_private)]
 
 extern crate rustc_hir;
+extern crate rustc_span;
 
 use if_chain::if_chain;
 use rustc_hir::{BinOpKind, Expr, ExprKind};
 use rustc_lint::{LateContext, LateLintPass};
+use rustc_span::Symbol;
+use scout_audit_clippy_utils::diagnostics::span_lint_and_help;
 
 const LINT_MESSAGE: &str = "Use env.prng() to generate random numbers, and remember that all random numbers are under the control of validators";
 
@@ -38,10 +41,10 @@ impl<'tcx> LateLintPass<'tcx> for InsufficientlyRandomValues {
             if let ExprKind::Binary(op, lexp, _rexp) = expr.kind;
             if op.node == BinOpKind::Rem;
             if let ExprKind::MethodCall(path, _, _, _) = lexp.kind;
-            if path.ident.as_str() == "timestamp" ||
-                path.ident.as_str() == "sequence";
+            if path.ident.name == Symbol::intern("timestamp") ||
+                path.ident.name == Symbol::intern("sequence");
             then {
-                scout_audit_clippy_utils::diagnostics::span_lint_and_help(
+                span_lint_and_help(
                     cx,
                     INSUFFICIENTLY_RANDOM_VALUES,
                     expr.span,

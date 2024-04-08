@@ -1,12 +1,14 @@
 #![feature(rustc_private)]
 
 extern crate rustc_ast;
-extern crate rustc_hir;
 extern crate rustc_span;
 
-use std::fs;
+use std::{env, fs, path::Path};
 
-use rustc_lint::EarlyLintPass;
+use rustc_ast::Crate;
+use rustc_lint::{EarlyContext, EarlyLintPass};
+use rustc_span::DUMMY_SP;
+use scout_audit_clippy_utils::diagnostics::span_lint_and_help;
 
 const LINT_MESSAGE: &str = "Use `overflow-checks = true` in Cargo.toml profile";
 
@@ -31,10 +33,10 @@ dylint_linting::declare_early_lint! {
 }
 
 impl EarlyLintPass for OverflowCheck {
-    fn check_crate(&mut self, cx: &rustc_lint::EarlyContext<'_>, _: &rustc_ast::Crate) {
-        let manifest_dir = std::env::var("CARGO_MANIFEST_DIR").unwrap();
+    fn check_crate(&mut self, cx: &EarlyContext<'_>, _: &Crate) {
+        let manifest_dir = env::var("CARGO_MANIFEST_DIR").unwrap();
 
-        let cargo_toml_path = std::path::Path::new(&manifest_dir).join("Cargo.toml");
+        let cargo_toml_path = Path::new(&manifest_dir).join("Cargo.toml");
 
         let cargo_toml = fs::read_to_string(cargo_toml_path).expect("Unable to read Cargo.toml");
 
@@ -60,20 +62,20 @@ impl EarlyLintPass for OverflowCheck {
                         .get("overflow-checks")
                         .is_some_and(|f| f.as_bool().unwrap_or(false));
                     if !has_overflow_check {
-                        scout_audit_clippy_utils::diagnostics::span_lint_and_help(
+                        span_lint_and_help(
                             cx,
                             OVERFLOW_CHECK,
-                            rustc_span::DUMMY_SP,
+                            DUMMY_SP,
                             LINT_MESSAGE,
                             None,
                             &format!("Enable overflow-checks on profile.{profile_name}"),
                         );
                     }
                 } else {
-                    scout_audit_clippy_utils::diagnostics::span_lint_and_help(
+                    span_lint_and_help(
                         cx,
                         OVERFLOW_CHECK,
-                        rustc_span::DUMMY_SP,
+                        DUMMY_SP,
                         LINT_MESSAGE,
                         None,
                         &format!("Enable overflow-checks on profile.{profile_name}"),

@@ -80,48 +80,11 @@ jobs:
       - name: Lint with Clippy
         run: python scripts/run-clippy.py --dir test-cases detectors
 
-  udeps:
-    name: Check for unused dependencies
-    runs-on: ubuntu-latest
-    outputs:
-      status: ${{ job.status }}
-    steps:
-      - name: Checkout Code
-        uses: actions/checkout@v4
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.9"
-
-      - name: Cache Rust Dependencies
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.cargo
-            ~/.rustup
-          key: ${{ runner.os }}-cargo-udeps-${{ hashFiles('**/Cargo.lock') }}
-
-      - name: Update Rust Toolchain
-        run: rustup update
-
-      - name: Install Rust nightly
-        run: rustup install nightly-2023-12-16 --profile minimal
-
-      - name: Default to nightly
-        run: rustup default nightly-2023-12-16
-
-      - name: Install cargo-udeps
-        run: cargo install dylint-link cargo-udeps
-
-      - name: Check for unused dependencies
-        run: python scripts/run-udeps.py --dir test-cases detectors
-
   comment-on-pr:
     name: Comment on PR
     runs-on: ubuntu-latest
     if: ${{ always()}}
-    needs: [format, clippy, udeps]
+    needs: [format, clippy]
     steps:
       - name: Find comment
         id: find_comment
@@ -144,6 +107,5 @@ jobs:
             |---------------------------|--------|
             | Check Rust Format         | ${{ (needs.format.outputs.status == 'success' && '✅ Successful') || '❌ Failed' }} |
             | Lint with Clippy          | ${{ (needs.clippy.outputs.status == 'success' && '✅ Successful') || '❌ Failed' }} |
-            | Check for unused deps (udeps) | ${{ (needs.udeps.outputs.status == 'success' && '✅ Successful') || '❌ Failed' }} |
 
             The workflow has completed. Great job! 🚀

@@ -117,7 +117,7 @@ jobs:
           path: ~/.cargo
           key: ${{ runner.os }}-tests-${{ hashFiles('**/Cargo.lock') }}
 
-      - name: Run unit tests for a specific detector
+      - name: Run unit and integration tests
         run: python scripts/run-tests.py --detector=${{ matrix.detector }}
 
   comment-on-pr:

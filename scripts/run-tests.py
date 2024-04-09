@@ -44,7 +44,7 @@ def run_unit_tests(root):
 def run_integration_tests(detector, root):
     start_time = time.time()
     returncode, stdout, _ = run_subprocess(
-        ["cargo", "+nightly-2023-12-16", "scout-audit", "--filter", detector, "--metadata"], root
+        ["cargo", "scout-audit", "--filter", detector, "--metadata"], root
     )
 
     if stdout is None:
@@ -63,7 +63,7 @@ def run_integration_tests(detector, root):
     short_message = detector_metadata.get(detector_key, {}).get("short_message")
 
     returncode, _, stderr = run_subprocess(
-        ["cargo", "+nightly-2023-12-16", "scout-audit", "--filter", detector], root
+        ["cargo", "scout-audit", "--filter", detector], root
     )
 
     should_lint = root.endswith("vulnerable-example")

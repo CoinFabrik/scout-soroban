@@ -61,10 +61,10 @@ jobs:
         run: rustup update
 
       - name: Install Rust nightly
-        run: rustup install nightly --profile minimal
+        run: rustup install nightly-2023-12-16 --profile minimal
 
       - name: Install dylint, dylint-link and cargo-scout-audit
-        run: cargo +nightly install cargo-dylint dylint-link cargo-scout-audit
+        run: cargo +nightly-2023-12-16 install cargo-dylint dylint-link cargo-scout-audit
 
       - name: Determine build status and write to file
         run: echo "${{ job.status }}" > status-${{ matrix.os }}.txt
@@ -87,7 +87,9 @@ jobs:
 
       - id: set-matrix
         working-directory: test-cases
-        run: echo "matrix=$(find . -mindepth 1 -maxdepth 1 -type d -exec basename {} \; | jq -R -cs 'split("\n")[:-1]')" >> $GITHUB_OUTPUT
+        run: |
+          matrix=$(find . -mindepth 1 -maxdepth 1 -type d -exec basename {} \; | jq -R -cs 'split("\n")[:-1]')
+          echo "matrix=$matrix" >> $GITHUB_OUTPUT
 
   test:
     name: Test detector

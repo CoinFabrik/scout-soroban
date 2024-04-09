@@ -95,6 +95,7 @@ def validate_detectors(base_path):
         if detector == "README.md" or not os.path.isdir(detector_path):
             continue
 
+        print(f"Validating {detector}...")
         all_errors.extend(check_for_extra_files(detector_path))
         examples = [
             e

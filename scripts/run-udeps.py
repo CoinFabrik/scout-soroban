@@ -5,9 +5,7 @@ import time
 
 from utils import print_errors, print_results
 
-RED = "\033[91m"
 GREEN = "\033[92m"
-BLUE = "\033[94m"
 ENDC = "\033[0m"
 
 

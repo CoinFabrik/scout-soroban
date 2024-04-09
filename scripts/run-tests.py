@@ -1,4 +1,3 @@
-import json
 import os
 import argparse
 import time
@@ -7,7 +6,6 @@ from utils import parse_json_from_string, print_errors, print_results, run_subpr
 
 RED = "\033[91m"
 GREEN = "\033[92m"
-BLUE = "\033[94m"
 ENDC = "\033[0m"
 
 
@@ -48,6 +46,13 @@ def run_integration_tests(detector, root):
     returncode, stdout, _ = run_subprocess(
         ["cargo", "scout-audit", "--filter", detector, "--metadata"], root
     )
+
+    if stdout is None:
+        print(
+            f"{RED}Failed to run integration tests in {root} - Metadata returned empty.{ENDC}"
+        )
+        return True
+
     detector_metadata = parse_json_from_string(stdout)
 
     if not isinstance(detector_metadata, dict):

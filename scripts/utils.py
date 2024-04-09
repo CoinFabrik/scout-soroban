@@ -72,13 +72,13 @@ def print_results(
 
 
 def print_results(returncode, error_message, check_type, root, elapsed_time):
-    allowed_check_types = ["clippy", "fmt", "udeps", "unit-test", "integration-test"]
+    allowed_check_types = ["clippy", "format", "udeps", "unit-test", "integration-test"]
     if check_type not in allowed_check_types:
         raise ValueError(
             f"Invalid check_type '{check_type}'. Allowed values are: {', '.join(allowed_check_types)}"
         )
 
-    if check_type in ["clippy", "fmt", "udeps"]:
+    if check_type in ["clippy", "format", "udeps"]:
         issue_type = "issues"
         action_type = "check"
     elif check_type in ["unit-test", "integration-test"]:

@@ -119,9 +119,6 @@ jobs:
           path: ~/.cargo
           key: ${{ runner.os }}-tests-${{ hashFiles('**/Cargo.lock') }}
 
-      - name: Default to nightly toolchain
-        run: rustup default nightly-2023-12-16
-
       - name: Run unit and integration tests
         run: python scripts/run-tests.py --detector=${{ matrix.detector }}
 

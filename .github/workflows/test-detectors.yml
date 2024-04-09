@@ -61,7 +61,7 @@ jobs:
         run: rustup update
 
       - name: Install Rust nightly
-        run: rustup install nightly-2023-12-16 --profile minimal
+        run: rustup install nightly-2023-12-16
 
       - name: Install dylint, dylint-link and cargo-scout-audit
         run: cargo +nightly-2023-12-16 install cargo-dylint dylint-link cargo-scout-audit
@@ -120,7 +120,7 @@ jobs:
           key: ${{ runner.os }}-tests-${{ hashFiles('**/Cargo.lock') }}
 
       - name: Install Rust nightly
-        run: rustup install nightly-2023-12-16 --profile minimal
+        run: rustup install nightly-2023-12-16
 
       - name: Install dylint, dylint-link and cargo-scout-audit
         run: cargo +nightly-2023-12-16 install cargo-dylint dylint-link cargo-scout-audit

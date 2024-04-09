@@ -33,12 +33,14 @@ def parse_json_from_string(console_output):
         return "No JSON found in the console output"
 
 
-def run_subprocess(
-    command: list, cwd: str, capture: bool = True, handle_stderr: bool = True
-) -> Tuple[int, Optional[str], Optional[str]]:
-    result = subprocess.run(command, cwd=cwd, capture_output=capture, text=True)
-    stdout = result.stdout.strip() if capture and result.stdout else None
-    stderr = result.stderr.strip() if handle_stderr and result.stderr else None
+def run_subprocess(command: list, cwd: str):
+    result = subprocess.run(command, cwd=cwd, capture_output=True, text=True)
+    print(f"Running command: {command} in {cwd}")
+    print(f"Return code: {result.returncode}")
+    print(f"stdout: {result.stdout}")
+    print(f"stderr: {result.stderr}")
+    stdout = result.stdout.strip() if result.stdout else None
+    stderr = result.stderr.strip() if result.stderr else None
     return (result.returncode, stdout, stderr)
 
 

@@ -119,11 +119,6 @@ jobs:
           path: ~/.cargo
           key: ${{ runner.os }}-tests-${{ hashFiles('**/Cargo.lock') }}
 
-      - name: Find librustc_driver-*.so
-        id: find-librustc_driver
-        run: |
-          find / -name "librustc_driver-*.so" | head -n 1
-
       - name: Run unit and integration tests
         run: python scripts/run-tests.py --detector=${{ matrix.detector }}
 

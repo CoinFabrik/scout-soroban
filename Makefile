@@ -1,32 +1,19 @@
-.PHONY: ci fmt-rust lint test ci-no-test
-
 ci: fmt-rust lint test
+ci-no-test: fmt-rust lint
 
 fmt-rust:
 	@echo "Formatting Rust code..."
-	@for dir in test-cases/*; do \
-		if [ -d "$$dir" ]; then \
-			echo "Formatting $$dir..."; \
-			python3 scripts/run-fmt.py --dir $$dir; \
-		fi; \
-	done
+	@python3 scripts/run-fmt.py
 
 lint:
 	@echo "Linting detectors and test-cases..."
-	@for dir in test-cases/*; do \
-		if [ -d "$$dir" ]; then \
-			echo "Linting $$dir..."; \
-			python3 scripts/run-clippy.py --dir $$dir; \
-		fi; \
-	done
+	@python3 scripts/run-clippy.py
 
 test:
-	@echo "Running tests..."
+	@echo "Generating test matrix and running tests..."
 	@for detector in test-cases/*; do \
 		if [ -d "$$detector" ]; then \
 			detector_name=$$(basename $$detector); \
 			python3 scripts/run-tests.py --detector=$$detector_name; \
-		fi; \
+		fi \
 	done
-
-ci-no-test: fmt-rust lint

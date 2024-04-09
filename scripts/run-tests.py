@@ -44,6 +44,11 @@ def run_unit_tests(root):
 def run_integration_tests(detector, root):
     start_time = time.time()
 
+    returncode, stdout, stderr = run_subprocess(["cargo", "build"], root)
+    print("Build returncode:", returncode)
+    print("Build stdout:", stdout)
+    print("Build stderr:", stderr)
+
     returncode, stdout, _ = run_subprocess(
         ["cargo", "scout-audit", "--filter", detector, "--metadata"], root
     )

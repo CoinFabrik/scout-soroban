@@ -3,6 +3,8 @@ import os
 import subprocess
 import time
 
+from utils import print_errors, print_results
+
 RED = "\033[91m"
 GREEN = "\033[92m"
 BLUE = "\033[94m"
@@ -22,40 +24,16 @@ def run_udeps(directories):
         for root, _, files in os.walk(directory):
             if "Cargo.toml" in files:
                 start_time = time.time()
-                result = subprocess.run(
-                    [
-                        "cargo",
-                        "udeps",
-                        "--all-targets",
-                    ],
-                    cwd=root,
-                    capture_output=True,
-                    text=True,
+                returncode, _, stderr = subprocess.run(
+                    ["cargo", "udeps"], cwd=root, capture_output=True, text=True
                 )
-                end_time = time.time()
-                elapsed_time = end_time - start_time
-                print(
-                    f"{BLUE}[> {elapsed_time:.2f} sec]{ENDC} - Completed udeps check in: {root}."
+                print_results(
+                    returncode, stderr, "udeps", root, time.time() - start_time
                 )
-                if result.returncode != 0:
-                    print(f"\n{RED}Unused dependencies found in: {root}{ENDC}\n")
-                    error_message = result.stderr.strip()
-                    for line in error_message.split("\n"):
-                        print(f"| {line}")
-                    print("\n")
+                if returncode != 0:
                     errors.append(root)
+
     return errors
-
-
-def print_udeps_errors(errors):
-    if errors:
-        print(
-            f"{RED}\nUnused dependencies detected in the following directories:{ENDC}"
-        )
-        for error_dir in errors:
-            print(f"• {error_dir}")
-    else:
-        print(f"{GREEN}\nNo unused dependencies found across all directories.{ENDC}")
 
 
 if __name__ == "__main__":
@@ -68,10 +46,9 @@ if __name__ == "__main__":
         required=True,
         help="Specify the directories to run cargo-udeps on. Multiple directories can be specified.",
     )
-
     args = parser.parse_args()
 
     errors = run_udeps(args.dir)
-    print_udeps_errors(errors)
+    print_errors(errors)
     if errors:
         exit(1)

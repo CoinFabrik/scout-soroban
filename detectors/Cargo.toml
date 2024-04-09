@@ -1,10 +1,11 @@
 [workspace]
 members = ["*"]
-exclude = [".cargo", "target"]
+exclude = [".cargo", "target",  "test", "test-unsafe-unwrap"]
 resolver = "2"
 
 [workspace.dependencies]
-dylint_linting = { package = "scout-audit-dylint-linting", version = "3.0.0" }
+dylint_linting = { version = "3.0.0", package = "scout-audit-dylint-linting"}
 if_chain = "1.0.2"
 
 scout-audit-clippy-utils = { version = "=0.2.3" }
+

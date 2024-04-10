@@ -51,11 +51,10 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Cache cargo dependencies
-        uses: actions/cache@v4
+      - name: Cache Rust dependencies
+        uses: Swatinem/rust-cache@v2
         with:
-          path: ~/.cargo
-          key: ${{ runner.os }}-tests-${{ hashFiles('**/Cargo.lock') }}
+          cache-targets: false
 
       - name: Update Rust Toolchain
         run: rustup update
@@ -113,11 +112,10 @@ jobs:
         with:
           python-version: "3.9"
 
-      - name: Cache cargo dependencies
-        uses: actions/cache@v4
+      - name: Cache Rust dependencies
+        uses: Swatinem/rust-cache@v2
         with:
-          path: ~/.cargo
-          key: ${{ runner.os }}-tests-${{ hashFiles('**/Cargo.lock') }}
+          cache-targets: false
 
       - name: Run unit and integration tests
         run: python scripts/run-tests.py --detector=${{ matrix.detector }}

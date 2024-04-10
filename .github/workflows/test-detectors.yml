@@ -56,8 +56,9 @@ jobs:
         with:
           path: |
             ~/.cargo
-            versions.txt
-          key: ${{ runner.os }}-tests-${{ hashFiles('**/Cargo.lock', 'versions.txt') }}
+            checksum.txt
+          key: ${{ runner.os }}-tests-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: ${{ runner.os }}-tests-
 
       - name: Update Rust Toolchain
         run: rustup update
@@ -66,11 +67,7 @@ jobs:
         run: rustup install nightly-2023-12-16
 
       - name: Install dylint, dylint-link and cargo-scout-audit
-        run: |
-          cargo +nightly-2023-12-16 install cargo-dylint dylint-link cargo-scout-audit
-          cargo +nightly-2023-12-16 dylint --version > versions.txt
-          cargo +nightly-2023-12-16 dylint-link --version >> versions.txt
-          cargo +nightly-2023-12-16 scout-audit --version >> versions.txt
+        run: cargo +nightly-2023-12-16 install cargo-dylint dylint-link cargo-scout-audit
 
       - name: Determine build status and write to file
         run: echo "${{ job.status }}" > status-${{ matrix.os }}.txt
@@ -122,10 +119,9 @@ jobs:
       - name: Cache cargo dependencies and tool versions
         uses: actions/cache@v4
         with:
-          path: |
-            ~/.cargo
-            versions.txt
-          key: ${{ runner.os }}-tests-${{ hashFiles('**/Cargo.lock', 'versions.txt') }}
+          path: ~/.cargo
+          key: ${{ runner.os }}-tests-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: ${{ runner.os }}-tests-
 
       - name: Run unit and integration tests
         run: python scripts/run-tests.py --detector=${{ matrix.detector }}

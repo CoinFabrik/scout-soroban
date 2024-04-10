@@ -1,19 +1,30 @@
 ci: fmt-rust lint test
 ci-no-test: fmt-rust lint
-
 fmt-rust:
 	@echo "Formatting Rust code..."
-	@python3 scripts/run-fmt.py
+	@for dir in test-cases/*; do \
+		if [ -d "$$dir" ]; then \
+			echo "Formatting $$dir..."; \
+			python3 scripts/run-fmt.py --dir $$dir; \
+		fi; \
+	done
 
 lint:
 	@echo "Linting detectors and test-cases..."
-	@python3 scripts/run-clippy.py
+	@for dir in test-cases/*; do \
+		if [ -d "$$dir" ]; then \
+			echo "Linting $$dir..."; \
+			python3 scripts/run-clippy.py --dir $$dir; \
+		fi; \
+	done
 
 test:
-	@echo "Generating test matrix and running tests..."
+	@echo "Running tests..."
 	@for detector in test-cases/*; do \
 		if [ -d "$$detector" ]; then \
 			detector_name=$$(basename $$detector); \
 			python3 scripts/run-tests.py --detector=$$detector_name; \
-		fi \
+		fi; \
 	done
+
+

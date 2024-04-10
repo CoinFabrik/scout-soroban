@@ -45,7 +45,16 @@ def run_integration_tests(detector, root):
     start_time = time.time()
 
     returncode, stdout, _ = run_subprocess(
-        ["cargo", "scout-audit", "--filter", detector, "--metadata"], root
+        [
+            "cargo",
+            "scout-audit",
+            "--filter",
+            detector,
+            "--metadata",
+            "--local-detectors",
+            "../detectors",
+        ],
+        root,
     )
 
     if stdout is None:

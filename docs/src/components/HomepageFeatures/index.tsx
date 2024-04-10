@@ -14,7 +14,7 @@ const FeatureList: FeatureItem[] = [
     Svg: require('@site/static/img/scout_tool.svg').default,
     description: (
       <>
-        Scout is an extensible open-source tool intended to assist ink! smart contract developers and auditors detect common security issues and deviations from best practices.
+        Scout is an extensible open-source tool intended to assist soroban smart contract developers and auditors detect common security issues and deviations from best practices.
       </>
     ),
   },

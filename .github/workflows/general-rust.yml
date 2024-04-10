@@ -29,16 +29,15 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: "3.9"
+          python-version: "3.10"
 
-      - name: Update Rust Toolchain
-        run: rustup update
-
-      - name: Install Rust nightly
-        run: rustup install nightly --profile minimal
-
-      - name: Install rustfmt
-        run: rustup component add rustfmt --toolchain nightly
+      - name: Install rust toolchain and components
+        uses: actions-rs/toolchain@v1
+        with:
+          components: rustfmt
+          default: true
+          profile: minimal
+          toolchain: nightly
 
       - name: Check Format
         run: python scripts/run-fmt.py --dir test-cases detectors
@@ -55,7 +54,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: "3.9"
+          python-version: "3.10"
 
       - name: Cache Rust Dependencies
         uses: actions/cache@v4
@@ -65,17 +64,16 @@ jobs:
             ~/.rustup
           key: ${{ runner.os }}-cargo-clippy-${{ hashFiles('**/Cargo.lock') }}
 
-      - name: Update Rust Toolchain
-        run: rustup update
-
-      - name: Install Rust nightly
-        run: rustup install nightly-2023-12-16 --profile minimal
+      - name: Install rust toolchain and components
+        uses: actions-rs/toolchain@v1
+        with:
+          components: clippy
+          default: true
+          profile: minimal
+          toolchain: nightly-2023-12-16
 
       - name: Install dylint-link
         run: cargo install dylint-link
-
-      - name: Install clippy
-        run: rustup component add clippy --toolchain nightly-2023-12-16
 
       - name: Lint with Clippy
         run: python scripts/run-clippy.py --dir test-cases detectors

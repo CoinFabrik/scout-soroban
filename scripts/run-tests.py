@@ -64,7 +64,15 @@ def run_integration_tests(detector, root):
     short_message = detector_metadata.get(detector_key, {}).get("short_message")
 
     returncode, _, stderr = run_subprocess(
-        ["cargo", "scout-audit", "--filter", detector], root
+        [
+            "cargo",
+            "scout-audit",
+            "--filter",
+            detector,
+            "--local-detectors",
+            "../detectors",
+        ],
+        root,
     )
 
     should_lint = root.endswith("vulnerable-example")

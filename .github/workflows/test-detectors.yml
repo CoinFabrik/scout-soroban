@@ -55,8 +55,8 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ~/.cargo
-          key: ${{ runner.os }}-tests-${{ hashFiles('**/Cargo.lock') }}-binaries-${{ hashFiles('~/hash.txt') }}
-          restore-keys: ${{ runner.os }}-tests-${{ hashFiles('**/Cargo.lock') }}-
+          key: ${{ runner.os }}-tests-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: ${{ runner.os }}-tests-
 
       - name: Update Rust Toolchain
         run: rustup update
@@ -66,9 +66,6 @@ jobs:
 
       - name: Install dylint, dylint-link and cargo-scout-audit
         run: cargo +nightly-2023-12-16 install cargo-dylint dylint-link cargo-scout-audit
-
-      - name: Hash binaries
-        run: sha256sum ~/.cargo/bin/* > ~/hash.txt
 
       - name: Determine build status and write to file
         run: echo "${{ job.status }}" > status-${{ matrix.os }}.txt
@@ -93,6 +90,7 @@ jobs:
         working-directory: test-cases
         run: |
           matrix=$(find . -mindepth 1 -maxdepth 1 -type d -exec basename {} \; | jq -R -cs 'split("\n")[:-1]')
+          echo "Matrix: $matrix"
           echo "matrix=$matrix" >> $GITHUB_OUTPUT
 
   test:
@@ -121,8 +119,8 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ~/.cargo
-          key: ${{ runner.os }}-tests-${{ hashFiles('**/Cargo.lock') }}-binaries-${{ hashFiles('~/hash.txt') }}
-          restore-keys: ${{ runner.os }}-tests-${{ hashFiles('**/Cargo.lock') }}-
+          key: ${{ runner.os }}-tests-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: ${{ runner.os }}-tests-
 
       - name: Run unit and integration tests
         run: python scripts/run-tests.py --detector=${{ matrix.detector }}

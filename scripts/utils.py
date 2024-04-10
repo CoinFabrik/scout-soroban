@@ -35,10 +35,6 @@ def parse_json_from_string(console_output):
 
 def run_subprocess(command: list, cwd: str):
     result = subprocess.run(command, cwd=cwd, capture_output=True, text=True)
-    print(f"Running command: {command} in {cwd}")
-    print(f"Return code: {result.returncode}")
-    print(f"stdout: {result.stdout}")
-    print(f"stderr: {result.stderr}")
     stdout = result.stdout.strip() if result.stdout else None
     stderr = result.stderr.strip() if result.stderr else None
     return (result.returncode, stdout, stderr)

@@ -54,10 +54,9 @@ jobs:
       - name: Cache cargo dependencies and tool versions
         uses: actions/cache@v4
         with:
-          path: |
-            ~/.cargo
-          key: ${{ runner.os }}-tests-${{ hashFiles('**/Cargo.lock') }}
-          restore-keys: ${{ runner.os }}-tests-
+          path: ~/.cargo
+          key: ${{ runner.os }}-tests-${{ hashFiles('**/Cargo.lock') }}-binaries-${{ hashFiles('~/hash.txt') }}
+          restore-keys: ${{ runner.os }}-tests-${{ hashFiles('**/Cargo.lock') }}-
 
       - name: Update Rust Toolchain
         run: rustup update
@@ -67,6 +66,9 @@ jobs:
 
       - name: Install dylint, dylint-link and cargo-scout-audit
         run: cargo +nightly-2023-12-16 install cargo-dylint dylint-link cargo-scout-audit
+
+      - name: Hash binaries
+        run: sha256sum ~/.cargo/bin/* > ~/hash.txt
 
       - name: Determine build status and write to file
         run: echo "${{ job.status }}" > status-${{ matrix.os }}.txt
@@ -119,8 +121,8 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ~/.cargo
-          key: ${{ runner.os }}-tests-${{ hashFiles('**/Cargo.lock') }}
-          restore-keys: ${{ runner.os }}-tests-
+          key: ${{ runner.os }}-tests-${{ hashFiles('**/Cargo.lock') }}-binaries-${{ hashFiles('~/hash.txt') }}
+          restore-keys: ${{ runner.os }}-tests-${{ hashFiles('**/Cargo.lock') }}-
 
       - name: Run unit and integration tests
         run: python scripts/run-tests.py --detector=${{ matrix.detector }}

@@ -51,10 +51,13 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Cache Rust dependencies
-        uses: Swatinem/rust-cache@v2
+      - name: Cache cargo dependencies and tool versions
+        uses: actions/cache@v4
         with:
-          cache-targets: false
+          path: |
+            ~/.cargo
+            versions.txt
+          key: ${{ runner.os }}-tests-${{ hashFiles('**/Cargo.lock', 'versions.txt') }}
 
       - name: Update Rust Toolchain
         run: rustup update
@@ -63,7 +66,11 @@ jobs:
         run: rustup install nightly-2023-12-16
 
       - name: Install dylint, dylint-link and cargo-scout-audit
-        run: cargo +nightly-2023-12-16 install cargo-dylint dylint-link cargo-scout-audit
+        run: |
+          cargo +nightly-2023-12-16 install cargo-dylint dylint-link cargo-scout-audit
+          cargo +nightly-2023-12-16 dylint --version > versions.txt
+          cargo +nightly-2023-12-16 dylint-link --version >> versions.txt
+          cargo +nightly-2023-12-16 scout-audit --version >> versions.txt
 
       - name: Determine build status and write to file
         run: echo "${{ job.status }}" > status-${{ matrix.os }}.txt
@@ -112,10 +119,13 @@ jobs:
         with:
           python-version: "3.9"
 
-      - name: Cache Rust dependencies
-        uses: Swatinem/rust-cache@v2
+      - name: Cache cargo dependencies and tool versions
+        uses: actions/cache@v4
         with:
-          cache-targets: false
+          path: |
+            ~/.cargo
+            versions.txt
+          key: ${{ runner.os }}-tests-${{ hashFiles('**/Cargo.lock', 'versions.txt') }}
 
       - name: Run unit and integration tests
         run: python scripts/run-tests.py --detector=${{ matrix.detector }}

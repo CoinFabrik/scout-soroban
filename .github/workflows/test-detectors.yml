@@ -122,6 +122,11 @@ jobs:
           key: ${{ runner.os }}-tests-${{ hashFiles('**/Cargo.lock') }}
           restore-keys: ${{ runner.os }}-tests-
 
+      - run: rustup show
+
+      - name: Install Rust nightly
+        run: rustup install nightly-2023-12-16
+
       - name: Run unit and integration tests
         run: python scripts/run-tests.py --detector=${{ matrix.detector }}
 

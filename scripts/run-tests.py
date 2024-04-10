@@ -52,7 +52,7 @@ def run_integration_tests(detector, root):
             detector,
             "--metadata",
             "--local-detectors",
-            "../detectors",
+            os.path.join("detectors"),
         ],
         root,
     )
@@ -79,7 +79,7 @@ def run_integration_tests(detector, root):
             "--filter",
             detector,
             "--local-detectors",
-            "../detectors",
+            os.path.join("detectors"),
         ],
         root,
     )

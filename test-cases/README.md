@@ -57,14 +57,12 @@ Check our
 [test-cases](https://github.com/CoinFabrik/scout-soroban/tree/main/test-cases)
 for code examples of these vulnerabilities and their respective remediations.
 
-
 ### Divide before multiply
 
 This vulnerability class relates to the order of operations in Rust, specifically in integer arithmetic. Performing a division operation before a multiplication can lead to a loss of precision. This issue becomes significant in programs like smart contracts where numerical precision is crucial.
 
 This vulnerability falls under the [Arithmetic](#vulnerability-categories) category
 and has a Medium Severity.
-
 
 ### Unsafe unrwap
 
@@ -73,7 +71,6 @@ This vulnerability class pertains to the inappropriate usage of the `unwrap` met
 This vulnerability again falls under the [Validations and error handling](#vulnerability-categories) category and has a Medium severity.
 
 In our example, we consider an contract that utilizes the `unwrap` method to retrieve the balance of an account from a mapping. If there is no entry for the specified account, the contract will panic and abruptly halt execution, opening avenues for malicious exploitation.
-
 
 ### Unsafe expect
 
@@ -104,7 +101,6 @@ realized if `overflow-checks` is set to `False` in the `[profile.release]` secti
 Notwithstanding, there are contexts where developers do turn off checks for
 valid reasons and hence the reason for including this vulnerability in the
 list.
-
 
 ### Insufficiently random values
 

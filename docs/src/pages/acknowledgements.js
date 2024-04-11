@@ -13,7 +13,7 @@ function Acknowledgements() {
         </p>
         <h2>Grants</h2>
         <p>
-          We received support through grants from both the <Link to="https://github.com/w3f/Grants-Program/tree/master">Web3 Foundation Grants Program</Link> and the <Link to="https://alephzero.org/ecosystem-funding-program">Aleph Zero Ecosystem Funding Program</Link>.
+          We received support through grants from the <Link to="https://github.com/w3f/Grants-Program/tree/master">Web3 Foundation Grants Program</Link>, the <Link to="https://alephzero.org/ecosystem-funding-program">Aleph Zero Ecosystem Funding Program </Link> and the <Link to="https://communityfund.stellar.org/">Stellar Community Fund </Link>.
         </p>
         <table>
           <thead>
@@ -39,6 +39,14 @@ function Acknowledgements() {
               </td>
               <td>
                 We improved the precision and number of detectors for the tool with a multi-phase approach. This included a manual vulnerability analysis of projects in the Aleph Zero ecosystem, extensive testing of the tool on top projects, and refining detection accuracy.
+              </td>
+            </tr>
+            <tr>
+              <td>
+                <img src={useBaseUrl('img/stellar.png')} width="100" alt="Stellar Community Fund" />
+              </td>
+              <td>
+              We added support for Stellar's smart contract language, Soroban. We included various output formats, such as an HTML report, improved the tool's precision and recall, and added a GitHub action to run the tool with pull requests.
               </td>
             </tr>
           </tbody>

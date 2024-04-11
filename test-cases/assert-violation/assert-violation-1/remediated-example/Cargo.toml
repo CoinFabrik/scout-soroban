@@ -3,16 +3,14 @@ name = "assert_violation"
 version = "0.1.0"
 edition = "2021"
 
-
 [lib]
 crate-type = ["cdylib"]
-path = "lib.rs" 
 
 [dependencies]
-soroban-sdk = "=20.0.0"
+soroban-sdk = "20.0.0"
 
 [dev_dependencies]
-soroban-sdk = { version = "=20.0.0", features = ["testutils"] }
+soroban-sdk = { version = "20.0.0", features = ["testutils"] }
 
 [features]
 testutils = ["soroban-sdk/testutils"]

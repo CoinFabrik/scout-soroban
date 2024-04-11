@@ -11,8 +11,9 @@ use rustc_ast::{
 };
 use rustc_lint::{EarlyContext, EarlyLintPass};
 use rustc_span::{sym, Span};
-use scout_audit_clippy_utils::sym;
-use scout_audit_internal::{DetectorImpl, InkDetector as Detector};
+use scout_audit_clippy_utils::{diagnostics::span_lint_and_help, sym};
+
+const LINT_MESSAGE: &str = "Assert causes panic. Instead, return a proper error.";
 
 dylint_linting::impl_pre_expansion_lint! {
     /// ### What it does
@@ -22,12 +23,19 @@ dylint_linting::impl_pre_expansion_lint! {
 
     pub ASSERT_VIOLATION,
     Warn,
-    "",
-    AssertViolation::default()
+    LINT_MESSAGE,
+    AssertViolation::default(),
+    {
+        name: "Assert Violation",
+        long_message: "Assert causes panic. Instead, return a proper error.",
+        severity: "Medium",
+        help: "https://github.com/CoinFabrik/scout-soroban/tree/main/detectors/assert-violation",
+        vulnerability_class: "Panic",
+    }
 }
 
 #[derive(Default)]
-pub struct AssertViolation {
+struct AssertViolation {
     in_test_span: Option<Span>,
 }
 
@@ -87,10 +95,12 @@ fn check_macro_call(cx: &EarlyContext, span: Span, mac: &P<MacCall>) {
     .iter()
     .any(|sym| &mac.path == sym)
     {
-        Detector::AssertViolation.span_lint_and_help(
+        span_lint_and_help(
             cx,
             ASSERT_VIOLATION,
             span,
+            LINT_MESSAGE,
+            None,
             "You could use instead an Error enum.",
         );
     }

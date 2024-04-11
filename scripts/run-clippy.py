@@ -36,6 +36,10 @@ def run_clippy(directories):
                 print_results(
                     returncode, stderr, "clippy", root, time.time() - start_time
                 )
+
+                if root.startswith("test-cases"):
+                    run_subprocess(["cargo", "clean"], cwd=root)
+
                 if returncode != 0:
                     errors.append(root)
 

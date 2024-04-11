@@ -37,10 +37,6 @@ def run_subprocess(command: list, cwd: str):
     result = subprocess.run(command, cwd=cwd, capture_output=True, text=True)
     stdout = result.stdout.strip() if result.stdout else None
     stderr = result.stderr.strip() if result.stderr else None
-    print(f"Command: {command}")
-    print(f"Return code: {result.returncode}")
-    print(f"stdout: {stdout}")
-    print(f"stderr: {stderr}")
     return (result.returncode, stdout, stderr)
 
 

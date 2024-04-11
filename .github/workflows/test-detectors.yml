@@ -54,7 +54,9 @@ jobs:
       - name: Cache cargo dependencies and tool versions
         uses: actions/cache@v4
         with:
-          path: ~/.cargo
+          path: |
+            ~/.cargo
+            ~/.rustup
           key: ${{ runner.os }}-tests-${{ hashFiles('**/Cargo.lock') }}
           restore-keys: ${{ runner.os }}-tests-
 
@@ -118,7 +120,9 @@ jobs:
       - name: Cache cargo dependencies and tool versions
         uses: actions/cache@v4
         with:
-          path: ~/.cargo
+          path: |
+            ~/.cargo
+            ~/.rustup
           key: ${{ runner.os }}-tests-${{ hashFiles('**/Cargo.lock') }}
           restore-keys: ${{ runner.os }}-tests-
 

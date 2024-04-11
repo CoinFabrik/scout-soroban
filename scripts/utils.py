@@ -49,26 +49,6 @@ def print_errors(errors):
         print(f"{GREEN}\nNo errors found in the specified directory.{ENDC}")
 
 
-def print_results(
-    returncode,
-    error_message,
-    check_type,
-    root,
-    elapsed_time,
-    issue_type="issues",
-    action_type="check",
-):
-    message_color = RED if returncode != 0 else BLUE
-    print(
-        f"{message_color}[> {elapsed_time:.2f} sec]{ENDC} - Completed {check_type} {action_type} in: {root}."
-    )
-    if returncode != 0:
-        print(f"\n{RED}{check_type.capitalize()} {issue_type} found in: {root}{ENDC}\n")
-        for line in error_message.strip().split("\n"):
-            print(f"| {line}")
-        print("\n")
-
-
 def print_results(returncode, error_message, check_type, root, elapsed_time):
     allowed_check_types = ["clippy", "format", "udeps", "unit-test", "integration-test"]
     if check_type not in allowed_check_types:

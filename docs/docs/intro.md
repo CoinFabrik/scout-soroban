@@ -8,7 +8,7 @@ Let's discover **Scout in less than 5 minutes!**.
 
 ## About Scout
 
-Scout is an extensible open-source tool intended to assist ink! smart contract developers and auditors detect common security issues and deviations from best practices. This tool helps developers write secure and more robust smart contracts.
+Scout is an extensible open-source tool intended to assist Stellar's Soroban smart contract developers and auditors detect common security issues and deviations from best practices. This tool helps developers write secure and more robust smart contracts.
 
 ## Features
 
@@ -20,7 +20,7 @@ Scout is an extensible open-source tool intended to assist ink! smart contract d
 
 Make sure that [Cargo](https://doc.rust-lang.org/cargo/getting-started/installation.html) is installed on your computer. For using the VSCode Extension you must be using [VSCode](https://code.visualstudio.com/).
 
-You should be able to install and run Scout without issues on Mac, Linux or Windows.
+You should be able to install and run Scout without issues on Mac or Linux. You can also use it in Windows through WSL.
 
 ## Command Line Interface (CLI)
 
@@ -105,4 +105,4 @@ You'll also need to have installed the CLI, as the extension uses the CLI to per
 
 ### Usage
 
-After you've installed the extension, simply open a project workspace that contains any ink! (.rs) files. You will see potential issues and warnings via a wiggle underline of the relevant code.
+After you've installed the extension, simply open a project workspace that contains any Soroban (.rs) files. You will see potential issues and warnings via a wiggle underline of the relevant code.

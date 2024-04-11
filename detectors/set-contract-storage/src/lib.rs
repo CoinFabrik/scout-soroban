@@ -67,7 +67,7 @@ const SOROBAN_ADDRESS: &str = "soroban_sdk::Address";
 struct SetContractStorage {
     function_call_graph: HashMap<DefId, HashSet<DefId>>,
     authorized_functions: HashSet<DefId>,
-    analyzed_functions: HashSet<String>,
+    checked_functions: HashSet<String>,
     unauthorized_storage_calls: HashMap<DefId, Vec<Span>>,
 }
 
@@ -93,7 +93,7 @@ impl<'tcx> SetContractStorage {
 
         patterns
             .iter()
-            .all(|pattern| self.analyzed_functions.contains(pattern.as_str()))
+            .all(|pattern| self.checked_functions.contains(pattern.as_str()))
     }
 }
 
@@ -137,10 +137,9 @@ impl<'tcx> LateLintPass<'tcx> for SetContractStorage {
         span: Span,
         local_def_id: LocalDefId,
     ) {
-        // Fetch the DefId of the current function for future reference on public functions
-        // implemented inside the soroban contract
+        // Fetch the DefId of the current function for future reference on public functions implemented inside the soroban contract
         let def_id = local_def_id.to_def_id();
-        self.analyzed_functions.insert(cx.tcx.def_path_str(def_id));
+        self.checked_functions.insert(cx.tcx.def_path_str(def_id));
 
         // If this function comes from a macro, don't analyze it
         if span.from_expansion() {

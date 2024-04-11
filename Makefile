@@ -1,37 +1,20 @@
-ci: fmt lint test
-ci-no-test: fmt lint
+ci: validate fmt lint test
+ci-no-test: validate fmt lint
+
+validate:
+	@echo "\033[0;32m\n==> Validating the project structure and test cases... \033[0m"
+	@python3 scripts/validate-detectors.py
 
 fmt:
-	@echo "\nFormatting test cases..."
-	@for dir in test-cases/*; do \
-		if [ -d "$$dir" ]; then \
-			python3 scripts/run-fmt.py --dir $$dir; \
-		fi; \
-	done
-	@echo "\nFormatting detectors..."
-	@for dir in detectors/*; do \
-		if [ -d "$$dir" ]; then \
-			python3 scripts/run-fmt.py --dir $$dir; \
-		fi; \
-	done
-
+	@echo "\033[0;32m\n---> Formatting test cases and detectors... \033[0m"
+	@python3 scripts/run-fmt.py --dir test-cases detectors
 
 lint:
-	@echo "\nLinting test cases..."
-	@for dir in test-cases/*; do \
-		if [ -d "$$dir" ]; then \
-			python3 scripts/run-clippy.py --dir $$dir; \
-		fi; \
-	done
-	@echo "\nLinting detectors..."
-	@for dir in detectors/*; do \
-		if [ -d "$$dir" ]; then \
-			python3 scripts/run-clippy.py --dir $$dir; \
-		fi; \
-	done
+	@echo "\033[0;32m\n--> Linting test cases and detectors... \033[0m"
+	@python3 scripts/run-clippy.py --dir test-cases detectors
 
 test:
-	@echo "\nRunning tests for test cases..."
+	@echo "\033[0;32m\n--> Running tests for test cases... \033[0m"
 	@for dir in test-cases/*; do \
 		if [ -d "$$dir" ]; then \
 			detector_name=$$(basename "$$dir"); \

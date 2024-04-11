@@ -1,7 +1,10 @@
 import os
-import sys
 import re
 from fuzzywuzzy import process
+
+RED = "\033[91m"
+GREEN = "\033[92m"
+ENDC = "\033[0m"
 
 
 def is_rust_project(dir_path):
@@ -86,36 +89,68 @@ def validate_examples(detector_path, examples):
     return errors
 
 
-def validate_detectors(base_path):
+def validate_detectors(test_cases_path, detectors_path):
     """Validate the structure of the test-cases directory."""
-    all_errors = []
+    errors = []
 
-    for detector in os.listdir(base_path):
-        detector_path = os.path.join(base_path, detector)
-        if detector == "README.md" or not os.path.isdir(detector_path):
-            continue
+    # Directories to ignore while validating
+    ignore_dirs = {"target", ".cargo"}
 
-        print(f"Validating {detector}...")
-        all_errors.extend(check_for_extra_files(detector_path))
+    test_cases = [
+        tc
+        for tc in os.listdir(test_cases_path)
+        if os.path.isdir(os.path.join(test_cases_path, tc))
+    ]
+
+    for test_case in test_cases:
+        test_case_path = os.path.join(test_cases_path, test_case)
+
+        print(f"Validating {test_case}...")
+
+        # Validate that the detector exists
+        if not os.path.exists(os.path.join(detectors_path, test_case)):
+            errors.append(
+                f"Detector folder missing for {test_case} in {detectors_path}"
+            )
+        else:
+            errors.extend(is_rust_project(os.path.join(detectors_path, test_case)))
+
+        # Check for unwanted files in the test case directory
+        errors.extend(check_for_extra_files(test_case_path))
         examples = [
             e
-            for e in os.listdir(detector_path)
-            if os.path.isdir(os.path.join(detector_path, e))
+            for e in os.listdir(test_case_path)
+            if os.path.isdir(os.path.join(test_case_path, e))
         ]
         if not examples:
-            all_errors.append(f"No examples found in {detector}.")
+            errors.append(f"No examples found in {test_case}.")
         else:
-            all_errors.extend(validate_examples(detector_path, examples))
+            # Validate each vulnerable and remediated example
+            errors.extend(validate_examples(test_case_path, examples))
 
-    if all_errors:
-        print("Validation errors found:")
-        for error in all_errors:
-            print(f"* {error}")
-        sys.exit(1)
-    else:
-        print("No validation errors found.")
+    # Validate that each detector has a test case
+    for detector in os.listdir(detectors_path):
+        if detector in ignore_dirs or not os.path.isdir(
+            os.path.join(detectors_path, detector)
+        ):
+            continue
+
+        if detector not in test_cases:
+            errors.append(
+                f"Test case missing for detector {detector} in {test_cases_path}"
+            )
+
+    return errors
 
 
 if __name__ == "__main__":
-    BASE_PATH = "test-cases"
-    validate_detectors(BASE_PATH)
+    TEST_CASES_PATH = "test-cases"
+    DETECTORS_PATH = "detectors"
+    errors = validate_detectors(TEST_CASES_PATH, DETECTORS_PATH)
+    if errors:
+        print(f"{RED}\nValidation errors found:{ENDC}")
+        for error in errors:
+            print(f"* {error}")
+        exit(1)
+    else:
+        print(f"{GREEN}\nAll detectors and test cases are valid.{ENDC}")

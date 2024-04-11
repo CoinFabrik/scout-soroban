@@ -7,10 +7,12 @@ on:
     paths:
       - "detectors/**"
       - "test-cases/**"
+      - "scripts/**"
   pull_request:
     paths:
       - "detectors/**"
       - "test-cases/**"
+      - "scripts/**"
 
 env:
   CARGO_TERM_COLOR: always

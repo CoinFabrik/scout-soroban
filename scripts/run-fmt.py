@@ -22,7 +22,7 @@ def run_fmt(directories):
             if "Cargo.toml" in files:
                 start_time = time.time()
                 returncode, _, stderr = run_subprocess(
-                    ["cargo", "fmt", "--all"],
+                    ["cargo", "fmt", "--all", "--check"],
                     cwd=root,
                 )
                 print_results(

@@ -48,9 +48,6 @@ jobs:
           - macos-latest
     runs-on: ${{ matrix.os }}
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
       - name: Cache cargo dependencies and tool versions
         uses: actions/cache@v4
         with:
@@ -59,9 +56,6 @@ jobs:
             ~/.rustup
           key: ${{ runner.os }}-tests-${{ hashFiles('**/Cargo.lock') }}
           restore-keys: ${{ runner.os }}-tests-
-
-      - name: Update Rust Toolchain
-        run: rustup update
 
       - name: Install Rust nightly
         run: rustup install nightly-2023-12-16
@@ -125,11 +119,6 @@ jobs:
             ~/.rustup
           key: ${{ runner.os }}-tests-${{ hashFiles('**/Cargo.lock') }}
           restore-keys: ${{ runner.os }}-tests-
-
-      - run: rustup show
-
-      - name: Install Rust nightly
-        run: rustup install nightly-2023-12-16
 
       - name: Run unit and integration tests
         run: python scripts/run-tests.py --detector=${{ matrix.detector }}

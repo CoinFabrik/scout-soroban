@@ -1,17 +1,18 @@
 #![feature(rustc_private)]
-#![warn(unused_extern_crates)]
 
 extern crate rustc_hir;
 extern crate rustc_span;
 
-use rustc_hir::def_id::LocalDefId;
-use rustc_hir::intravisit::Visitor;
-use rustc_hir::intravisit::{walk_expr, FnKind};
-use rustc_hir::{Body, FnDecl};
-use rustc_hir::{Expr, ExprKind};
+use rustc_hir::{
+    def_id::LocalDefId,
+    intravisit::{walk_expr, FnKind, Visitor},
+    Body, Expr, ExprKind, FnDecl,
+};
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_span::Span;
-use scout_audit_internal::Detector;
+use scout_audit_clippy_utils::diagnostics::span_lint_and_help;
+
+const LINT_MESSAGE: &str = "Abitrary users should not have control over keys because it implies writing any value of left mapping, lazy variable, or the main struct of the contract located in position 0 of the storage";
 
 dylint_linting::declare_late_lint! {
     /// ### What it does
@@ -36,12 +37,19 @@ dylint_linting::declare_late_lint! {
     ///   let _storage = env.storage().instance();
     /// }
     /// ```
-    pub SET_STORAGE_WARN,
+    pub SET_CONTRACT_STORAGE,
     Warn,
-    Detector::SetContractStorage.get_lint_message()
+    LINT_MESSAGE,
+    {
+        name: "Set Contract Storage",
+        long_message: "Functions using keys as variables without proper access control or input sanitation can allow users to perform changes in arbitrary memory locations.",
+        severity: "Critical",
+        help: "https://coinfabrik.github.io/scout/docs/vulnerabilities/set-contract-storage",
+        vulnerability_class: "Authorization",
+    }
 }
 
-impl<'tcx> LateLintPass<'tcx> for SetStorageWarn {
+impl<'tcx> LateLintPass<'tcx> for SetContractStorage {
     fn check_fn(
         &mut self,
         cx: &LateContext<'tcx>,
@@ -78,10 +86,12 @@ impl<'tcx> LateLintPass<'tcx> for SetStorageWarn {
         walk_expr(&mut visitor, body.value);
 
         for span in visitor.storage_without_auth {
-            Detector::SetContractStorage.span_lint_and_help(
+            span_lint_and_help(
                 cx,
-                SET_STORAGE_WARN,
+                SET_CONTRACT_STORAGE,
                 span,
+                LINT_MESSAGE,
+                None,
                 "Ensure that the caller is authorized to use storage",
             );
         }

@@ -1,5 +1,4 @@
 #![feature(rustc_private)]
-#![warn(unused_extern_crates)]
 
 extern crate rustc_ast;
 extern crate rustc_span;
@@ -13,8 +12,9 @@ use rustc_ast::{
 };
 use rustc_lint::{EarlyContext, EarlyLintPass};
 use rustc_span::{sym, Span};
-use scout_audit_clippy_utils::sym;
-use scout_audit_internal::Detector;
+use scout_audit_clippy_utils::{diagnostics::span_lint_and_help, sym};
+
+const LINT_MESSAGE: &str = "The panic! macro is used to stop execution when a condition is not met. Even when this does not break the execution of the contract, it is recommended to use Result instead of panic! because it will stop the execution of the caller contract";
 
 dylint_linting::impl_pre_expansion_lint! {
     /// ### What it does
@@ -57,8 +57,15 @@ dylint_linting::impl_pre_expansion_lint! {
     /// ```
     pub AVOID_PANIC_ERROR,
     Warn,
-    Detector::AvoidPanicError.get_lint_message(),
-    AvoidPanicError::default()
+    LINT_MESSAGE,
+    AvoidPanicError::default(),
+    {
+        name: "Avoid panic! macro",
+        long_message: "The use of the panic! macro to stop execution when a condition is not met is useful for testing and prototyping but should be avoided in production code. Using Result as the return type for functions that can fail is the idiomatic way to handle errors in Rust.    ",
+        severity: "Enhancement",
+        help: "https://github.com/CoinFabrik/scout-soroban/tree/main/detectors/avoid-panic-error",
+        vulnerability_class: "Validations and error handling",
+    }
 }
 
 #[derive(Default)]
@@ -118,12 +125,14 @@ fn check_macro_call(cx: &EarlyContext, span: Span, mac: &P<MacCall>) {
         if let TokenKind::Literal(lit) = token.kind;
         if lit.kind == LitKind::Str;
         then {
-            Detector::AvoidPanicError.span_lint_and_help(
+            span_lint_and_help(
                 cx,
                 AVOID_PANIC_ERROR,
                 span,
-                &format!("You could use instead an Error enum and then 'return Err(Error::{})'", capitalize_err_msg(lit.symbol.as_str()).replace(' ', "")),
-            );
+                LINT_MESSAGE,
+                None,
+                &format!("You could use instead an Error enum and then 'return Err(Error::{})'", capitalize_err_msg(lit.symbol.as_str()).replace(' ', ""))
+            )
         }
     }
 }
@@ -182,6 +191,6 @@ fn capitalize_err_msg(s: &str) -> String {
 fn is_test_token_present(token_stream: &TokenStream) -> bool {
     token_stream.trees().any(|tree| match tree {
         TokenTree::Token(token, _) => token.is_ident_named(sym::test),
-        TokenTree::Delimited(_, _, token_stream) => is_test_token_present(token_stream),
+        TokenTree::Delimited(_, _, _, token_stream) => is_test_token_present(token_stream),
     })
 }

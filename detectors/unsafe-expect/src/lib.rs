@@ -1,16 +1,18 @@
 #![feature(rustc_private)]
 
-extern crate rustc_ast;
 extern crate rustc_hir;
 extern crate rustc_span;
 
 use rustc_hir::{
-    intravisit::{walk_expr, Visitor},
-    Expr, ExprKind,
+    def_id::LocalDefId,
+    intravisit::{walk_expr, FnKind, Visitor},
+    Body, Expr, ExprKind, FnDecl,
 };
-use rustc_lint::LateLintPass;
+use rustc_lint::{LateContext, LateLintPass};
 use rustc_span::{Span, Symbol};
-use scout_audit_internal::Detector;
+use scout_audit_clippy_utils::diagnostics::span_lint_and_help;
+
+const LINT_MESSAGE: &str = "Unsafe usage of `expect`";
 
 dylint_linting::declare_late_lint! {
     /// ### What it does
@@ -45,18 +47,25 @@ dylint_linting::declare_late_lint! {
     /// ```
     pub UNSAFE_EXPECT,
     Warn,
-    Detector::UnsafeExpect.get_lint_message()
+    LINT_MESSAGE,
+    {
+        name: "Unsafe Expect",
+        long_message: "In Rust, the expect method is commonly used for error handling. It retrieves the value from a Result or Option and panics with a specified error message if an error occurs. However, using expect can lead to unexpected program crashes.    ",
+        severity: "Medium",
+        help: "https://github.com/CoinFabrik/scout-soroban/tree/main/detectors/unsafe-expect",
+        vulnerability_class: "Validations and error handling",
+    }
 }
 
 impl<'tcx> LateLintPass<'tcx> for UnsafeExpect {
     fn check_fn(
         &mut self,
-        cx: &rustc_lint::LateContext<'tcx>,
-        _: rustc_hir::intravisit::FnKind<'tcx>,
-        _: &'tcx rustc_hir::FnDecl<'tcx>,
-        body: &'tcx rustc_hir::Body<'tcx>,
-        _: rustc_span::Span,
-        _: rustc_hir::def_id::LocalDefId,
+        cx: &LateContext<'tcx>,
+        _: FnKind<'tcx>,
+        _: &'tcx FnDecl<'tcx>,
+        body: &'tcx Body<'tcx>,
+        _: Span,
+        _: LocalDefId,
     ) {
         struct UnsafeExpectVisitor {
             has_expect: bool,
@@ -85,10 +94,12 @@ impl<'tcx> LateLintPass<'tcx> for UnsafeExpect {
         if visitor.has_expect {
             visitor.has_expect_span.iter().for_each(|span| {
                 if let Some(span) = span {
-                    Detector::UnsafeExpect.span_lint_and_help(
+                    span_lint_and_help(
                         cx,
                         UNSAFE_EXPECT,
                         *span,
+                        LINT_MESSAGE,
+                        None,
                         "Please, use a custom error instead of `expect`",
                     );
                 }

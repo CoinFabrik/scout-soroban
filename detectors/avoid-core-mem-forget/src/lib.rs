@@ -1,14 +1,15 @@
 #![feature(rustc_private)]
 
 extern crate rustc_ast;
-extern crate rustc_hir;
 extern crate rustc_span;
 
 use if_chain::if_chain;
 use rustc_ast::{Expr, ExprKind, Item, NodeId};
 use rustc_lint::{EarlyContext, EarlyLintPass};
 use rustc_span::sym;
-use scout_audit_internal::Detector;
+use scout_audit_clippy_utils::diagnostics::span_lint_and_help;
+
+const LINT_MESSAGE: &str = "Use the `let _ = ...` pattern or `.drop()` method to forget the value";
 
 dylint_linting::impl_pre_expansion_lint! {
     /// ### What it does
@@ -43,8 +44,15 @@ dylint_linting::impl_pre_expansion_lint! {
 
     pub AVOID_CORE_MEM_FORGET,
     Warn,
-    Detector::AvoidCoreMemForget.get_lint_message(),
-    AvoidCoreMemForget::default()
+    LINT_MESSAGE,
+    AvoidCoreMemForget::default(),
+    {
+        name: "Avoid core::mem::forget usage",
+        long_message: "The core::mem::forget function is used to forget about a value without running its destructor. This could lead to memory leaks and logic errors.",
+        severity: "Enhancement",
+        help: "https://github.com/CoinFabrik/scout-soroban/tree/main/detectors/avoid-core-mem-forget",
+        vulnerability_class: "Best practices",
+    }
 }
 
 #[derive(Default)]
@@ -69,12 +77,13 @@ impl EarlyLintPass for AvoidCoreMemForget {
             if path.segments[1].ident.name.to_string() == "mem";
             if path.segments[2].ident.name.to_string() == "forget";
             then {
-
-                Detector::AvoidCoreMemForget.span_lint_and_help(
+                span_lint_and_help(
                     cx,
                     AVOID_CORE_MEM_FORGET,
                     expr.span,
-                    "Instead, use the `let _ = ...` pattern or `.drop` method to forget the value.",
+                    LINT_MESSAGE,
+                    None,
+                    "Instead, use the `let _ = ...` pattern or `.drop` method to forget the value."
                 );
             }
         }

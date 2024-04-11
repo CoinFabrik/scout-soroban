@@ -1,7 +1,6 @@
 #![feature(rustc_private)]
 #![feature(let_chains)]
 
-extern crate rustc_ast;
 extern crate rustc_hir;
 extern crate rustc_middle;
 extern crate rustc_span;
@@ -9,28 +8,32 @@ extern crate rustc_span;
 use std::collections::HashSet;
 
 use rustc_hir::{
-    intravisit::{walk_expr, Visitor},
-    Expr, ExprKind,
+    intravisit::{walk_expr, FnKind, Visitor},
+    Body, Expr, ExprKind, FnDecl,
 };
 use rustc_lint::{LateContext, LateLintPass};
-use rustc_middle::mir::{BasicBlock, BasicBlocks, Const, Operand, TerminatorKind};
-use rustc_middle::ty::TyKind;
-use rustc_span::def_id::DefId;
-use rustc_span::Span;
-use scout_audit_internal::Detector;
+use rustc_middle::{
+    mir::{BasicBlock, BasicBlocks, Const, Operand, TerminatorKind},
+    ty::TyKind,
+};
+use rustc_span::{
+    def_id::{DefId, LocalDefId},
+    Span, Symbol,
+};
+use scout_audit_clippy_utils::diagnostics::span_lint;
 
-dylint_linting::impl_late_lint! {
+const LINT_MESSAGE: &str = "This update_current_contract_wasm is called without access control";
+
+dylint_linting::declare_late_lint! {
     pub UNPROTECTED_UPDATE_CURRENT_CONTRACT_WASM,
     Warn,
-    Detector::UnprotectedUpdateCurrentContractWasm.get_lint_message(),
-    UnprotectedUpdateCurrentContractWasm::default()
-}
-
-#[derive(Default)]
-pub struct UnprotectedUpdateCurrentContractWasm {}
-impl UnprotectedUpdateCurrentContractWasm {
-    pub fn new() -> Self {
-        Self {}
+    LINT_MESSAGE,
+    {
+        name: "Unprotected Update Current Contract Wasm",
+        long_message: "If users are allowed to call update_current_contract_wasm, they can intentionally modify the contract behaviour, leading to the loss of all associated data/tokens and functionalities given by this contract or by others that depend on it. To prevent this, the function should be restricted to administrators or authorized users only.    ",
+        severity: "Critical",
+        help: "https://github.com/CoinFabrik/scout-soroban/tree/main/detectors/unprotected-update-current-contract-wasm",
+        vulnerability_class: "Authorization",
     }
 }
 
@@ -38,11 +41,11 @@ impl<'tcx> LateLintPass<'tcx> for UnprotectedUpdateCurrentContractWasm {
     fn check_fn(
         &mut self,
         cx: &LateContext<'tcx>,
-        _: rustc_hir::intravisit::FnKind<'tcx>,
-        _: &'tcx rustc_hir::FnDecl<'tcx>,
-        body: &'tcx rustc_hir::Body<'tcx>,
+        _: FnKind<'tcx>,
+        _: &'tcx FnDecl<'tcx>,
+        body: &'tcx Body<'tcx>,
         _: Span,
-        localdef: rustc_span::def_id::LocalDefId,
+        localdef: LocalDefId,
     ) {
         struct UnprotectedUpdateFinder<'tcx, 'tcx_ref> {
             cx: &'tcx_ref LateContext<'tcx>,
@@ -53,12 +56,12 @@ impl<'tcx> LateLintPass<'tcx> for UnprotectedUpdateCurrentContractWasm {
         impl<'tcx> Visitor<'tcx> for UnprotectedUpdateFinder<'tcx, '_> {
             fn visit_expr(&mut self, expr: &'tcx Expr<'_>) {
                 if let ExprKind::MethodCall(path, receiver, ..) = expr.kind {
-                    if path.ident.name.to_string() == "require_auth" {
+                    if path.ident.name == Symbol::intern("require_auth") {
                         self.require_auth_def_id =
                             self.cx.typeck_results().type_dependent_def_id(expr.hir_id);
-                    } else if path.ident.name.to_string() == "update_current_contract_wasm"
+                    } else if path.ident.name == Symbol::intern("update_current_contract_wasm")
                         && let ExprKind::MethodCall(path2, ..) = receiver.kind
-                        && path2.ident.name.to_string() == "deployer"
+                        && path2.ident.name == Symbol::intern("deployer")
                     {
                         self.update_contract_def_id =
                             self.cx.typeck_results().type_dependent_def_id(expr.hir_id);
@@ -88,11 +91,12 @@ impl<'tcx> LateLintPass<'tcx> for UnprotectedUpdateCurrentContractWasm {
         );
 
         for span in spans {
-            Detector::UnprotectedUpdateCurrentContractWasm.span_lint(
+            span_lint(
                 cx,
                 UNPROTECTED_UPDATE_CURRENT_CONTRACT_WASM,
                 span,
-            )
+                LINT_MESSAGE,
+            );
         }
 
         fn navigate_trough_basicblocks<'tcx>(
@@ -179,22 +183,19 @@ impl<'tcx> LateLintPass<'tcx> for UnprotectedUpdateCurrentContractWasm {
                         visited,
                     ));
                 }
-                TerminatorKind::InlineAsm { destination, .. } => {
-                    if let Some(udestination) = destination {
-                        ret_vec.append(&mut navigate_trough_basicblocks(
-                            bbs,
-                            *udestination,
-                            checked,
-                            uuf_storage,
-                            visited,
-                        ));
-                    }
+                TerminatorKind::InlineAsm {
+                    destination: Some(udestination),
+                    ..
+                } => {
+                    ret_vec.append(&mut navigate_trough_basicblocks(
+                        bbs,
+                        *udestination,
+                        checked,
+                        uuf_storage,
+                        visited,
+                    ));
                 }
-                TerminatorKind::Return
-                | TerminatorKind::Unreachable
-                | TerminatorKind::GeneratorDrop
-                | TerminatorKind::UnwindResume
-                | TerminatorKind::UnwindTerminate(_) => {}
+                _ => {}
             }
             ret_vec
         }

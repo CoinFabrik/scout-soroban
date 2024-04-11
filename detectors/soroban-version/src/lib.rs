@@ -1,16 +1,18 @@
 #![feature(rustc_private)]
 
 extern crate rustc_ast;
-extern crate rustc_hir;
 extern crate rustc_span;
 
 use std::{io::Error, process::Command};
 
 use rustc_ast::Crate;
 use rustc_lint::{EarlyContext, EarlyLintPass, LintContext};
-use scout_audit_internal::Detector;
+use rustc_span::DUMMY_SP;
+use scout_audit_clippy_utils::diagnostics::span_lint_and_help;
 use semver::Version;
 use serde_json::Value;
+
+const LINT_MESSAGE: &str = "Use the latest version of Soroban";
 
 dylint_linting::declare_early_lint! {
     /// ### What it does
@@ -18,12 +20,19 @@ dylint_linting::declare_early_lint! {
     ///
     /// ### Why is this bad?
     /// Using an outdated version of soroban could lead to security vulnerabilities, bugs, and other issues.
-    pub CHECK_SOROBAN_VERSION,
+    pub SOROBAN_VERSION,
     Warn,
-    Detector::SorobanVersion.get_lint_message()
+    LINT_MESSAGE,
+    {
+        name: "Check Soroban version",
+        long_message: "Using a older version of Soroban can be dangerous, as it may have bugs or security issues. Use the latest version available.",
+        severity: "Enhancement",
+        help: "https://github.com/CoinFabrik/scout-soroban/tree/main/detectors/soroban-version",
+        vulnerability_class: "Best practices",
+    }
 }
 
-impl EarlyLintPass for CheckSorobanVersion {
+impl EarlyLintPass for SorobanVersion {
     fn check_crate(&mut self, cx: &EarlyContext<'_>, _: &Crate) {
         let latest_soroban_version = match get_latest_soroban_version() {
             Ok(version) => version,
@@ -121,10 +130,12 @@ impl EarlyLintPass for CheckSorobanVersion {
         };
 
         if !soroban_version.eq(&req) {
-            Detector::SorobanVersion.span_lint_and_help(
+            span_lint_and_help(
                 cx,
-                CHECK_SOROBAN_VERSION,
-                rustc_span::DUMMY_SP,
+                SOROBAN_VERSION,
+                DUMMY_SP,
+                LINT_MESSAGE,
+                None,
                 &format!(
                     r#"The latest Soroban version is {latest_soroban_version}, and your version is "{soroban_version}""#
                 ),

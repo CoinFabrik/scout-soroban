@@ -77,7 +77,7 @@ const config = {
           {to: '/acknowledgements', label: 'Acknowledgements', position: 'left'},
           {to: '/about', label: 'About', position: 'left'},
           {
-            href: 'https://github.com/CoinFabrik/scout',
+            href: 'https://github.com/CoinFabrik/scout-soroban',
             label: 'GitHub',
             position: 'right',
           },

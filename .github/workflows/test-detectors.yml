@@ -1,13 +1,6 @@
 name: Test Detectors
 
 on:
-  push:
-    branches:
-      - "main"
-    paths:
-      - "detectors/**"
-      - "test-cases/**"
-      - "scripts/**"
   pull_request:
     paths:
       - "detectors/**"

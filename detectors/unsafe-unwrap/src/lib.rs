@@ -1,4 +1,5 @@
 #![feature(rustc_private)]
+#![allow(clippy::enum_variant_names)]
 
 extern crate rustc_hir;
 extern crate rustc_span;
@@ -8,11 +9,11 @@ use rustc_hir::{
     def::Res,
     def_id::LocalDefId,
     intravisit::{walk_expr, FnKind, Visitor},
-    Block, Body, Expr, ExprKind, FnDecl, HirId, QPath, Stmt, StmtKind,
+    Block, Body, Expr, ExprKind, FnDecl, HirId, Local, QPath, Stmt, StmtKind,
 };
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_span::{sym, Span, Symbol};
-use scout_audit_clippy_utils::diagnostics::span_lint_and_help;
+use scout_audit_clippy_utils::{diagnostics::span_lint_and_help, higher};
 
 const LINT_MESSAGE: &str = "Unsafe usage of `unwrap`";
 
@@ -64,74 +65,160 @@ struct UnsafeUnwrapVisitor {
     unwrap_spans: Vec<Span>,
 }
 
+#[derive(Debug, Clone, Copy)]
+enum CheckType {
+    IsSome,
+    IsNone,
+    IsOk,
+    IsErr,
+}
+
+impl CheckType {
+    /// Converts a `Symbol` to a `CheckType` if it matches a known method name.
+    fn from_method_name(name: Symbol) -> Option<Self> {
+        match name.as_str() {
+            "is_some" => Some(Self::IsSome),
+            "is_none" => Some(Self::IsNone),
+            "is_ok" => Some(Self::IsOk),
+            "is_err" => Some(Self::IsErr),
+            _ => None,
+        }
+    }
+
+    /// Determines if the check type allows safe unwrapping.
+    fn is_safe_to_unwrap(self) -> bool {
+        matches!(self, Self::IsSome | Self::IsOk)
+    }
+
+    /// Determines if the check type implies that a function should return or halt.
+    fn is_safe_to_return(self) -> bool {
+        matches!(self, Self::IsNone | Self::IsErr)
+    }
+}
+
 impl UnsafeUnwrapVisitor {
-    pub fn analyze_block(
+    fn analyze_if_expr(
+        &mut self,
+        expr: &Expr<'_>,
+        check_type: CheckType,
+        target_hir_id: &HirId,
+    ) -> bool {
+        match &expr.kind {
+            ExprKind::Block(block, _) => self.analyze_block(block, target_hir_id, check_type),
+            _ => {
+                println!("Expr kind: {:?}", expr.kind);
+                false
+            }
+        }
+    }
+
+    fn analyze_block(
         &mut self,
         block: &Block<'_>,
         expression_hir_id: &HirId,
-        should_return: bool,
+        check_type: CheckType,
     ) -> bool {
-        for stmt in block.stmts {
-            // Analyze the statement to know wether it returns or not.
-            if self.analyze_statement(stmt, expression_hir_id, should_return) {
-                return true;
-            }
-        }
-
-        false
+        block
+            .stmts
+            .iter()
+            .any(|stmt| self.analyze_statement(stmt, expression_hir_id, &check_type))
     }
 
-    pub fn analyze_statement(
+    fn analyze_statement(
         &mut self,
         stmt: &Stmt<'_>,
         expression_hir_id: &HirId,
-        should_return: bool,
+        check_type: &CheckType,
     ) -> bool {
         match &stmt.kind {
             StmtKind::Expr(expr) | StmtKind::Semi(expr) => {
-                // Analyze each expression to know if it returns or not.
-                self.analyze_expression(expr, expression_hir_id, should_return)
+                self.analyze_expression(expr, expression_hir_id, check_type)
+            }
+            StmtKind::Local(local) => {
+                self.analyze_local_statement(local, expression_hir_id, check_type)
             }
             _ => false,
         }
     }
 
-    pub fn analyze_expression(
+    fn analyze_local_statement(
+        &mut self,
+        local: &Local<'_>,
+        expression_hir_id: &HirId,
+        check_type: &CheckType,
+    ) -> bool {
+        if let Some(init) = local.init {
+            return self.analyze_expression(init, expression_hir_id, check_type);
+        }
+        false
+    }
+
+    fn analyze_expression(
         &mut self,
         expr: &Expr<'_>,
         expression_hir_id: &HirId,
-        should_return: bool,
+        check_type: &CheckType,
     ) -> bool {
         match &expr.kind {
-            ExprKind::Block(block, _) => {
-                self.analyze_block(block, expression_hir_id, should_return)
+            ExprKind::Block(block, _) => self.analyze_block(block, expression_hir_id, *check_type),
+            ExprKind::Ret(_) => check_type.is_safe_to_return(),
+            ExprKind::Call(func, args) => {
+                self.analyze_call(func, args, expression_hir_id, check_type)
             }
-            ExprKind::Ret(_) => should_return,
-            ExprKind::Call(func, _) => self.analyze_function_call(func, should_return),
-            ExprKind::MethodCall(path_segment, receiver, _, _) => {
-                if_chain! {
-                    if path_segment.ident.name == sym::unwrap;
-                    if let ExprKind::Path(QPath::Resolved(_, path)) = &receiver.kind;
-                    if let Res::Local(hir_id) = path.res;
-                    then {
-                        return hir_id == *expression_hir_id;
-                    }
-                }
-                false
+            ExprKind::MethodCall(..) => {
+                self.analyze_method_call(expr, expression_hir_id, check_type)
             }
-            _ => should_return,
+            _ => false,
         }
     }
 
-    pub fn analyze_function_call(&mut self, func: &Expr<'_>, should_return: bool) -> bool {
-        if let ExprKind::Path(QPath::Resolved(_, path)) = &func.kind {
-            if path
+    fn analyze_method_call(
+        &mut self,
+        expr: &Expr<'_>,
+        expression_hir_id: &HirId,
+        check_type: &CheckType,
+    ) -> bool {
+        self.is_unwrap_call(expr, expression_hir_id) && check_type.is_safe_to_unwrap()
+    }
+
+    fn analyze_call(
+        &mut self,
+        func: &Expr<'_>,
+        args: &[Expr<'_>],
+        expression_hir_id: &HirId,
+        check_type: &CheckType,
+    ) -> bool {
+        if self.is_unwrap_call(func, expression_hir_id) {
+            return check_type.is_safe_to_unwrap();
+        }
+
+        if self.is_panic_inducing_call(func) {
+            return check_type.is_safe_to_return();
+        }
+
+        args.iter()
+            .any(|arg| self.analyze_expression(arg, expression_hir_id, check_type))
+    }
+
+    fn is_panic_inducing_call(&self, expr: &Expr<'_>) -> bool {
+        // TODO: should also check for other panic-inducing calls like `bail!`
+        if let ExprKind::Path(QPath::Resolved(_, path)) = &expr.kind {
+            return path
                 .segments
-                .last()
-                .map_or(false, |seg| seg.ident.name.as_str().contains("panic"))
-            {
-                // We could add other functions that also panic like `bail!`
-                return should_return;
+                .iter()
+                .any(|segment| segment.ident.name.as_str().contains("panic"));
+        }
+        false
+    }
+
+    fn is_unwrap_call(&self, expr: &Expr<'_>, target_hir_id: &HirId) -> bool {
+        if_chain! {
+            if let ExprKind::MethodCall(path_segment, receiver, _, _) = &expr.kind;
+            if path_segment.ident.name == sym::unwrap;
+            if let ExprKind::Path(QPath::Resolved(_, path)) = &receiver.kind;
+            if let Res::Local(hir_id) = path.res;
+            then {
+                return hir_id == *target_hir_id;
             }
         }
         false
@@ -140,35 +227,21 @@ impl UnsafeUnwrapVisitor {
 
 impl<'tcx> Visitor<'tcx> for UnsafeUnwrapVisitor {
     fn visit_expr(&mut self, expr: &'tcx Expr<'_>) {
-        let should_check_for_returns = [Symbol::intern("is_err"), Symbol::intern("is_none")];
-        let should_check_for_non_returns = [Symbol::intern("is_ok"), Symbol::intern("is_some")];
-
         // Find statemets that might be validating agains an unwrap call
         if_chain! {
-            // Find an 'if' expression and peel off any temporary values.
-            if let ExprKind::If(condition, if_expr, _) = &expr.kind;
-            if let ExprKind::DropTemps(peeled_expr) = condition.kind;
-            // Check if the condition is a method call for further analysis.
-            if let ExprKind::MethodCall(path_segment, receiver, _, _) = &peeled_expr.kind;
+            // Find an 'if' expression without DropTemps.
+            if let Some(higher::If { cond, then: if_expr, r#else: _ }) = higher::If::hir(expr);
+            // Check if the condition is a method call that we are interested in.
+            // //TODO: handle more expressions
+            if let ExprKind::MethodCall(path_segment, receiver, _, _) = &cond.kind;
+            if let Some(check_type) = CheckType::from_method_name(path_segment.ident.name);
+            // Get the receiver of the method call and its HirId
+            if let ExprKind::Path(QPath::Resolved(_, checked_expr_path)) = receiver.kind;
+            if let Res::Local(checked_expr_hir_id) = checked_expr_path.res;
+            // Analyze the if expression to determine if it is safe to unwrap
+            if self.analyze_if_expr(if_expr, check_type, &checked_expr_hir_id);
             then {
-                // Determine if the method call is one that we are interested in.
-                let should_analyze = should_check_for_returns.contains(&path_segment.ident.name) ||
-                                     should_check_for_non_returns.contains(&path_segment.ident.name);
-
-                if should_analyze {
-                    // Get the receiver of the method call.
-                    if let ExprKind::Path(QPath::Resolved(_, checked_expr_path)) = receiver.kind {
-                        // Get the HirId of the receiver.z
-                        if let Res::Local(checked_expr_hir_id) = checked_expr_path.res {
-                            // Analyze the inner block of the 'if' expression to determine if it is safe to unwrap.
-                            if let ExprKind::Block(if_block, _) = &if_expr.kind {
-                                if self.analyze_block(if_block, &checked_expr_hir_id, should_check_for_returns.contains(&path_segment.ident.name)) {
-                                    self.checked_exprs.push(checked_expr_hir_id);
-                                }
-                            }
-                        }
-                    }
-                }
+                self.checked_exprs.push(checked_expr_hir_id);
             }
         }
 

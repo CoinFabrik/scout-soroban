@@ -4,18 +4,21 @@
 extern crate rustc_hir;
 extern crate rustc_span;
 
+use std::collections::HashSet;
+
 use if_chain::if_chain;
 use rustc_hir::{
     def::Res,
     def_id::LocalDefId,
     intravisit::{walk_expr, FnKind, Visitor},
-    Block, Body, Expr, ExprKind, FnDecl, HirId, Local, QPath, Stmt, StmtKind,
+    BinOpKind, Body, Expr, ExprKind, FnDecl, HirId, QPath, UnOp,
 };
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_span::{sym, Span, Symbol};
 use scout_audit_clippy_utils::{diagnostics::span_lint_and_help, higher};
 
 const LINT_MESSAGE: &str = "Unsafe usage of `unwrap`";
+const PANIC_INDUCING_FUNCTIONS: [&str; 2] = ["panic", "bail"];
 
 dylint_linting::declare_late_lint! {
     /// ### What it does
@@ -60,12 +63,7 @@ dylint_linting::declare_late_lint! {
     }
 }
 
-struct UnsafeUnwrapVisitor {
-    checked_exprs: Vec<HirId>,
-    unwrap_spans: Vec<Span>,
-}
-
-#[derive(Debug, Clone, Copy)]
+#[derive(Clone, Copy)]
 enum CheckType {
     IsSome,
     IsNone,
@@ -74,7 +72,6 @@ enum CheckType {
 }
 
 impl CheckType {
-    /// Converts a `Symbol` to a `CheckType` if it matches a known method name.
     fn from_method_name(name: Symbol) -> Option<Self> {
         match name.as_str() {
             "is_some" => Some(Self::IsSome),
@@ -85,177 +82,173 @@ impl CheckType {
         }
     }
 
-    /// Determines if the check type allows safe unwrapping.
+    fn inverse(self) -> Self {
+        match self {
+            Self::IsSome => Self::IsNone,
+            Self::IsNone => Self::IsSome,
+            Self::IsOk => Self::IsErr,
+            Self::IsErr => Self::IsOk,
+        }
+    }
+
+    fn should_halt_execution(self) -> bool {
+        matches!(self, Self::IsNone | Self::IsErr)
+    }
+
     fn is_safe_to_unwrap(self) -> bool {
         matches!(self, Self::IsSome | Self::IsOk)
     }
+}
+#[derive(Clone, Copy)]
+struct ConditionalChecker {
+    check_type: CheckType,
+    checked_expr_hir_id: HirId,
+}
 
-    /// Determines if the check type implies that a function should return or halt.
-    fn is_safe_to_return(self) -> bool {
-        matches!(self, Self::IsNone | Self::IsErr)
+impl ConditionalChecker {
+    fn handle_expression(expr: &Expr<'_>, inverse: bool) -> Option<Self> {
+        if_chain! {
+            if let ExprKind::MethodCall(path_segment, receiver, _, _) = expr.kind;
+            if let Some(check_type) = CheckType::from_method_name(path_segment.ident.name);
+            if let ExprKind::Path(QPath::Resolved(_, checked_expr_path)) = receiver.kind;
+            if let Res::Local(checked_expr_hir_id) = checked_expr_path.res;
+            then {
+                return Some(Self {
+                    check_type: if inverse { check_type.inverse() } else { check_type },
+                    checked_expr_hir_id,
+                });
+            }
+        }
+        None
+    }
+
+    /// Constructs a ConditionalChecker from an expression if it matches a method call with a valid CheckType.
+    fn from_expression(expr: &Expr<'_>) -> Option<Self> {
+        match expr.kind {
+            ExprKind::Unary(op, expr) => Self::handle_expression(expr, op == UnOp::Not),
+            // For now we will only support the `or` operator (`||`), and we will get the first expression that is a CheckType
+            // In the future we could support the `or` operator with n operands and construct a HashMap out of it.
+            ExprKind::Binary(op, left_expr, right_expr) => {
+                if op.node == BinOpKind::Or {
+                    return Self::from_expression(left_expr)
+                        .or_else(|| Self::from_expression(right_expr));
+                }
+                None
+            }
+            ExprKind::MethodCall(..) => Self::handle_expression(expr, false),
+            _ => None,
+        }
     }
 }
 
-impl UnsafeUnwrapVisitor {
-    fn analyze_if_expr(
-        &mut self,
-        expr: &Expr<'_>,
-        check_type: CheckType,
-        target_hir_id: &HirId,
-    ) -> bool {
-        match &expr.kind {
-            ExprKind::Block(block, _) => self.analyze_block(block, target_hir_id, check_type),
-            _ => {
-                println!("Expr kind: {:?}", expr.kind);
-                false
-            }
-        }
-    }
+struct UnsafeUnwrapVisitor<'a, 'tcx> {
+    cx: &'a LateContext<'tcx>,
+    conditional_checker: Option<ConditionalChecker>,
+    checked_exprs: HashSet<HirId>,
+}
 
-    fn analyze_block(
-        &mut self,
-        block: &Block<'_>,
-        expression_hir_id: &HirId,
-        check_type: CheckType,
-    ) -> bool {
-        block
-            .stmts
-            .iter()
-            .any(|stmt| self.analyze_statement(stmt, expression_hir_id, &check_type))
-    }
-
-    fn analyze_statement(
-        &mut self,
-        stmt: &Stmt<'_>,
-        expression_hir_id: &HirId,
-        check_type: &CheckType,
-    ) -> bool {
-        match &stmt.kind {
-            StmtKind::Expr(expr) | StmtKind::Semi(expr) => {
-                self.analyze_expression(expr, expression_hir_id, check_type)
-            }
-            StmtKind::Local(local) => {
-                self.analyze_local_statement(local, expression_hir_id, check_type)
-            }
-            _ => false,
-        }
-    }
-
-    fn analyze_local_statement(
-        &mut self,
-        local: &Local<'_>,
-        expression_hir_id: &HirId,
-        check_type: &CheckType,
-    ) -> bool {
-        if let Some(init) = local.init {
-            return self.analyze_expression(init, expression_hir_id, check_type);
-        }
-        false
-    }
-
-    fn analyze_expression(
-        &mut self,
-        expr: &Expr<'_>,
-        expression_hir_id: &HirId,
-        check_type: &CheckType,
-    ) -> bool {
-        match &expr.kind {
-            ExprKind::Block(block, _) => self.analyze_block(block, expression_hir_id, *check_type),
-            ExprKind::Ret(_) => check_type.is_safe_to_return(),
-            ExprKind::Call(func, args) => {
-                self.analyze_call(func, args, expression_hir_id, check_type)
-            }
-            ExprKind::MethodCall(..) => {
-                self.analyze_method_call(expr, expression_hir_id, check_type)
-            }
-            _ => false,
-        }
-    }
-
-    fn analyze_method_call(
-        &mut self,
-        expr: &Expr<'_>,
-        expression_hir_id: &HirId,
-        check_type: &CheckType,
-    ) -> bool {
-        self.is_unwrap_call(expr, expression_hir_id) && check_type.is_safe_to_unwrap()
-    }
-
-    fn analyze_call(
-        &mut self,
-        func: &Expr<'_>,
-        args: &[Expr<'_>],
-        expression_hir_id: &HirId,
-        check_type: &CheckType,
-    ) -> bool {
-        if self.is_unwrap_call(func, expression_hir_id) {
-            return check_type.is_safe_to_unwrap();
-        }
-
-        if self.is_panic_inducing_call(func) {
-            return check_type.is_safe_to_return();
-        }
-
-        args.iter()
-            .any(|arg| self.analyze_expression(arg, expression_hir_id, check_type))
-    }
-
-    fn is_panic_inducing_call(&self, expr: &Expr<'_>) -> bool {
-        // TODO: should also check for other panic-inducing calls like `bail!`
-        if let ExprKind::Path(QPath::Resolved(_, path)) = &expr.kind {
-            return path
-                .segments
-                .iter()
-                .any(|segment| segment.ident.name.as_str().contains("panic"));
-        }
-        false
-    }
-
-    fn is_unwrap_call(&self, expr: &Expr<'_>, target_hir_id: &HirId) -> bool {
+impl UnsafeUnwrapVisitor<'_, '_> {
+    fn is_panic_inducing_call(&self, func: &Expr<'_>) -> bool {
         if_chain! {
-            if let ExprKind::MethodCall(path_segment, receiver, _, _) = &expr.kind;
-            if path_segment.ident.name == sym::unwrap;
+            if let ExprKind::Path(QPath::Resolved(_, path)) = &func.kind;
+            then {
+                return PANIC_INDUCING_FUNCTIONS.iter().any(|&func| {
+                    path.segments
+                        .iter()
+                        .any(|segment| segment.ident.name.as_str().contains(func))
+                });
+            }
+        }
+        false
+    }
+
+    fn get_unwrap_info(&self, receiver: &Expr<'_>) -> Option<HirId> {
+        if_chain! {
             if let ExprKind::Path(QPath::Resolved(_, path)) = &receiver.kind;
             if let Res::Local(hir_id) = path.res;
             then {
-                return hir_id == *target_hir_id;
+                Some(hir_id)
+            } else {
+                None
             }
         }
-        false
+    }
+
+    fn set_conditional_checker(&mut self, conditional_checker: ConditionalChecker) {
+        self.conditional_checker = Some(conditional_checker);
+        if conditional_checker.check_type.is_safe_to_unwrap() {
+            self.checked_exprs
+                .insert(conditional_checker.checked_expr_hir_id);
+        };
+    }
+
+    fn reset_conditional_checker(&mut self, conditional_checker: ConditionalChecker) {
+        if conditional_checker.check_type.is_safe_to_unwrap() {
+            self.checked_exprs
+                .remove(&conditional_checker.checked_expr_hir_id);
+        }
+        self.conditional_checker = None;
     }
 }
 
-impl<'tcx> Visitor<'tcx> for UnsafeUnwrapVisitor {
+impl<'a, 'tcx> Visitor<'tcx> for UnsafeUnwrapVisitor<'a, 'tcx> {
     fn visit_expr(&mut self, expr: &'tcx Expr<'_>) {
-        // Find statemets that might be validating agains an unwrap call
+        // If we are inside an `if` or `if let` expression, we analyze the expressions
         if_chain! {
-            // Find an 'if' expression without DropTemps.
-            if let Some(higher::If { cond, then: if_expr, r#else: _ }) = higher::If::hir(expr);
-            // Check if the condition is a method call that we are interested in.
-            // //TODO: handle more expressions
-            if let ExprKind::MethodCall(path_segment, receiver, _, _) = &cond.kind;
-            if let Some(check_type) = CheckType::from_method_name(path_segment.ident.name);
-            // Get the receiver of the method call and its HirId
-            if let ExprKind::Path(QPath::Resolved(_, checked_expr_path)) = receiver.kind;
-            if let Res::Local(checked_expr_hir_id) = checked_expr_path.res;
-            // Analyze the if expression to determine if it is safe to unwrap
-            if self.analyze_if_expr(if_expr, check_type, &checked_expr_hir_id);
+            if let Some(conditional_checker) = &self.conditional_checker;
+            if conditional_checker.check_type.should_halt_execution();
             then {
-                self.checked_exprs.push(checked_expr_hir_id);
+                // If the execution should be halted, we ensure it.
+                match &expr.kind {
+                    ExprKind::Ret(..) => {
+                        self.checked_exprs.insert(conditional_checker.checked_expr_hir_id);
+                    },
+                    ExprKind::Call(func, _) => {
+                        if self.is_panic_inducing_call(func) {
+                            self.checked_exprs.insert(conditional_checker.checked_expr_hir_id);
+                        }
+                    },
+                    _ => {}
+                }
+
             }
         }
 
-        // Find unwrap calls
+        // Find `if` or `if let` expressions
+        if let Some(higher::IfOrIfLet {
+            cond,
+            then: if_expr,
+            r#else: _,
+        }) = higher::IfOrIfLet::hir(expr)
+        {
+            // If we are interested in the condition (if it is a CheckType) we analyze the if expression
+            if let Some(conditional_checker) = ConditionalChecker::from_expression(cond) {
+                self.set_conditional_checker(conditional_checker);
+                walk_expr(self, if_expr);
+                self.reset_conditional_checker(conditional_checker);
+                return;
+            }
+        }
+
+        // If we find an unsafe `unwrap`, we raise a warning
         if_chain! {
             if let ExprKind::MethodCall(path_segment, receiver, _, _) = &expr.kind;
             if path_segment.ident.name == sym::unwrap;
-            // Get the receiver HirId and verify that it has been checked.
-            if let ExprKind::Path(QPath::Resolved(_, unwrap_expr_path)) = receiver.kind;
-            if let Res::Local(receiver_hir_id) = unwrap_expr_path.res;
-            if !self.checked_exprs.contains(&receiver_hir_id);
             then {
-                self.unwrap_spans.push(expr.span);
-            }
+                let receiver_hir_id = self.get_unwrap_info(receiver);
+                // If the receiver is `None`, then we asume that the `unwrap` is unsafe
+                let is_checked_safe = receiver_hir_id.map_or(false, |id| self.checked_exprs.contains(&id));
+                if !is_checked_safe {
+                    span_lint_and_help(
+                        self.cx,
+                        UNSAFE_UNWRAP,
+                        expr.span,
+                        LINT_MESSAGE,
+                        None,
+                        "Please, use a custom error instead of `unwrap`",
+                    );
+                }
+             }
         }
 
         walk_expr(self, expr);
@@ -278,21 +271,11 @@ impl<'tcx> LateLintPass<'tcx> for UnsafeUnwrap {
         }
 
         let mut visitor = UnsafeUnwrapVisitor {
-            unwrap_spans: Vec::new(),
-            checked_exprs: Vec::new(),
+            cx,
+            checked_exprs: HashSet::new(),
+            conditional_checker: None,
         };
 
         walk_expr(&mut visitor, body.value);
-
-        visitor.unwrap_spans.iter().for_each(|span| {
-            span_lint_and_help(
-                cx,
-                UNSAFE_UNWRAP,
-                *span,
-                LINT_MESSAGE,
-                None,
-                "Please, use a custom error instead of `unwrap`",
-            );
-        });
     }
 }

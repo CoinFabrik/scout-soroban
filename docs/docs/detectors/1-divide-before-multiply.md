@@ -39,3 +39,5 @@ let c = a * 3 / b; // c evaluates to 1
 ### Implementation
 
 The detector's implementation can be found at [this link](https://github.com/CoinFabrik/scout-soroban/tree/main/detectors/divide-before-multiply).
+
+

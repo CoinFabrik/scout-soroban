@@ -87,4 +87,4 @@ debug-assertions = true
 
 ### Implementation
 
-The detector's implementation can be found at [this link](https://github.com/CoinFabrik/scout-soroban/tree/main/detectors/integer-overflow-or-underflow).
+The detector's implementation can be found at [this link](https://github.com/CoinFabrik/scout-soroban/tree/main/detectors/overflow-check).

@@ -1,7 +1,7 @@
 [package]
+edition = "2021"
 name = "overflow-check"
 version = "0.1.0"
-edition = "2021"
 
 [lib]
 crate-type = ["cdylib"]
@@ -9,9 +9,8 @@ crate-type = ["cdylib"]
 [dependencies]
 dylint_linting = { workspace = true }
 if_chain = { workspace = true }
-toml = "0.8.8"
-
 scout-audit-clippy-utils = { workspace = true }
+toml = "0.8.8"
 
 [package.metadata.rust-analyzer]
 rustc_private = true

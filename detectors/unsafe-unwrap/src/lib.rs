@@ -1,16 +1,18 @@
 #![feature(rustc_private)]
 
-extern crate rustc_ast;
 extern crate rustc_hir;
 extern crate rustc_span;
 
 use rustc_hir::{
-    intravisit::{walk_expr, Visitor},
-    Expr, ExprKind,
+    def_id::LocalDefId,
+    intravisit::{walk_expr, FnKind, Visitor},
+    Body, Expr, ExprKind, FnDecl,
 };
-use rustc_lint::LateLintPass;
+use rustc_lint::{LateContext, LateLintPass};
 use rustc_span::{Span, Symbol};
-use scout_audit_internal::{DetectorImpl, SorobanDetector as Detector};
+use scout_audit_clippy_utils::diagnostics::span_lint_and_help;
+
+const LINT_MESSAGE: &str = "Unsafe usage of `unwrap`";
 
 dylint_linting::declare_late_lint! {
     /// ### What it does
@@ -45,18 +47,25 @@ dylint_linting::declare_late_lint! {
     /// ```
     pub UNSAFE_UNWRAP,
     Warn,
-    ""
+    LINT_MESSAGE,
+    {
+        name: "Unsafe Unwrap",
+        long_message: "This vulnerability class pertains to the inappropriate usage of the unwrap method in Rust, which is commonly employed for error handling. The unwrap method retrieves the inner value of an Option or Result, but if an error or None occurs, it triggers a panic and crashes the program.    ",
+        severity: "Medium",
+        help: "https://github.com/CoinFabrik/scout-soroban/tree/main/detectors/unsafe-unwrap",
+        vulnerability_class: "Validations and error handling",
+    }
 }
 
 impl<'tcx> LateLintPass<'tcx> for UnsafeUnwrap {
     fn check_fn(
         &mut self,
-        cx: &rustc_lint::LateContext<'tcx>,
-        _: rustc_hir::intravisit::FnKind<'tcx>,
-        _: &'tcx rustc_hir::FnDecl<'tcx>,
-        body: &'tcx rustc_hir::Body<'tcx>,
-        _: rustc_span::Span,
-        _: rustc_hir::def_id::LocalDefId,
+        cx: &LateContext<'tcx>,
+        _: FnKind<'tcx>,
+        _: &'tcx FnDecl<'tcx>,
+        body: &'tcx Body<'tcx>,
+        _: Span,
+        _: LocalDefId,
     ) {
         struct UnsafeUnwrapVisitor {
             has_unwrap: bool,
@@ -85,10 +94,12 @@ impl<'tcx> LateLintPass<'tcx> for UnsafeUnwrap {
         if visitor.has_unwrap {
             visitor.has_unwrap_span.iter().for_each(|span| {
                 if let Some(span) = span {
-                    Detector::UnsafeUnwrap.span_lint_and_help(
+                    span_lint_and_help(
                         cx,
                         UNSAFE_UNWRAP,
                         *span,
+                        LINT_MESSAGE,
+                        None,
                         "Please, use a custom error instead of `unwrap`",
                     );
                 }

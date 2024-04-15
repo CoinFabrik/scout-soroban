@@ -4,14 +4,15 @@
 extern crate rustc_hir;
 extern crate rustc_span;
 
-use std::collections::HashSet;
+use std::{collections::HashSet, hash::Hash};
 
 use if_chain::if_chain;
+use rustc_hir::BinOpKind;
 use rustc_hir::{
     def::Res,
     def_id::LocalDefId,
     intravisit::{walk_expr, FnKind, Visitor},
-    BinOpKind, Body, Expr, ExprKind, FnDecl, HirId, QPath, UnOp,
+    Body, Expr, ExprKind, FnDecl, HirId, Local, QPath, UnOp,
 };
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_span::{sym, Span, Symbol};
@@ -63,7 +64,8 @@ dylint_linting::declare_late_lint! {
     }
 }
 
-#[derive(Clone, Copy)]
+/// Represents the type of check performed on method call expressions to determine their safety or behavior.
+#[derive(Clone, Copy, Hash, Eq, PartialEq)]
 enum CheckType {
     IsSome,
     IsNone,
@@ -91,73 +93,72 @@ impl CheckType {
         }
     }
 
+    /// Determines if the check type implies execution should halt, such as in error conditions.
     fn should_halt_execution(self) -> bool {
         matches!(self, Self::IsNone | Self::IsErr)
     }
 
+    /// Determines if it is safe to unwrap the value without further checks, i.e., the value is present.
     fn is_safe_to_unwrap(self) -> bool {
         matches!(self, Self::IsSome | Self::IsOk)
     }
 }
-#[derive(Clone, Copy)]
+
+/// Represents a conditional checker that is used to analyze `if` or `if let` expressions.
+#[derive(Clone, Copy, Hash, Eq, PartialEq)]
 struct ConditionalChecker {
     check_type: CheckType,
     checked_expr_hir_id: HirId,
 }
 
 impl ConditionalChecker {
-    fn handle_expression(expr: &Expr<'_>, inverse: bool) -> Option<Self> {
+    /// Handle te condition of the `if` or `if let` expression.
+    fn handle_condition(condition: &Expr<'_>, inverse: bool) -> HashSet<Self> {
         if_chain! {
-            if let ExprKind::MethodCall(path_segment, receiver, _, _) = expr.kind;
+            if let ExprKind::MethodCall(path_segment, receiver, _, _) = condition.kind;
             if let Some(check_type) = CheckType::from_method_name(path_segment.ident.name);
             if let ExprKind::Path(QPath::Resolved(_, checked_expr_path)) = receiver.kind;
             if let Res::Local(checked_expr_hir_id) = checked_expr_path.res;
             then {
-                return Some(Self {
-                    check_type: if inverse { check_type.inverse() } else { check_type },
-                    checked_expr_hir_id,
-                });
+                let check_type = if inverse { check_type.inverse() } else { check_type };
+                return std::iter::once(Self { check_type, checked_expr_hir_id }).collect();
             }
         }
-        None
+        HashSet::new()
     }
 
     /// Constructs a ConditionalChecker from an expression if it matches a method call with a valid CheckType.
-    fn from_expression(expr: &Expr<'_>) -> Option<Self> {
-        match expr.kind {
-            ExprKind::Unary(op, expr) => Self::handle_expression(expr, op == UnOp::Not),
-            // For now we will only support the `or` operator (`||`), and we will get the first expression that is a CheckType
-            // In the future we could support the `or` operator with n operands and construct a HashMap out of it.
-            ExprKind::Binary(op, left_expr, right_expr) => {
-                if op.node == BinOpKind::Or {
-                    return Self::from_expression(left_expr)
-                        .or_else(|| Self::from_expression(right_expr));
-                }
-                None
+    fn from_expression(condition: &Expr<'_>) -> HashSet<Self> {
+        match condition.kind {
+            // Single `not` expressions are supported
+            ExprKind::Unary(op, condition) => Self::handle_condition(condition, op == UnOp::Not),
+            // Multiple `or` expressions are supported
+            ExprKind::Binary(op, left_condition, right_condition) if op.node == BinOpKind::Or => {
+                let mut result = Self::from_expression(left_condition);
+                result.extend(Self::from_expression(right_condition));
+                result
             }
-            ExprKind::MethodCall(..) => Self::handle_expression(expr, false),
-            _ => None,
+            ExprKind::MethodCall(..) => Self::handle_condition(condition, false),
+            _ => HashSet::new(),
         }
     }
 }
 
+/// Main unsafe-unwrap visitor
 struct UnsafeUnwrapVisitor<'a, 'tcx> {
     cx: &'a LateContext<'tcx>,
-    conditional_checker: Option<ConditionalChecker>,
+    conditional_checker: HashSet<ConditionalChecker>,
     checked_exprs: HashSet<HirId>,
 }
 
 impl UnsafeUnwrapVisitor<'_, '_> {
     fn is_panic_inducing_call(&self, func: &Expr<'_>) -> bool {
-        if_chain! {
-            if let ExprKind::Path(QPath::Resolved(_, path)) = &func.kind;
-            then {
-                return PANIC_INDUCING_FUNCTIONS.iter().any(|&func| {
-                    path.segments
-                        .iter()
-                        .any(|segment| segment.ident.name.as_str().contains(func))
-                });
-            }
+        if let ExprKind::Path(QPath::Resolved(_, path)) = &func.kind {
+            return PANIC_INDUCING_FUNCTIONS.iter().any(|&func| {
+                path.segments
+                    .iter()
+                    .any(|segment| segment.ident.name.as_str().contains(func))
+            });
         }
         false
     }
@@ -167,50 +168,91 @@ impl UnsafeUnwrapVisitor<'_, '_> {
             if let ExprKind::Path(QPath::Resolved(_, path)) = &receiver.kind;
             if let Res::Local(hir_id) = path.res;
             then {
-                Some(hir_id)
-            } else {
-                None
+                return Some(hir_id);
+            }
+        }
+        None
+    }
+
+    fn set_conditional_checker(&mut self, conditional_checkers: &HashSet<ConditionalChecker>) {
+        for checker in conditional_checkers {
+            self.conditional_checker.insert(*checker);
+            if checker.check_type.is_safe_to_unwrap() {
+                self.checked_exprs.insert(checker.checked_expr_hir_id);
             }
         }
     }
 
-    fn set_conditional_checker(&mut self, conditional_checker: ConditionalChecker) {
-        self.conditional_checker = Some(conditional_checker);
-        if conditional_checker.check_type.is_safe_to_unwrap() {
-            self.checked_exprs
-                .insert(conditional_checker.checked_expr_hir_id);
-        };
+    fn reset_conditional_checker(&mut self, conditional_checkers: HashSet<ConditionalChecker>) {
+        for checker in conditional_checkers {
+            if checker.check_type.is_safe_to_unwrap() {
+                self.checked_exprs.remove(&checker.checked_expr_hir_id);
+            }
+            self.conditional_checker.remove(&checker);
+        }
     }
 
-    fn reset_conditional_checker(&mut self, conditional_checker: ConditionalChecker) {
-        if conditional_checker.check_type.is_safe_to_unwrap() {
-            self.checked_exprs
-                .remove(&conditional_checker.checked_expr_hir_id);
+    /// Process conditional expressions to determine if they should halt execution.
+    fn handle_if_expressions(&mut self) {
+        self.conditional_checker.iter().for_each(|checker| {
+            if checker.check_type.should_halt_execution() {
+                self.checked_exprs.insert(checker.checked_expr_hir_id);
+            }
+        });
+    }
+
+    fn is_literal_or_composed_of_literals(&self, expr: &Expr<'_>) -> bool {
+        let mut stack = vec![expr];
+
+        while let Some(current_expr) = stack.pop() {
+            match current_expr.kind {
+                ExprKind::Lit(_) => continue, // A literal is fine, continue processing.
+                ExprKind::Tup(elements) | ExprKind::Array(elements) => {
+                    stack.extend(elements);
+                }
+                ExprKind::Struct(_, fields, _) => {
+                    for field in fields {
+                        stack.push(field.expr);
+                    }
+                }
+                ExprKind::Repeat(element, _) => {
+                    stack.push(element);
+                }
+                _ => return false, // If any element is not a literal or a compound of literals, return false.
+            }
         }
-        self.conditional_checker = None;
+
+        true // If the stack is emptied without finding a non-literal, all elements are literals.
     }
 }
 
 impl<'a, 'tcx> Visitor<'tcx> for UnsafeUnwrapVisitor<'a, 'tcx> {
+    fn visit_local(&mut self, local: &'tcx Local<'tcx>) {
+        if_chain! {
+            if let Some(init) = local.init;
+            if let ExprKind::Call(func, args) = init.kind;
+            if let ExprKind::Path(QPath::Resolved(_, path)) = func.kind;
+            then {
+                let is_some_or_ok = path.segments.iter().any(|segment|
+                    matches!(segment.ident.name, sym::Some | sym::Ok)
+                );
+                let all_literals = args.iter().all(|arg| self.is_literal_or_composed_of_literals(arg));
+                if is_some_or_ok && all_literals {
+                    self.checked_exprs.insert(local.pat.hir_id);
+                }
+            }
+        }
+    }
+
     fn visit_expr(&mut self, expr: &'tcx Expr<'_>) {
         // If we are inside an `if` or `if let` expression, we analyze the expressions
-        if_chain! {
-            if let Some(conditional_checker) = &self.conditional_checker;
-            if conditional_checker.check_type.should_halt_execution();
-            then {
-                // If the execution should be halted, we ensure it.
-                match &expr.kind {
-                    ExprKind::Ret(..) => {
-                        self.checked_exprs.insert(conditional_checker.checked_expr_hir_id);
-                    },
-                    ExprKind::Call(func, _) => {
-                        if self.is_panic_inducing_call(func) {
-                            self.checked_exprs.insert(conditional_checker.checked_expr_hir_id);
-                        }
-                    },
-                    _ => {}
+        if !self.conditional_checker.is_empty() {
+            match &expr.kind {
+                ExprKind::Ret(..) => self.handle_if_expressions(),
+                ExprKind::Call(func, _) if self.is_panic_inducing_call(func) => {
+                    self.handle_if_expressions()
                 }
-
+                _ => {}
             }
         }
 
@@ -222,12 +264,11 @@ impl<'a, 'tcx> Visitor<'tcx> for UnsafeUnwrapVisitor<'a, 'tcx> {
         }) = higher::IfOrIfLet::hir(expr)
         {
             // If we are interested in the condition (if it is a CheckType) we analyze the if expression
-            if let Some(conditional_checker) = ConditionalChecker::from_expression(cond) {
-                self.set_conditional_checker(conditional_checker);
-                walk_expr(self, if_expr);
-                self.reset_conditional_checker(conditional_checker);
-                return;
-            }
+            let conditional_checker = ConditionalChecker::from_expression(cond);
+            self.set_conditional_checker(&conditional_checker);
+            walk_expr(self, if_expr);
+            self.reset_conditional_checker(conditional_checker);
+            return;
         }
 
         // If we find an unsafe `unwrap`, we raise a warning
@@ -273,7 +314,7 @@ impl<'tcx> LateLintPass<'tcx> for UnsafeUnwrap {
         let mut visitor = UnsafeUnwrapVisitor {
             cx,
             checked_exprs: HashSet::new(),
-            conditional_checker: None,
+            conditional_checker: HashSet::new(),
         };
 
         walk_expr(&mut visitor, body.value);

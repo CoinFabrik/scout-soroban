@@ -1,7 +1,7 @@
 [package]
+edition = "2021"
 name = "dos-unbounded-operation"
 version = "0.1.0"
-edition = "2021"
 
 [lib]
 crate-type = ["cdylib"]
@@ -9,7 +9,6 @@ crate-type = ["cdylib"]
 [dependencies]
 dylint_linting = { workspace = true }
 if_chain = { workspace = true }
-
 scout-audit-clippy-utils = { workspace = true }
 
 [package.metadata.rust-analyzer]

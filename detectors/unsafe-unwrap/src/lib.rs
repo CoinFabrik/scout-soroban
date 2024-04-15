@@ -245,7 +245,7 @@ impl<'a, 'tcx> Visitor<'tcx> for UnsafeUnwrapVisitor<'a, 'tcx> {
     }
 
     fn visit_expr(&mut self, expr: &'tcx Expr<'_>) {
-        // If we are inside an `if` or `if let` expression, we analyze the expressions
+        // If we are inside an `if` or `if let` expression, we analyze its body
         if !self.conditional_checker.is_empty() {
             match &expr.kind {
                 ExprKind::Ret(..) => self.handle_if_expressions(),
@@ -263,7 +263,7 @@ impl<'a, 'tcx> Visitor<'tcx> for UnsafeUnwrapVisitor<'a, 'tcx> {
             r#else: _,
         }) = higher::IfOrIfLet::hir(expr)
         {
-            // If we are interested in the condition (if it is a CheckType) we analyze the if expression
+            // If we are interested in the condition (if it is a CheckType) we traverse the body.
             let conditional_checker = ConditionalChecker::from_expression(cond);
             self.set_conditional_checker(&conditional_checker);
             walk_expr(self, if_expr);

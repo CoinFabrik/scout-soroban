@@ -1,7 +1,5 @@
 #![no_std]
-use soroban_sdk::{contract, contractimpl, symbol_short, Address, Env, Symbol};
-
-const COUNTER: Symbol = symbol_short!("COUNTER");
+use soroban_sdk::{contract, contractimpl, Address, Env};
 
 #[contract]
 pub struct SetContractStorage;
@@ -12,9 +10,9 @@ impl SetContractStorage {
     pub fn increment(env: Env, user: Address) -> u32 {
         user.require_auth();
         let storage = env.storage().instance();
-        let mut count: u32 = storage.get(&COUNTER).unwrap_or(0);
+        let mut count: u32 = storage.get(&user).unwrap_or_default();
         count += 1;
-        storage.set(&COUNTER, &count);
+        storage.set(&user, &count);
         storage.extend_ttl(100, 100);
         count
     }

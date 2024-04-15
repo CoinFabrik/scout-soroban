@@ -183,7 +183,7 @@ Medium severity.
 
 ### Soroban version
 
-Using a pinned version of Soroban can be dangerous, as it may have bugs or security issues. Use the latest version available.
+Using an old version of Soroban can be dangerous, as it may have bugs or security issues. Use the latest version available.
 
 We classified this issue, a deviation from best practices which could have
 security implications, under the [Best practices](#vulnerability-categories) category and assigned it an Enhancement severity.

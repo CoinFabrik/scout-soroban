@@ -1,4 +1,5 @@
 #![no_std]
+
 use soroban_sdk::{contract, contractimpl, Address, Env};
 
 #[contract]
@@ -7,8 +8,16 @@ pub struct SetContractStorage;
 #[contractimpl]
 impl SetContractStorage {
     /// Increment an internal counter; return the new value.
-    pub fn increment(env: Env, user: Address) -> u32 {
+    pub fn safe_increment(env: Env, user: Address) -> u32 {
         user.require_auth();
+        utils::increment(env, user)
+    }
+}
+
+mod utils {
+    use soroban_sdk::{Address, Env};
+
+    pub fn increment(env: Env, user: Address) -> u32 {
         let storage = env.storage().persistent();
         let mut count: u32 = storage.get(&user).unwrap_or_default();
         count += 1;
@@ -34,9 +43,9 @@ mod tests {
         let user = <Address as testutils::Address>::generate(&env);
 
         // When
-        let first_increment = client.increment(&user);
-        let second_increment = client.increment(&user);
-        let third_increment = client.increment(&user);
+        let first_increment = client.safe_increment(&user);
+        let second_increment = client.safe_increment(&user);
+        let third_increment = client.safe_increment(&user);
 
         // Then
         assert_eq!(first_increment, 1);

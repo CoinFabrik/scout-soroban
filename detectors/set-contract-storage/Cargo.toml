@@ -9,6 +9,7 @@ crate-type = ["cdylib"]
 [dependencies]
 dylint_linting = { workspace = true }
 if_chain = { workspace = true }
+utils = { path = "../../utils" }
 
 scout-audit-clippy-utils = { workspace = true }
 

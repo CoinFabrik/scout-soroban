@@ -14,13 +14,13 @@ const config = {
   url: 'https://coinfabrik.github.io',
   // Set the /<baseUrl>/ pathname under which your site is served
   // For GitHub pages deployment, it is often '/<projectName>/'
-  baseUrl: '/scout/',
+  baseUrl: '/scout-soroban/',
   trailingSlash: false,
 
   // GitHub pages deployment config.
   // If you aren't using GitHub pages, you don't need these.
   organizationName: 'CoinFabrik', // Usually your GitHub org/user name.
-  projectName: 'scout', // Usually your repo name.
+  projectName: 'scout-soroban', // Usually your repo name.
   deploymentBranch: 'gh-pages', // The branch of your docs repo that you are going to deploy to GitHub pages.
 
   onBrokenLinks: 'throw',
@@ -44,7 +44,7 @@ const config = {
           // Please change this to your repo.
           // Remove this to remove the "edit this page" links.
           editUrl:
-            'https://github.com/CoinFabrik/scout',
+            'https://github.com/CoinFabrik/scout-soroban',
         },
         blog: {
           showReadingTime: true,

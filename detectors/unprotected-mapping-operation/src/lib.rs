@@ -5,204 +5,221 @@ extern crate rustc_hir;
 extern crate rustc_middle;
 extern crate rustc_span;
 
+use std::collections::{HashMap, HashSet};
+
 use if_chain::if_chain;
 use rustc_hir::{
-    def::Res,
-    intravisit::{walk_body, walk_expr, Visitor},
-    Expr, ExprKind, HirId, Param, PatKind, QPath, StmtKind,
+    intravisit::{walk_expr, FnKind, Visitor},
+    Body, Expr, ExprKind, FnDecl, HirId,
 };
 use rustc_lint::{LateContext, LateLintPass};
-use rustc_middle::ty::{Ty, TyKind};
-use rustc_span::{Span, Symbol};
-use scout_audit_internal::Detector;
+use rustc_middle::ty::{GenericArgKind, Ty, TyKind};
+use rustc_span::{
+    def_id::{DefId, LocalDefId},
+    Span, Symbol,
+};
+use scout_audit_clippy_utils::diagnostics::span_lint_and_help;
+use utils::FunctionCallVisitor;
 
-dylint_linting::declare_late_lint! {
+const LINT_MESSAGE: &str = "This mapping operation is called without access control on a different key than the caller's address";
+
+dylint_linting::impl_late_lint! {
     pub UNPROTECTED_MAPPING_OPERATION,
     Warn,
-    Detector::UnprotectedMappingOperation.get_lint_message()
-}
-
-struct AuthStatus {
-    authed: bool,
-}
-
-struct UnauthorizedAddress {
-    span: Span,
-    name: String,
-}
-
-struct UnprotectedMappingOperationFinder<'tcx, 'tcx_ref> {
-    cx: &'tcx_ref LateContext<'tcx>,
-    linked_addresses: Vec<(AuthStatus, Vec<HirId>)>,
-    unauthorized_span: Vec<UnauthorizedAddress>,
+    LINT_MESSAGE,
+    UnprotectedMappingOperation::default(),
+    {
+        name: "Unprotected Mapping Operation",
+        long_message: "This mapping operation is called without access control on a different key than the caller's address",
+        severity: "Critical",
+        help: "https://github.com/CoinFabrik/scout-soroban/tree/main/detectors/unprotected-mapping-operation",
+        vulnerability_class: "Access Control",
+    }
 }
 
 const SOROBAN_MAP: &str = "soroban_sdk::Map";
 const SOROBAN_ADDRESS: &str = "soroban_sdk::Address";
 
+#[derive(Default)]
+struct UnprotectedMappingOperation {
+    function_call_graph: HashMap<DefId, HashSet<DefId>>,
+    authorized_functions: HashSet<DefId>,
+    checked_functions: HashSet<String>,
+    unauthorized_mapping_calls: HashMap<DefId, Vec<Span>>,
+}
+
+impl<'tcx> UnprotectedMappingOperation {
+    fn is_soroban_function(&self, cx: &LateContext<'tcx>, def_id: &DefId) -> bool {
+        let def_path_str = cx.tcx.def_path_str(*def_id);
+        let mut parts = def_path_str.rsplitn(2, "::");
+
+        let function_name = parts.next().unwrap();
+        let contract_path = parts.next().unwrap_or("");
+
+        if contract_path.is_empty() {
+            return false;
+        }
+
+        // Define the patterns to check against
+        let patterns = [
+            format!("{}Client::<'a>::try_{}", contract_path, function_name),
+            format!("{}::{}", contract_path, function_name),
+            format!("{}::spec_xdr_{}", contract_path, function_name),
+            format!("{}Client::<'a>::{}", contract_path, function_name),
+        ];
+
+        patterns
+            .iter()
+            .all(|pattern| self.checked_functions.contains(pattern.as_str()))
+    }
+}
+
 impl<'tcx> LateLintPass<'tcx> for UnprotectedMappingOperation {
+    fn check_crate_post(&mut self, cx: &LateContext<'tcx>) {
+        for (callee_def_id, mapping_spans) in &self.unauthorized_mapping_calls {
+            let is_callee_soroban = self.is_soroban_function(cx, callee_def_id);
+            let (is_called_by_soroban, is_soroban_caller_authed) = self
+                .function_call_graph
+                .iter()
+                .fold((false, true), |acc, (caller, callees)| {
+                    if callees.contains(callee_def_id) {
+                        let is_caller_soroban = self.is_soroban_function(cx, caller);
+                        // Update if the caller is Soroban and check if it's authorized only if it's a Soroban caller
+                        (
+                            acc.0 || is_caller_soroban,
+                            acc.1
+                                && (!is_caller_soroban
+                                    || self.authorized_functions.contains(caller)),
+                        )
+                    } else {
+                        acc
+                    }
+                });
+
+            // Determine if a warning should be emitted
+            if is_callee_soroban || (is_called_by_soroban && !is_soroban_caller_authed) {
+                for span in mapping_spans {
+                    span_lint_and_help(
+                        cx,
+                        UNPROTECTED_MAPPING_OPERATION,
+                        *span,
+                        LINT_MESSAGE,
+                        None,
+                        "",
+                    );
+                }
+            }
+        }
+    }
+
     fn check_fn(
         &mut self,
         cx: &LateContext<'tcx>,
-        _: rustc_hir::intravisit::FnKind<'tcx>,
-        _: &'tcx rustc_hir::FnDecl<'tcx>,
-        body: &'tcx rustc_hir::Body<'tcx>,
-        _: Span,
-        _: rustc_span::def_id::LocalDefId,
+        _: FnKind<'tcx>,
+        _: &'tcx FnDecl<'tcx>,
+        body: &'tcx Body<'tcx>,
+        span: Span,
+        local_def_id: LocalDefId,
     ) {
-        let mut visitor = UnprotectedMappingOperationFinder {
+        // Fetch the DefId of the current function for future reference on public functions implemented inside the soroban contract
+        let def_id = local_def_id.to_def_id();
+        self.checked_functions.insert(cx.tcx.def_path_str(def_id));
+
+        // If this function comes from a macro, don't analyze it
+        if span.from_expansion() {
+            return;
+        }
+
+        // First visitor: build the function call graph
+        let mut function_call_visitor =
+            FunctionCallVisitor::new(cx, def_id, &mut self.function_call_graph);
+        function_call_visitor.visit_body(body);
+
+        // Second visitor: check for authed functions and storage calls
+        let mut unprotected_mapping_visitor = UnprotectedMappingOperationVisitor {
             cx,
-            linked_addresses: Vec::new(),
-            unauthorized_span: Vec::new(),
+            auth_found: false,
+            mapping_spans: Vec::new(),
         };
+        unprotected_mapping_visitor.visit_body(body);
 
-        visitor.parse_body_params(body.params);
-
-        walk_body(&mut visitor, body);
-
-        visitor
-            .unauthorized_span
-            .iter()
-            .for_each(|unauthorized_address| {
-                Detector::UnprotectedMappingOperation.span_lint_and_help(
-                    cx,
-                    UNPROTECTED_MAPPING_OPERATION,
-                    unauthorized_address.span,
-                    &format!(
-                        "Address not authorized, please use `{}.require_auth();` prior to the mapping operation",
-                        unauthorized_address.name
-                    ),
-                );
-            });
+        // If the function calls storage without auth, we store the spans
+        if !unprotected_mapping_visitor.mapping_spans.is_empty()
+            && !unprotected_mapping_visitor.auth_found
+        {
+            self.unauthorized_mapping_calls
+                .insert(def_id, unprotected_mapping_visitor.mapping_spans);
+        } else if unprotected_mapping_visitor.auth_found {
+            self.authorized_functions.insert(def_id);
+        }
     }
 }
 
-impl<'tcx> Visitor<'tcx> for UnprotectedMappingOperationFinder<'tcx, '_> {
-    fn visit_expr(&mut self, expr: &'tcx Expr<'tcx>) {
-        if let ExprKind::Block(block, _) = &expr.kind {
-            block.stmts.iter().for_each(|stmt| {
-                if_chain! {
-                    if let StmtKind::Local(local) = &stmt.kind;
-                    if self.get_node_type(local.hir_id).to_string() == SOROBAN_ADDRESS;
-                    if let PatKind::Binding(_, target_hir_id, _, _) = &local.pat.kind;
-                    if let Some(init) = &local.init;
-                    let source_hir_id = self.get_expr_hir_id(init);
-                    if let Some(source_hir_id) = source_hir_id;
-                    then {
-                        // Insert the new address into the linked_addresses
-                        self.insert_new_address(source_hir_id, *target_hir_id);
-                    }
-                }
-            })
-        }
-
-        if let ExprKind::MethodCall(method_path, method_expr, method_args, _) = &expr.kind {
-            // Get the method expression type and check if it's a map with address
-            let method_expr_type = self.get_node_type(method_expr.hir_id);
-
-            if_chain! {
-                if let ExprKind::Field(_, _) = &method_expr.kind;
-                if let TyKind::Adt(adt_def, args) = method_expr_type.kind();
-                if self.cx.tcx.def_path_str(adt_def.did()) == SOROBAN_MAP;
-                if let Some(first_arg) = args.first();
-                if first_arg.to_string() == SOROBAN_ADDRESS;
-                then {
-                    // Iterate through the method arguments and check if any of them is an address and not authed
-                    method_args.iter().for_each(|arg| {
-                        if_chain! {
-                            if let Some(id) = self.get_expr_hir_id(arg);
-                            if self.get_node_type(id).to_string().contains(SOROBAN_ADDRESS);
-                            then {
-                                // Obtain the linked_addresses record in wich the address id is contained
-                                let linked_address = self.get_linked_address(id);
-
-                                // If the address does not exist, of if it does but the AuthStatus is false, then we need to add it to the unauthorized_span
-                                if linked_address.is_none() || !linked_address.unwrap().0.authed {
-                                    self.unauthorized_span.push(UnauthorizedAddress {
-                                        span: expr.span,
-                                        name: self.cx.tcx.hir().name(id).to_string(),
-                                    });
-                                }
-                            }
-                        }
-                    });
-                }
-            }
-
-            // Check if the method call is a require_auth call and if it is, then we need to update the AuthStatus
-            if_chain! {
-                if method_expr_type.to_string() == SOROBAN_ADDRESS;
-                if method_path.ident.name == Symbol::intern("require_auth");
-                if let Some(id) = self.get_expr_hir_id(method_expr);
-                then {
-                    self.auth_address(id)
-                }
-            }
-        }
-
-        walk_expr(self, expr);
-    }
+struct UnprotectedMappingOperationVisitor<'a, 'tcx> {
+    cx: &'a LateContext<'tcx>,
+    auth_found: bool,
+    mapping_spans: Vec<Span>,
 }
 
-impl<'tcx> UnprotectedMappingOperationFinder<'tcx, '_> {
-    fn parse_body_params(&mut self, params: &'tcx [Param<'_>]) {
-        params.iter().for_each(|param| {
-            if self.get_node_type(param.hir_id).to_string() == SOROBAN_ADDRESS {
-                self.linked_addresses
-                    .push((AuthStatus { authed: false }, vec![param.pat.hir_id]));
+impl<'tcx> UnprotectedMappingOperationVisitor<'_, 'tcx> {
+    fn is_soroban_map_with_address(&self, receiver: &Expr, receiver_type: Ty<'_>) -> bool {
+        if_chain! {
+            // Check that the receiver expression is a field (e.g., accessing a struct's field).
+            if let ExprKind::Field(..) = &receiver.kind;
+
+            // Verify that the type of the receiver is an ADT corresponding to 'soroban_sdk::Map'.
+            if let TyKind::Adt(map_adt_def, args) = receiver_type.kind();
+            if self.cx.tcx.def_path_str(map_adt_def.did()) == SOROBAN_MAP;
+
+            // Retrieve the first generic argument, ensure it exists and is of type Ty.
+            if let Some(first_arg) = args.first();
+            if let GenericArgKind::Type(first_type) = first_arg.unpack();
+
+            // Verify that the type of the receiver is an ADT corresponding to 'soroban_sdk::Address'.
+            if let Some(address_adt_def) = first_type.ty_adt_def();
+            if self.cx.tcx.def_path_str(address_adt_def.did()) == SOROBAN_ADDRESS;
+            then {
+                return true;
             }
-        });
+        }
+        false
+    }
+
+    fn is_soroban_address(&self, type_: Ty<'tcx>) -> bool {
+        type_.to_string().contains(SOROBAN_ADDRESS)
     }
 
     fn get_node_type(&self, hir_id: HirId) -> Ty<'tcx> {
         self.cx.typeck_results().node_type(hir_id)
     }
+}
 
-    fn insert_new_address(&mut self, source_hir_id: HirId, target_hir_id: HirId) {
-        if let Some((_, linked_addresses)) = self
-            .linked_addresses
-            .iter_mut()
-            .find(|(_, addresses)| addresses.iter().any(|&id| id == source_hir_id))
-        {
-            linked_addresses.push(target_hir_id);
+impl<'a, 'tcx> Visitor<'tcx> for UnprotectedMappingOperationVisitor<'a, 'tcx> {
+    fn visit_expr(&mut self, expr: &'tcx Expr<'tcx>) {
+        if self.auth_found {
+            return;
         }
-    }
 
-    fn get_expr_hir_id(&self, expr: &Expr) -> Option<HirId> {
-        let mut stack = vec![expr];
+        if let ExprKind::MethodCall(path_segment, receiver, _args, _) = &expr.kind {
+            // Get the method expression type and check if it's a map with address
+            let receiver_type = self.get_node_type(receiver.hir_id);
 
-        while let Some(current_expr) = stack.pop() {
-            match current_expr.kind {
-                ExprKind::MethodCall(_, call_expr, _, _) => stack.push(call_expr),
-                ExprKind::Path(QPath::Resolved(_, path)) => match path.res {
-                    Res::Local(hir_id) => return Some(hir_id),
-                    _ => continue,
-                },
-                _ => continue,
+            // Check if the method call is require_auth() on an address
+            if self.is_soroban_address(receiver_type)
+                && path_segment.ident.name == Symbol::intern("require_auth")
+            {
+                self.auth_found = true;
+            }
+
+            // Look for usage of soroban map with address
+            // Anything that looks like `soroban_sdk::Map::<soroban_sdk::Address, _>` is in our interest
+            if self.is_soroban_map_with_address(receiver, receiver_type)
+                && path_segment.ident.name == Symbol::intern("set")
+            {
+                self.mapping_spans.push(expr.span);
             }
         }
 
-        None
-    }
-
-    fn get_linked_address(&self, id: HirId) -> Option<&(AuthStatus, Vec<HirId>)> {
-        self.linked_addresses.iter().find(|(_, linked_addresses)| {
-            linked_addresses
-                .iter()
-                .any(|&address_hir_id| address_hir_id == id)
-        })
-    }
-
-    fn auth_address(&mut self, id: HirId) {
-        self.linked_addresses
-            .iter_mut()
-            .for_each(|(auth_status, linked_addresses)| {
-                if linked_addresses
-                    .iter()
-                    .any(|&address_hir_id| address_hir_id == id)
-                {
-                    auth_status.authed = true;
-                }
-            });
+        walk_expr(self, expr);
     }
 }

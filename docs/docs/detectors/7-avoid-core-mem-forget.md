@@ -1,4 +1,4 @@
-# Avoid core::mem::forget usage
+# Avoid core mem forget usage
 
 ### What it does
 

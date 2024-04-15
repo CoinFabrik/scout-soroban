@@ -1,0 +1,1 @@
+"use strict";(self.webpackChunkscout=self.webpackChunkscout||[]).push([[4066],{9306:o=>{o.exports=JSON.parse('{"permalink":"/scout-soroban/blog/tags/facebook","page":1,"postsPerPage":10,"totalPages":1,"totalCount":1,"blogDescription":"Blog","blogTitle":"Blog"}')}}]);

@@ -1,7 +1,7 @@
 
 [package]
 edition = "2021"
-name = "unprotected-update-current-contract-wasm-vulnerable-1"
+name = "unprotected-update-current-contract-wasm-vulnerable-2"
 version = "0.1.0"
 
 [lib]

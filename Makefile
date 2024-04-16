@@ -15,9 +15,14 @@ lint:
 
 test:
 	@echo "\033[0;32m\n--> Running tests for test cases... \033[0m"
+ifdef detector
+	@detector_name=$(detector); \
+	python3 scripts/run-tests.py --detector=$$detector_name;
+else
 	@for dir in test-cases/*; do \
 		if [ -d "$$dir" ]; then \
 			detector_name=$$(basename "$$dir"); \
 			python3 scripts/run-tests.py --detector=$$detector_name; \
 		fi; \
 	done
+endif

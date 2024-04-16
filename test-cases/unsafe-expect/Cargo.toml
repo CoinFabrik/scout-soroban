@@ -4,7 +4,7 @@ members = ["unsafe-expect-*/*"]
 resolver = "2"
 
 [workspace.dependencies]
-soroban-sdk = { version = "20.5.0" }
+soroban-sdk = { version = "=20.0.0" }
 
 [profile.release]
 codegen-units = 1

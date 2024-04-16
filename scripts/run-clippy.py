@@ -2,7 +2,7 @@ import argparse
 import os
 import time
 
-from utils import print_errors, print_results, run_subprocess
+from utils import print_errors, print_results, run_subprocess, is_rust_project
 
 GREEN = "\033[92m"
 ENDC = "\033[0m"
@@ -18,8 +18,8 @@ def run_clippy(directories):
             continue
 
         print(f"\n{GREEN}Running clippy in {directory}:{ENDC}")
-        for root, _, files in os.walk(directory):
-            if "Cargo.toml" in files:
+        for root, _, _ in os.walk(directory):
+            if is_rust_project(root):
                 start_time = time.time()
                 returncode, _, stderr = run_subprocess(
                     [

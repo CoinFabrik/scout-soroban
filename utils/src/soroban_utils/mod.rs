@@ -1,17 +1,18 @@
 extern crate rustc_lint;
+extern crate rustc_middle;
 extern crate rustc_span;
 
 use std::collections::HashSet;
 
 use rustc_lint::LateContext;
+use rustc_middle::ty::{Ty, TyKind};
 use rustc_span::def_id::DefId;
 
+/// Constants defining the fully qualified names of Soroban types.
+const SOROBAN_ENV: &str = "soroban_sdk::Env";
+const SOROBAN_ADDRESS: &str = "soroban_sdk::Address";
+
 /// Determines whether a function defined by its `DefId` is part of a Soroban contract implementation.
-///
-/// This function checks if the provided `DefId` corresponds to a function that is part of an
-/// implementation marked with the `#[contractimpl]` attribute specific to Soroban contracts.
-/// It does this by comparing the function's path to a set of known patterns that are associated
-/// with Soroban contract implementations.
 ///
 /// # Parameters
 /// - `cx`: The context from the compiler's late lint pass.
@@ -51,4 +52,22 @@ pub fn is_soroban_function(
     patterns
         .iter()
         .all(|pattern| checked_functions.contains(pattern))
+}
+
+/// Checks if the provided type is a Soroban environment (`soroban_sdk::Env`).
+pub fn is_soroban_env(cx: &LateContext<'_>, expr_type: Ty<'_>) -> bool {
+    match expr_type.kind() {
+        TyKind::Adt(adt_def, _) => cx.tcx.def_path_str(adt_def.did()).contains(SOROBAN_ENV),
+        TyKind::Ref(_, ty, _) => is_soroban_env(cx, *ty),
+        _ => false,
+    }
+}
+
+/// Checks if the provided type is a Soroban Address (`soroban_sdk::Address`).
+pub fn is_soroban_address(cx: &LateContext<'_>, expr_type: Ty<'_>) -> bool {
+    match expr_type.kind() {
+        TyKind::Adt(adt_def, _) => cx.tcx.def_path_str(adt_def.did()).contains(SOROBAN_ADDRESS),
+        TyKind::Ref(_, ty, _) => is_soroban_address(cx, *ty),
+        _ => false,
+    }
 }

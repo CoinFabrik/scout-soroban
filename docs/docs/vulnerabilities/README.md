@@ -202,3 +202,12 @@ a bug.
 
 We put this vulnerability under the [Validations and error handling category](#vulnerability-categories)
 with a Minor Severity.
+
+###  Iterators-over-indexing
+
+Accessing a vector by index is slower than using an iterator. Also, if the index is out of bounds, it will panic. 
+
+This could lead to potential integer overflow vulnerabilities, which would trigger a panic in debug builds or wrap in release mode, jeopardizing the integrity and security of the smart contract. Additionally, failing to verify the existence of data in storage before operations could result in unexpected errors or runtime failures, compromising the reliability of the contract execution.
+
+This vulnerability falls under the [Best practices](#vulnerability-categories) category and has an Enhancement severity.
+

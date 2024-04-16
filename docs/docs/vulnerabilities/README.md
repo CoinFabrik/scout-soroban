@@ -202,3 +202,9 @@ a bug.
 
 We put this vulnerability under the [Validations and error handling category](#vulnerability-categories)
 with a Minor Severity.
+
+### Assert violation
+
+The assert! macro is used in Rust to ensure that a certain condition holds true at a certain point in your code. The `assert!` macro can cause the contract to panic. Therefore, the detector suggests replacing `assert!` constructs with `Error` enum structures.
+
+This vulnerability falls under the category [Validations and error handling](#vulnerability-categories) and has an Enhancement Severity.

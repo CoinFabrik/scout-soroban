@@ -202,3 +202,9 @@ a bug.
 
 We put this vulnerability under the [Validations and error handling category](#vulnerability-categories)
 with a Minor Severity.
+
+### Unprotected mapping operation
+
+Modifying mappings with an arbitrary key given by the user could lead to unintented modifications of critical data, modifying data belonging to other users, causing denial of service, unathorized access, and other potential issues.
+
+This vulnerability falls under the [Validations and error handling category](#vulnerability-categories) and assigned it a Critical severity.

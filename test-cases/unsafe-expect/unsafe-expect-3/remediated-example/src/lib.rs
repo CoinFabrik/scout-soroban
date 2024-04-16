@@ -33,10 +33,11 @@ impl UnsafeExpect {
     pub fn balance_of(env: Env, owner: Address) -> i128 {
         let state = Self::get_state(env);
         let balance = state.balances.get(owner);
+        let mut return_value = 0;
         if balance.is_some() {
-            return balance.expect("could not get balance");
+            return_value = balance.expect("could not get balance");
         }
-        0
+        return_value
     }
 
     /// Return the current state.

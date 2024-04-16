@@ -31,7 +31,10 @@ impl UnsafeExpect {
         let state = Self::get_state(env);
         // For similarity with the remediated-example, we will return the same value twice.
         (
-            state.balances.get(owner.clone()).expect("could not get balance"),
+            state
+                .balances
+                .get(owner.clone())
+                .expect("could not get balance"),
             state.balances.get(owner).expect("could not get balance"),
         )
     }

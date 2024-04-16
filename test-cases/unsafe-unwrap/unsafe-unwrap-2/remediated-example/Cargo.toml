@@ -1,5 +1,5 @@
 [package]
-name = "unsafe-unwrap-2-remediated"
+name = "unsafe-unwrap-remediated-2"
 version = "0.1.0"
 edition = "2021"
 

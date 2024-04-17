@@ -201,7 +201,7 @@ any of the variants is not used, the code could be simplified or it could imply
 a bug.
 
 We put this vulnerability under the [Validations and error handling category](#vulnerability-categories)
-with a Minor Severity.
+with a Minor severity.
 
 ###  Iterators-over-indexing
 

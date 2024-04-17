@@ -6,9 +6,8 @@ on:
       - "detectors/**"
       - "test-cases/**"
       - "scripts/**"
-    paths-ignore:
-      - "detectors/**/*.md"
-      - "test-cases/**/*.md"
+      - "!detectors/**/*.md"
+      - "!test-cases/**/*.md"
 
 env:
   CARGO_TERM_COLOR: always

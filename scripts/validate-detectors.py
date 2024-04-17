@@ -24,9 +24,10 @@ def is_rust_project(dir_path):
 def check_for_extra_files(directory):
     """Ensure there are no unexpected files in a given directory."""
     errors = []
+    ignore_files = {"Cargo.lock", "Cargo.toml"}
     for item in os.listdir(directory):
         item_path = os.path.join(directory, item)
-        if os.path.isfile(item_path):
+        if os.path.isfile(item_path) and item not in ignore_files:
             errors.append(f"Unexpected file found: {item_path}")
     return errors
 
@@ -70,22 +71,23 @@ def validate_example_structure(example_path, example_name):
 def validate_examples(detector_path, examples):
     """Validate the structure and naming convention of examples."""
     errors = []
+    ignore_dirs = {"target", ".cargo"}
     detector_name = os.path.basename(detector_path)
     example_suffixes = set()
 
     for example in examples:
         example_path = os.path.join(detector_path, example)
-        errors.extend(check_for_extra_files(example_path))
-        errors.extend(validate_naming_convention(example, detector_name))
-        suffix = example.split("-")[-1]
-        if suffix in example_suffixes:
-            errors.append(
-                f"Duplicate example number found in {detector_name}: {example}"
-            )
-        else:
-            example_suffixes.add(suffix)
-        errors.extend(validate_example_structure(example_path, example))
-
+        if os.path.basename(example_path) not in ignore_dirs:
+            errors.extend(check_for_extra_files(example_path))
+            errors.extend(validate_naming_convention(example, detector_name))
+            suffix = example.split("-")[-1]
+            if suffix in example_suffixes:
+                errors.append(
+                    f"Duplicate example number found in {detector_name}: {example}"
+                )
+            else:
+                example_suffixes.add(suffix)
+            errors.extend(validate_example_structure(example_path, example))
     return errors
 
 

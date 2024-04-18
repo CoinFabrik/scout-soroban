@@ -216,4 +216,9 @@ The assert! macro is used in Rust to ensure that a certain condition holds true 
 
 This vulnerability falls under the category [Validations and error handling](#vulnerability-categories) and has an Enhancement severity.
 
+### Unprotected mapping operation
+
+Modifying mappings with an arbitrary key given by the user could lead to unintented modifications of critical data, modifying data belonging to other users, causing denial of service, unathorized access, and other potential issues.
+
+This vulnerability falls under the [Validations and error handling category](#vulnerability-categories) and assigned it a Critical severity.
 

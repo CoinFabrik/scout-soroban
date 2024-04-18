@@ -8,13 +8,39 @@ version = "0.1.0"
 crate-type = ["cdylib"]
 
 [dependencies]
-soroban-sdk = { workspace = true }
+soroban-sdk = { version = "=20.0.0" }
 
 [dev_dependencies]
-soroban-sdk = { workspace = true, features = ["testutils"] }
+soroban-sdk = { version = "=20.0.0", features = ["testutils"] }
 
 [features]
 testutils = ["soroban-sdk/testutils"]
 
-[profile.release]
+[profile.release.package."*"]
+# codegen-units = 1
+# debug = 0
+# debug-assertions = false
+# lto = true
+# opt-level = "z"
 overflow-checks = false
+# panic = "abort"
+# strip = "symbols"
+
+[profile.release]
+# codegen-units = 1
+# debug = 0
+# debug-assertions = false
+# lto = true
+# opt-level = "z"
+overflow-checks = true
+# panic = "abort"
+# strip = "symbols"
+
+[profile.release-with-logs]
+debug-assertions = true
+inherits = "release"
+
+[workspace.metadata.dylint]
+libraries = [
+    { path = "/Users/josegarcia/Desktop/coinfabrik/scout-soroban/detectors/overflow-check/" },
+]

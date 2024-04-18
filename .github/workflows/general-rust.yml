@@ -6,6 +6,8 @@ on:
       - "detectors/**"
       - "test-cases/**"
       - "scripts/**"
+      - "!detectors/**/*.md"
+      - "!test-cases/**/*.md"
 
 env:
   CARGO_TERM_COLOR: always

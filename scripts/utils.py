@@ -1,4 +1,5 @@
 import json
+import os
 import subprocess
 from typing import Tuple, Optional
 
@@ -6,6 +7,12 @@ RED = "\033[91m"
 GREEN = "\033[92m"
 BLUE = "\033[94m"
 ENDC = "\033[0m"
+
+
+def is_rust_project(dir_path):
+    has_cargo_toml = os.path.isfile(os.path.join(dir_path, "Cargo.toml"))
+    has_lib_rs = os.path.isfile(os.path.join(dir_path, "src", "lib.rs"))
+    return has_cargo_toml and has_lib_rs
 
 
 def parse_json_from_string(console_output):

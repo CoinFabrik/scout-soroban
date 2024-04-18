@@ -200,11 +200,25 @@ definition of the `Result` type enum consists of two variants: Ok and Err. If
 any of the variants is not used, the code could be simplified or it could imply
 a bug.
 
-We put this vulnerability under the [Validations and error handling category](#vulnerability-categories)
-with a Minor Severity.
+We put this vulnerability under the [Validations and error handling category](#vulnerability-categories) with a Minor severity.
+
+###  Iterators-over-indexing
+
+Accessing a vector by index is slower than using an iterator. Also, if the index is out of bounds, it will panic. 
+
+This could lead to potential integer overflow vulnerabilities, which would trigger a panic in debug builds or wrap in release mode, jeopardizing the integrity and security of the smart contract. Additionally, failing to verify the existence of data in storage before operations could result in unexpected errors or runtime failures, compromising the reliability of the contract execution.
+
+This vulnerability falls under the [Best practices](#vulnerability-categories) category and has an Enhancement severity.
+
+### Assert violation
+
+The assert! macro is used in Rust to ensure that a certain condition holds true at a certain point in your code. The `assert!` macro can cause the contract to panic. Therefore, the detector suggests replacing `assert!` constructs with `Error` enum structures.
+
+This vulnerability falls under the category [Validations and error handling](#vulnerability-categories) and has an Enhancement severity.
 
 ### Unprotected mapping operation
 
 Modifying mappings with an arbitrary key given by the user could lead to unintented modifications of critical data, modifying data belonging to other users, causing denial of service, unathorized access, and other potential issues.
 
 This vulnerability falls under the [Validations and error handling category](#vulnerability-categories) and assigned it a Critical severity.
+

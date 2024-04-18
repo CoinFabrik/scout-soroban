@@ -3,7 +3,7 @@ import os
 import subprocess
 import time
 
-from utils import print_errors, print_results
+from utils import print_errors, print_results, is_rust_project
 
 GREEN = "\033[92m"
 ENDC = "\033[0m"
@@ -19,8 +19,8 @@ def run_udeps(directories):
             continue
 
         print(f"\n{GREEN}Checking unused dependencies in {directory}:{ENDC}")
-        for root, _, files in os.walk(directory):
-            if "Cargo.toml" in files:
+        for root, _, _ in os.walk(directory):
+            if is_rust_project(root):
                 start_time = time.time()
                 returncode, _, stderr = subprocess.run(
                     ["cargo", "udeps"], cwd=root, capture_output=True, text=True

@@ -5,29 +5,29 @@ extern crate rustc_hir;
 extern crate rustc_middle;
 extern crate rustc_span;
 
-use std::collections::HashSet;
+use std::collections::{HashMap, HashSet};
 
+use if_chain::if_chain;
 use rustc_hir::{
     intravisit::{walk_expr, FnKind, Visitor},
-    Body, Expr, ExprKind, FnDecl,
+    Body, Expr, ExprKind, FnDecl, HirId,
 };
 use rustc_lint::{LateContext, LateLintPass};
-use rustc_middle::{
-    mir::{BasicBlock, BasicBlocks, Const, Operand, TerminatorKind},
-    ty::TyKind,
-};
+use rustc_middle::ty::Ty;
 use rustc_span::{
     def_id::{DefId, LocalDefId},
     Span, Symbol,
 };
-use scout_audit_clippy_utils::diagnostics::span_lint;
+use scout_audit_clippy_utils::diagnostics::span_lint_and_help;
+use utils::{is_soroban_address, is_soroban_env, is_soroban_function, FunctionCallVisitor};
 
 const LINT_MESSAGE: &str = "This update_current_contract_wasm is called without access control";
 
-dylint_linting::declare_late_lint! {
+dylint_linting::impl_late_lint! {
     pub UNPROTECTED_UPDATE_CURRENT_CONTRACT_WASM,
     Warn,
     LINT_MESSAGE,
+    UnprotectedUpdateCurrentContractWasm::default(),
     {
         name: "Unprotected Update Current Contract Wasm",
         long_message: "If users are allowed to call update_current_contract_wasm, they can intentionally modify the contract behaviour, leading to the loss of all associated data/tokens and functionalities given by this contract or by others that depend on it. To prevent this, the function should be restricted to administrators or authorized users only.    ",
@@ -37,167 +37,139 @@ dylint_linting::declare_late_lint! {
     }
 }
 
+#[derive(Default)]
+struct UnprotectedUpdateCurrentContractWasm {
+    function_call_graph: HashMap<DefId, HashSet<DefId>>,
+    authorized_functions: HashSet<DefId>,
+    checked_functions: HashSet<String>,
+    unauthorized_update_wasm_calls: HashMap<DefId, Vec<Span>>,
+}
+
 impl<'tcx> LateLintPass<'tcx> for UnprotectedUpdateCurrentContractWasm {
+    fn check_crate_post(&mut self, cx: &LateContext<'tcx>) {
+        for (callee_def_id, storage_spans) in &self.unauthorized_update_wasm_calls {
+            let is_callee_soroban = is_soroban_function(cx, &self.checked_functions, callee_def_id);
+            let (is_called_by_soroban, is_soroban_caller_authed) = self
+                .function_call_graph
+                .iter()
+                .fold((false, true), |acc, (caller, callees)| {
+                    if callees.contains(callee_def_id) {
+                        let is_caller_soroban =
+                            is_soroban_function(cx, &self.checked_functions, caller);
+                        // Update if the caller is Soroban and check if it's authorized only if it's a Soroban caller
+                        (
+                            acc.0 || is_caller_soroban,
+                            acc.1
+                                && (!is_caller_soroban
+                                    || self.authorized_functions.contains(caller)),
+                        )
+                    } else {
+                        acc
+                    }
+                });
+
+            // Determine if a warning should be emitted
+            if is_callee_soroban || (is_called_by_soroban && !is_soroban_caller_authed) {
+                for span in storage_spans {
+                    span_lint_and_help(
+                        cx,
+                        UNPROTECTED_UPDATE_CURRENT_CONTRACT_WASM,
+                        *span,
+                        LINT_MESSAGE,
+                        None,
+                        "",
+                    );
+                }
+            }
+        }
+    }
     fn check_fn(
         &mut self,
         cx: &LateContext<'tcx>,
         _: FnKind<'tcx>,
         _: &'tcx FnDecl<'tcx>,
         body: &'tcx Body<'tcx>,
-        _: Span,
-        localdef: LocalDefId,
+        span: Span,
+        local_def_id: LocalDefId,
     ) {
-        struct UnprotectedUpdateFinder<'tcx, 'tcx_ref> {
-            cx: &'tcx_ref LateContext<'tcx>,
-            require_auth_def_id: Option<DefId>,
-            update_contract_def_id: Option<DefId>,
+        // Fetch the DefId of the current function for future reference on public functions implemented inside the soroban contract
+        let def_id = local_def_id.to_def_id();
+        self.checked_functions.insert(cx.tcx.def_path_str(def_id));
+
+        // If the function comes from a macro, we don't analyze it
+        if span.from_expansion() {
+            return;
         }
 
-        impl<'tcx> Visitor<'tcx> for UnprotectedUpdateFinder<'tcx, '_> {
-            fn visit_expr(&mut self, expr: &'tcx Expr<'_>) {
-                if let ExprKind::MethodCall(path, receiver, ..) = expr.kind {
-                    if path.ident.name == Symbol::intern("require_auth") {
-                        self.require_auth_def_id =
-                            self.cx.typeck_results().type_dependent_def_id(expr.hir_id);
-                    } else if path.ident.name == Symbol::intern("update_current_contract_wasm")
-                        && let ExprKind::MethodCall(path2, ..) = receiver.kind
-                        && path2.ident.name == Symbol::intern("deployer")
-                    {
-                        self.update_contract_def_id =
-                            self.cx.typeck_results().type_dependent_def_id(expr.hir_id);
-                    }
-                }
+        // First visitor: build the function call graph
+        let mut function_call_visitor =
+            FunctionCallVisitor::new(cx, def_id, &mut self.function_call_graph);
+        function_call_visitor.visit_body(body);
 
-                walk_expr(self, expr);
-            }
-        }
-
-        let mut uuf_storage = UnprotectedUpdateFinder {
+        // Second visitor: check for authed functions and calls to update wasm
+        let mut unprotected_wasm_visitor = UnprotectedUpdateVisitor {
             cx,
-            require_auth_def_id: None,
-            update_contract_def_id: None,
+            auth_found: false,
+            update_contract_wasm_spans: Vec::new(),
         };
+        unprotected_wasm_visitor.visit_expr(body.value);
 
-        walk_expr(&mut uuf_storage, body.value);
+        // If the function calls to update the wasm without authorization, we store the spans.
+        // If the function is authorized, we store it.
+        if !unprotected_wasm_visitor
+            .update_contract_wasm_spans
+            .is_empty()
+            && !unprotected_wasm_visitor.auth_found
+        {
+            self.unauthorized_update_wasm_calls
+                .insert(def_id, unprotected_wasm_visitor.update_contract_wasm_spans);
+        } else if unprotected_wasm_visitor.auth_found {
+            self.authorized_functions.insert(def_id);
+        }
+    }
+}
 
-        let mir_body = cx.tcx.optimized_mir(localdef);
+struct UnprotectedUpdateVisitor<'tcx, 'a> {
+    cx: &'a LateContext<'tcx>,
+    auth_found: bool,
+    update_contract_wasm_spans: Vec<Span>,
+}
 
-        let spans = navigate_trough_basicblocks(
-            &mir_body.basic_blocks,
-            BasicBlock::from_u32(0),
-            false,
-            &uuf_storage,
-            &mut HashSet::new(),
-        );
+impl<'tcx> UnprotectedUpdateVisitor<'tcx, '_> {
+    fn get_node_type(&self, hir_id: HirId) -> Ty<'tcx> {
+        self.cx.typeck_results().node_type(hir_id)
+    }
+}
 
-        for span in spans {
-            span_lint(
-                cx,
-                UNPROTECTED_UPDATE_CURRENT_CONTRACT_WASM,
-                span,
-                LINT_MESSAGE,
-            );
+impl<'tcx> Visitor<'tcx> for UnprotectedUpdateVisitor<'tcx, '_> {
+    fn visit_expr(&mut self, expr: &'tcx Expr<'_>) {
+        if self.auth_found {
+            return;
         }
 
-        fn navigate_trough_basicblocks<'tcx>(
-            bbs: &'tcx BasicBlocks<'tcx>,
-            bb: BasicBlock,
-            auth_checked: bool,
-            uuf_storage: &UnprotectedUpdateFinder,
-            visited: &mut HashSet<BasicBlock>,
-        ) -> Vec<Span> {
-            if !visited.insert(bb) || bbs[bb].terminator.is_none() {
-                return Vec::new();
+        if let ExprKind::MethodCall(path_segment, receiver, ..) = expr.kind {
+            let receiver_type = self.get_node_type(receiver.hir_id);
+
+            // Check if the method call is require_auth() on an address
+            if is_soroban_address(self.cx, receiver_type)
+                && path_segment.ident.name == Symbol::intern("require_auth")
+            {
+                self.auth_found = true;
             }
-            let mut ret_vec: Vec<Span> = Vec::<Span>::new();
-            let mut checked = auth_checked;
-            match &bbs[bb].terminator().kind {
-                TerminatorKind::Call {
-                    func,
-                    target,
-                    fn_span,
-                    ..
-                } => {
-                    if let Operand::Constant(fn_const) = func
-                        && let Const::Val(_const, ty) = fn_const.const_
-                        && let TyKind::FnDef(def, _) = ty.kind()
-                    {
-                        if uuf_storage.require_auth_def_id.is_some_and(|f| f == *def) {
-                            checked = true;
-                        } else if uuf_storage
-                            .update_contract_def_id
-                            .is_some_and(|f| f == *def)
-                            && !checked
-                        {
-                            ret_vec.push(*fn_span);
-                        }
-                    }
-                    if let Some(utarget) = target {
-                        ret_vec.append(&mut navigate_trough_basicblocks(
-                            bbs,
-                            *utarget,
-                            checked,
-                            uuf_storage,
-                            visited,
-                        ));
-                    }
+
+            if_chain! {
+                if path_segment.ident.name == Symbol::intern("update_current_contract_wasm");
+                if let ExprKind::MethodCall(deployer_path_segment, receiver, ..) = receiver.kind;
+                if deployer_path_segment.ident.name == Symbol::intern("deployer");
+                let receiver_type = self.get_node_type(receiver.hir_id);
+                if is_soroban_env(self.cx, receiver_type);
+                then {
+                    // Found `env.deployer().update_current_contract_wasm()`
+                    self.update_contract_wasm_spans.push(expr.span);
                 }
-                TerminatorKind::SwitchInt { targets, .. } => {
-                    for target in targets.all_targets() {
-                        ret_vec.append(&mut navigate_trough_basicblocks(
-                            bbs,
-                            *target,
-                            checked,
-                            uuf_storage,
-                            visited,
-                        ));
-                    }
-                }
-                TerminatorKind::Assert { target, .. }
-                | TerminatorKind::Goto { target, .. }
-                | TerminatorKind::Drop { target, .. } => {
-                    ret_vec.append(&mut navigate_trough_basicblocks(
-                        bbs,
-                        *target,
-                        checked,
-                        uuf_storage,
-                        visited,
-                    ));
-                }
-                TerminatorKind::Yield { resume, .. } => {
-                    ret_vec.append(&mut navigate_trough_basicblocks(
-                        bbs,
-                        *resume,
-                        checked,
-                        uuf_storage,
-                        visited,
-                    ));
-                }
-                TerminatorKind::FalseEdge { real_target, .. }
-                | TerminatorKind::FalseUnwind { real_target, .. } => {
-                    ret_vec.append(&mut navigate_trough_basicblocks(
-                        bbs,
-                        *real_target,
-                        checked,
-                        uuf_storage,
-                        visited,
-                    ));
-                }
-                TerminatorKind::InlineAsm {
-                    destination: Some(udestination),
-                    ..
-                } => {
-                    ret_vec.append(&mut navigate_trough_basicblocks(
-                        bbs,
-                        *udestination,
-                        checked,
-                        uuf_storage,
-                        visited,
-                    ));
-                }
-                _ => {}
             }
-            ret_vec
         }
+
+        walk_expr(self, expr);
     }
 }

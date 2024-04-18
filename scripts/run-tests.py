@@ -2,7 +2,13 @@ import os
 import argparse
 import time
 
-from utils import parse_json_from_string, print_errors, print_results, run_subprocess
+from utils import (
+    parse_json_from_string,
+    print_errors,
+    print_results,
+    run_subprocess,
+    is_rust_project,
+)
 
 RED = "\033[91m"
 GREEN = "\033[92m"
@@ -17,8 +23,8 @@ def run_tests(detector):
         print(f"{RED}The specified directory does not exist.{ENDC}")
         return errors
 
-    for root, _, files in os.walk(directory):
-        if "Cargo.toml" in files:
+    for root, _, _ in os.walk(directory):
+        if is_rust_project(root):
             if run_unit_tests(root):
                 errors.append(root)
             if run_integration_tests(detector, root):

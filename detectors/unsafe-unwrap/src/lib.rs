@@ -224,18 +224,29 @@ impl UnsafeUnwrapVisitor<'_, '_> {
         true // If the stack is emptied without finding a non-literal, all elements are literals.
     }
 
-    fn is_local_method_call_unsafe(&self, path_segment: &PathSegment, receiver: &Expr) -> bool {
+    fn is_method_call_unsafe(
+        &self,
+        path_segment: &PathSegment,
+        receiver: &Expr,
+        args: &[Expr],
+    ) -> bool {
         if path_segment.ident.name == sym::unwrap {
             return self
                 .get_unwrap_info(receiver)
                 .map_or(true, |id| !self.checked_exprs.contains(&id));
         }
 
-        if let ExprKind::MethodCall(path_segment, receiver, ..) = &receiver.kind {
-            return self.is_local_method_call_unsafe(path_segment, receiver);
-        }
+        args.iter().any(|arg| self.contains_unsafe_method_call(arg))
+            || self.contains_unsafe_method_call(receiver)
+    }
 
-        false
+    fn contains_unsafe_method_call(&self, expr: &Expr) -> bool {
+        match &expr.kind {
+            ExprKind::MethodCall(path_segment, receiver, args, _) => {
+                self.is_method_call_unsafe(path_segment, receiver, args)
+            }
+            _ => false,
+        }
     }
 }
 
@@ -243,8 +254,8 @@ impl<'a, 'tcx> Visitor<'tcx> for UnsafeUnwrapVisitor<'a, 'tcx> {
     fn visit_local(&mut self, local: &'tcx Local<'tcx>) {
         if let Some(init) = local.init {
             match init.kind {
-                ExprKind::MethodCall(path_segment, receiver, ..) => {
-                    if self.is_local_method_call_unsafe(path_segment, receiver) {
+                ExprKind::MethodCall(path_segment, receiver, args, _) => {
+                    if self.is_method_call_unsafe(path_segment, receiver, args) {
                         span_lint_and_help(
                             self.cx,
                             UNSAFE_UNWRAP,

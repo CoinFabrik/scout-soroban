@@ -1,7 +1,7 @@
 [package]
+edition = "2021"
 name = "unprotected-update-current-contract-wasm"
 version = "0.1.0"
-edition = "2021"
 
 [lib]
 crate-type = ["cdylib"]
@@ -9,8 +9,8 @@ crate-type = ["cdylib"]
 [dependencies]
 dylint_linting = { workspace = true }
 if_chain = { workspace = true }
-
 scout-audit-clippy-utils = { workspace = true }
+utils = { path = "../../utils" }
 
 [package.metadata.rust-analyzer]
 rustc_private = true

@@ -36,7 +36,7 @@ mod tests {
     use crate::UnsafeUnwrap;
 
     #[test]
-    fn test_unwrap_or_zero() {
+    fn test_unwrap_zero() {
         // Given
         let test_value = 0;
 
@@ -49,7 +49,7 @@ mod tests {
     }
 
     #[test]
-    fn test_unwrap_or_non_zero() {
+    fn test_unwrap_non_zero() {
         // Given
         let test_value = 100;
 

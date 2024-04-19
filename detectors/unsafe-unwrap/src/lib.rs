@@ -7,12 +7,11 @@ extern crate rustc_span;
 use std::{collections::HashSet, hash::Hash};
 
 use if_chain::if_chain;
-use rustc_hir::BinOpKind;
 use rustc_hir::{
     def::Res,
     def_id::LocalDefId,
     intravisit::{walk_expr, FnKind, Visitor},
-    Body, Expr, ExprKind, FnDecl, HirId, Local, QPath, UnOp,
+    BinOpKind, Body, Expr, ExprKind, FnDecl, HirId, Local, PathSegment, QPath, UnOp,
 };
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_span::{sym, Span, Symbol};
@@ -224,22 +223,64 @@ impl UnsafeUnwrapVisitor<'_, '_> {
 
         true // If the stack is emptied without finding a non-literal, all elements are literals.
     }
+
+    fn is_method_call_unsafe(
+        &self,
+        path_segment: &PathSegment,
+        receiver: &Expr,
+        args: &[Expr],
+    ) -> bool {
+        if path_segment.ident.name == sym::unwrap {
+            return self
+                .get_unwrap_info(receiver)
+                .map_or(true, |id| !self.checked_exprs.contains(&id));
+        }
+
+        args.iter().any(|arg| self.contains_unsafe_method_call(arg))
+            || self.contains_unsafe_method_call(receiver)
+    }
+
+    fn contains_unsafe_method_call(&self, expr: &Expr) -> bool {
+        match &expr.kind {
+            ExprKind::MethodCall(path_segment, receiver, args, _) => {
+                self.is_method_call_unsafe(path_segment, receiver, args)
+            }
+            _ => false,
+        }
+    }
 }
 
 impl<'a, 'tcx> Visitor<'tcx> for UnsafeUnwrapVisitor<'a, 'tcx> {
     fn visit_local(&mut self, local: &'tcx Local<'tcx>) {
-        if_chain! {
-            if let Some(init) = local.init;
-            if let ExprKind::Call(func, args) = init.kind;
-            if let ExprKind::Path(QPath::Resolved(_, path)) = func.kind;
-            then {
-                let is_some_or_ok = path.segments.iter().any(|segment|
-                    matches!(segment.ident.name, sym::Some | sym::Ok)
-                );
-                let all_literals = args.iter().all(|arg| self.is_literal_or_composed_of_literals(arg));
-                if is_some_or_ok && all_literals {
-                    self.checked_exprs.insert(local.pat.hir_id);
+        if let Some(init) = local.init {
+            match init.kind {
+                ExprKind::MethodCall(path_segment, receiver, args, _) => {
+                    if self.is_method_call_unsafe(path_segment, receiver, args) {
+                        span_lint_and_help(
+                            self.cx,
+                            UNSAFE_UNWRAP,
+                            local.span,
+                            LINT_MESSAGE,
+                            None,
+                            "Please, use a custom error instead of `unwrap`",
+                        );
+                    }
                 }
+                ExprKind::Call(func, args) => {
+                    if let ExprKind::Path(QPath::Resolved(_, path)) = func.kind {
+                        let is_some_or_ok = path
+                            .segments
+                            .iter()
+                            .any(|segment| matches!(segment.ident.name, sym::Some | sym::Ok));
+                        let all_literals = args
+                            .iter()
+                            .all(|arg| self.is_literal_or_composed_of_literals(arg));
+                        if is_some_or_ok && all_literals {
+                            self.checked_exprs.insert(local.pat.hir_id);
+                        }
+                    }
+                }
+                _ => {}
             }
         }
     }

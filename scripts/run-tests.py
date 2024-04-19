@@ -34,9 +34,7 @@ def run_tests(detector):
 
 def run_unit_tests(root):
     start_time = time.time()
-    returncode, stdout, _ = run_subprocess(
-        ["cargo", "test", "--all-features", "--all"], root
-    )
+    returncode, stdout, _ = run_subprocess(["cargo", "test", "--all-features"], root)
     print_results(
         returncode,
         stdout,

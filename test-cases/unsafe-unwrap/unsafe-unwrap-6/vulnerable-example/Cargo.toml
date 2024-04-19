@@ -1,6 +1,6 @@
 [package]
 edition = "2021"
-name = "unsafe-expect-vulnerable-3"
+name = "unsafe-unwrap-vulnerable-6"
 version = "0.1.0"
 
 [lib]

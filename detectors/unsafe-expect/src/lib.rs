@@ -195,7 +195,6 @@ impl UnsafeExpectVisitor<'_, '_> {
     fn handle_if_expressions(&mut self) {
         self.conditional_checker.iter().for_each(|checker| {
             if checker.check_type.should_halt_execution() {
-                println!("Halt: {:?}", checker.checked_expr_hir_id);
                 self.checked_exprs.insert(checker.checked_expr_hir_id);
             }
         });
@@ -231,7 +230,7 @@ impl UnsafeExpectVisitor<'_, '_> {
         receiver: &Expr,
         args: &[Expr],
     ) -> bool {
-        if path_segment.ident.name == sym::unwrap {
+        if path_segment.ident.name == sym::expect {
             return self
                 .get_expect_info(receiver)
                 .map_or(true, |id| !self.checked_exprs.contains(&id));
@@ -290,10 +289,7 @@ impl<'a, 'tcx> Visitor<'tcx> for UnsafeExpectVisitor<'a, 'tcx> {
         // If we are inside an `if` or `if let` expression, we analyze its body
         if !self.conditional_checker.is_empty() {
             match &expr.kind {
-                ExprKind::Ret(..) => {
-                    println!("Ret");
-                    self.handle_if_expressions();
-                }
+                ExprKind::Ret(..) => self.handle_if_expressions(),
                 ExprKind::Call(func, _) if self.is_panic_inducing_call(func) => {
                     self.handle_if_expressions()
                 }

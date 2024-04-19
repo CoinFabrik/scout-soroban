@@ -4,6 +4,7 @@
 extern crate rustc_hir;
 extern crate rustc_span;
 
+use std::thread::current;
 use std::{collections::HashSet, hash::Hash};
 
 use if_chain::if_chain;

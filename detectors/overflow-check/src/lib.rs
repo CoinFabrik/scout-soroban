@@ -3,12 +3,18 @@
 extern crate rustc_ast;
 extern crate rustc_span;
 
-use std::{env, fs, path::Path};
+use std::{
+    env, fs,
+    path::{Path, PathBuf},
+    process::Command,
+    str::from_utf8,
+};
 
 use rustc_ast::Crate;
-use rustc_lint::{EarlyContext, EarlyLintPass};
+use rustc_lint::{EarlyContext, EarlyLintPass, LintContext};
 use rustc_span::DUMMY_SP;
 use scout_audit_clippy_utils::diagnostics::span_lint_and_help;
+use toml::Value;
 
 const LINT_MESSAGE: &str = "Use `overflow-checks = true` in Cargo.toml profile";
 
@@ -32,55 +38,94 @@ dylint_linting::declare_early_lint! {
     }
 }
 
+impl OverflowCheck {
+    fn workspace_dir(&self) -> Result<PathBuf, String> {
+        // Locate the project workspace or package root
+        let output = Command::new(env!("CARGO"))
+            .arg("locate-project")
+            .arg("--workspace")
+            .arg("--message-format=plain")
+            .output()
+            .map_err(|e| format!("Failed to execute cargo command: {}", e))?;
+
+        if !output.status.success() {
+            return Err(format!(
+                "Cargo command failed with exit code: {}",
+                output.status
+            ));
+        }
+
+        // Convert the output to a string and parse it as a path
+        let path_str = from_utf8(&output.stdout)
+            .map_err(|_| "Output from cargo is not valid UTF-8".to_string())?
+            .trim();
+
+        // Find the parent directory, which should be the workspace directory
+        let cargo_path = Path::new(path_str);
+        cargo_path
+            .parent()
+            .ok_or_else(|| "Failed to find parent directory of the project".to_string())
+            .map(|path| path.to_path_buf())
+    }
+}
+
 impl EarlyLintPass for OverflowCheck {
     fn check_crate(&mut self, cx: &EarlyContext<'_>, _: &Crate) {
-        let manifest_dir = env::var("CARGO_MANIFEST_DIR").unwrap();
+        // Attempt to get the workspace directory
+        let workspace_dir = match self.workspace_dir() {
+            Ok(dir) => dir,
+            Err(err) => {
+                cx.sess()
+                    .struct_warn(format!("Failed to locate workspace directory: {}", err))
+                    .emit();
+                return;
+            }
+        };
 
-        let cargo_toml_path = Path::new(&manifest_dir).join("Cargo.toml");
+        // Attempt to read Cargo.toml
+        let cargo_toml_path = workspace_dir.join("Cargo.toml");
+        let contents = match fs::read_to_string(&cargo_toml_path) {
+            Ok(content) => content,
+            Err(e) => {
+                cx.sess()
+                    .struct_warn(format!(
+                        "Failed to read Cargo.toml from {:?}: {}",
+                        cargo_toml_path, e
+                    ))
+                    .emit();
+                return;
+            }
+        };
 
-        let cargo_toml = fs::read_to_string(cargo_toml_path).expect("Unable to read Cargo.toml");
+        // Attempt to parse Cargo.toml
+        let toml = match contents.parse::<Value>() {
+            Ok(parsed) => parsed,
+            Err(e) => {
+                cx.sess()
+                    .struct_warn(format!("Failed to parse Cargo.toml: {}", e))
+                    .emit();
+                return;
+            }
+        };
 
-        let toml: toml::Value = toml::from_str(&cargo_toml).unwrap();
+        // Check if the profile.release.overflow-checks is enabled
+        let overflow_checks = toml
+            .get("profile")
+            .and_then(|p| p.get("release"))
+            .and_then(|r| r.get("overflow-checks"));
 
-        if let Some(profiles) = toml.get("profile").and_then(|p| p.as_table()) {
-            for profile in profiles {
-                let profile_name = profile.0;
-                let mut table = profile.1.as_table();
-                let mut temp_table;
-                if table.is_some() && table.unwrap().contains_key("inherits") {
-                    let parent_name = table.unwrap().get("inherits").unwrap().as_str().unwrap();
-                    if profiles.contains_key(parent_name) {
-                        let parent_table = profiles.get(parent_name).unwrap().as_table().unwrap();
-                        temp_table = parent_table.clone();
-                        temp_table.extend(table.unwrap().clone().into_iter());
-                        table = Some(&temp_table);
-                    }
-                }
-                if table.is_some() && table.unwrap().contains_key("overflow-checks") {
-                    let has_overflow_check = table
-                        .unwrap()
-                        .get("overflow-checks")
-                        .is_some_and(|f| f.as_bool().unwrap_or(false));
-                    if !has_overflow_check {
-                        span_lint_and_help(
-                            cx,
-                            OVERFLOW_CHECK,
-                            DUMMY_SP,
-                            LINT_MESSAGE,
-                            None,
-                            &format!("Enable overflow-checks on profile.{profile_name}"),
-                        );
-                    }
-                } else {
-                    span_lint_and_help(
-                        cx,
-                        OVERFLOW_CHECK,
-                        DUMMY_SP,
-                        LINT_MESSAGE,
-                        None,
-                        &format!("Enable overflow-checks on profile.{profile_name}"),
-                    );
-                }
+        // Check if overflow-checks is enabled
+        match overflow_checks {
+            Some(Value::Boolean(true)) => (), // All good
+            Some(_) | None => {
+                span_lint_and_help(
+                    cx,
+                    OVERFLOW_CHECK,
+                    DUMMY_SP,
+                    LINT_MESSAGE,
+                    None,
+                    "Enable overflow-checks on the release profile",
+                );
             }
         }
     }

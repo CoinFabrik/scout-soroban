@@ -1,6 +1,6 @@
 #![no_std]
 
-use soroban_sdk::{ String, contracterror, contract, contracttype, contractimpl, Symbol, symbol_short, Env, Address, Map};
+use soroban_sdk::{String, Env, contracterror, contract, contracttype, contractimpl, Address};
 
 
 #[contracterror]
@@ -55,7 +55,7 @@ pub struct UnexpectedRevert;
 #[contractimpl]
 impl UnexpectedRevert {
 
-    pub fn set_candidate(env: Env, candidate: Address, id: u32, votes: u64) {
+    pub fn set_candidate(env: Env, candidate: Address, votes: u64) {
         let cand = Candidate {
             votes
         }; 
@@ -93,7 +93,7 @@ impl UnexpectedRevert {
         if Self::vote_ended(env.clone()) {
             return Err(URError::VoteEnded);
         }
-        if Self::already_voted(env.clone(), caller.clone()) {
+        if Self::account_has_voted(env.clone(), caller.clone()) {
             return Err(URError::AccountAlreadyVoted); 
         } else {
             env.storage().instance().set(&DataKey::Candidate(candidate.clone()), &Candidate{votes: 0});
@@ -106,7 +106,7 @@ impl UnexpectedRevert {
         
     }
 
-    pub fn already_voted(env: Env, caller: Address) -> bool {
+    pub fn account_has_voted(env: Env, caller: Address) -> bool {
         let already_voted: AlreadyVoted = env.storage().instance().get(&DataKey::AlreadyVoted(caller)).unwrap_or_default();
         already_voted.voted
     }
@@ -140,18 +140,14 @@ impl UnexpectedRevert {
         state.total_candidates
     }
 
-    pub fn get_candidate(env: Env, index: u32) -> Result<Address, URError> {
-        let state = Self::get_state(env);
-        match state.candidates.get(index) {
-            Some(candidate) => Ok(candidate), 
-            None => Err(URError::CandidateDoesntExist),
-        }
+    pub fn get_candidate(env: Env, addr: Address) -> Result<Candidate, URError> {
+        let result: Option<Candidate> = env.storage().instance().get(&DataKey::Candidate(addr));
+        match result {
+            Some(cand) => Ok(cand), 
+            None => Err(URError::CandidateDoesntExist)
+        } 
     }
 
-    pub fn account_has_voted(env: Env, account: Address) -> bool {
-        let state = Self::get_state(env);
-        state.already_voted.get(account).unwrap_or(false)
-    }
 
     pub fn vote(env: Env, candidate: Address, caller: Address) -> Result<(), URError> {
         caller.require_auth();
@@ -160,18 +156,14 @@ impl UnexpectedRevert {
             return Err(URError::VoteEnded);
         }
 
-        if state.already_voted.contains_key(caller.clone()) {
+        if Self::account_has_voted(env.clone(), caller.clone()){
             Err(URError::AccountAlreadyVoted)
         } else {
-            state.already_voted.set(caller, true);
-            let votes = state
-                .votes
-                .get(candidate.clone())
-                .ok_or(URError::CandidateDoesntExist)?
+            env.storage().instance().set(&DataKey::AlreadyVoted(caller.clone()), &AlreadyVoted{voted: true});
+            let votes = Self::get_candidate(env.clone(), candidate.clone())?.votes
                 .checked_add(1)
                 .ok_or(URError::Overflow)?;
-            state.votes.set(candidate.clone(), votes);
-            state.total_votes.checked_add(1).ok_or(URError::Overflow)?;
+            env.storage().instance().set(&DataKey::Candidate(candidate.clone()), &Candidate{votes});
             if state.candidate_votes < votes {
                 state.candidate_votes = votes;
                 state.most_voted_candidate = candidate;
@@ -190,19 +182,4 @@ impl UnexpectedRevert {
     }
  
 
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn print(){
-        let env = Env::default(); 
-        let contract = UnexpectedRevertClient::new(&env, &env.register_contract(None, UnexpectedRevert{}));
-        let candidate_addr = Address::generate(&env);
-        //let result = contract.retrieve_candidate(&candidate_addr); 
-        assert_eq!(contract.try_retrieve_candidate(&candidate_addr), Err(Ok(URError::CandidateDoesntExist))); 
-    
-    }
 }

@@ -30,8 +30,3 @@ lto = true
 [profile.release-with-logs]
 inherits = "release"
 debug-assertions = true
-
-[workspace.metadata.dylint]
-libraries = [
-    { path="/home/sofiazcoaga/scout-soroban/detectors/dos-unexpected-revert-with-vector" },
-]

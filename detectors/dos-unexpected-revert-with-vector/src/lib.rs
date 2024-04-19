@@ -10,7 +10,6 @@ use std::collections::HashSet;
 
 use rustc_hir::intravisit::walk_expr;
 use rustc_hir::intravisit::Visitor;
-use rustc_hir::QPath;
 use rustc_hir::{Expr, ExprKind};
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::mir::Const;
@@ -20,40 +19,22 @@ use rustc_middle::mir::{
 use rustc_middle::ty::{Ty, TyKind};
 use rustc_span::def_id::DefId;
 use rustc_span::Span;
-use scout_audit_internal::{DetectorImpl, InkDetector as Detector};
+use scout_audit_clippy_utils::diagnostics::span_lint;
+
+const LINT_MESSAGE: &str = "This vector operation is called without considering storage limitations";
 
 dylint_linting::impl_late_lint! {
-    /// ### What it does
-    /// Checks for array pushes without access control.
-    /// ### Why is this bad?
-    /// Arrays have a maximum size according to the storage cell. If the array is full, the push will revert. This can be used to prevent the execution of a function.
-    /// ### Known problems
-    /// If the owner validation is performed in an auxiliary function, the warning will be shown, resulting in a false positive.
-    /// ### Example
-    /// ```rust
-    /// if self.votes.contains(candidate) {
-    ///     Err(Errors::CandidateAlreadyAdded)
-    /// } else {
-    ///     self.candidates.push(candidate);
-    ///     self.votes.insert(candidate, 0);
-    ///     Ok(())
-    /// }
-    /// ```
-    /// Use instead:
-    /// ```rust
-    /// if self.votes.contains(candidate) {
-    ///     Err(Errors::CandidateAlreadyAdded)
-    /// } else {
-    ///     self.candidates.set(self.total_candidates, candidate);
-    ///     self.total_candidates += 1;
-    ///     self.votes.set(candidate, 0);
-    ///     Ok(())
-    /// }
-    /// ```
     pub UNEXPECTED_REVERT_WARN,
     Warn,
     "",
-    UnexpectedRevertWarn::default()
+    UnexpectedRevertWarn::default(),
+    {
+        name: "Unexpected Revert Inserting to Storage",
+        long_message: " It occurs by preventing transactions by other users from being successfully executed forcing the blockchain state to revert to its original state.",
+        severity: "Medium",
+        help: "https://github.com/CoinFabrik/scout-soroban/tree/main/detectors/dos-unexpected-revert-with-vector",
+        vulnerability_class: "Denial of Service",
+    }
 }
 
 #[derive(Default)]
@@ -81,55 +62,14 @@ impl<'tcx> LateLintPass<'tcx> for UnexpectedRevertWarn {
         }
         impl<'tcx> Visitor<'tcx> for UnprotectedVectorFinder<'tcx, '_> {
             fn visit_expr(&mut self, expr: &'tcx Expr<'_>) {
-                if let ExprKind::MethodCall(path, receiver, ..) = expr.kind {
+                if let ExprKind::MethodCall(path, _receiver, ..) = expr.kind {
                     let defid = self.cx.typeck_results().type_dependent_def_id(expr.hir_id);
                     let ty = Ty::new_foreign(self.cx.tcx, defid.unwrap());
                     if ty.to_string().contains("soroban_sdk::Vec") {
                         if path.ident.name.to_string() == "push_back" || path.ident.name.to_string() == "push_front" {
                             self.push_def_id = defid;
                         }
-                    } else if let ExprKind::MethodCall(rec_path, receiver2, ..) = receiver.kind
-                        && rec_path.ident.name.to_string() == "env"
-                        && let ExprKind::Path(rec2_qpath) = &receiver2.kind
-                        && let QPath::Resolved(qualifier, rec2_path) = rec2_qpath
-                        && rec2_path.segments.first().map_or(false, |seg| {
-                            seg.ident.to_string() == "self" && qualifier.is_none()
-                        })
-                        && path.ident.name.to_string() == "caller"
-                    {
-                        if self
-                            .cx
-                            .typeck_results()
-                            .type_dependent_def_id(expr.hir_id)
-                            .is_some()
-                        {
-                            self.callers_def_id.insert(
-                                self.cx
-                                    .typeck_results()
-                                    .type_dependent_def_id(expr.hir_id)
-                                    .unwrap(),
-                            );
-                        }
-                    } else if let ExprKind::Call(receiver2, ..) = receiver.kind
-                        && let ExprKind::Path(rec2_qpath) = &receiver2.kind
-                        && let QPath::TypeRelative(ty2, rec2_path) = rec2_qpath
-                        && rec2_path.ident.name.to_string() == "env"
-                        && let rustc_hir::TyKind::Path(rec3_qpath) = &ty2.kind
-                        && let QPath::Resolved(_, rec3_path) = rec3_qpath
-                        && rec3_path.segments[0].ident.to_string() == "Self"
-                        && self
-                            .cx
-                            .typeck_results()
-                            .type_dependent_def_id(expr.hir_id)
-                            .is_some()
-                    {
-                        self.callers_def_id.insert(
-                            self.cx
-                                .typeck_results()
-                                .type_dependent_def_id(expr.hir_id)
-                                .unwrap(),
-                        );
-                    }
+                    } 
                 }
                 walk_expr(self, expr);
             }
@@ -208,10 +148,11 @@ impl<'tcx> LateLintPass<'tcx> for UnexpectedRevertWarn {
                 &mut HashSet::<BasicBlock>::default(),
             );
             for place in unchecked_places {
-                Detector::DosUnexpectedRevertWithVector.span_lint(
+                span_lint(
                     cx,
                     UNEXPECTED_REVERT_WARN,
                     place.1,
+                    LINT_MESSAGE
                 );
             }
         }

@@ -11,38 +11,70 @@ jobs:
   test-deploy:
     name: Test deployment
     runs-on: ubuntu-latest
+    outputs:
+      build-success: ${{ steps.build.outputs.success }}
     defaults:
       run:
         working-directory: ./docs
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-      - uses: actions/setup-node@v3
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
         with:
-          node-version: 18
+          node-version: 20
 
-      - uses: pnpm/action-setup@v2.2.4
+      - uses: pnpm/action-setup@v3
         name: Install pnpm
-        id: pnpm-install
         with:
-          version: 8
+          version: 9
           run_install: false
 
       - name: Get pnpm store directory
         id: pnpm-cache
-        run: |
-          echo "pnpm_cache_dir=$(pnpm store path)" >> $GITHUB_OUTPUT
+        run: echo "pnpm_cache_dir=$(pnpm store path)" >> $GITHUB_OUTPUT
 
-      - uses: actions/cache@v3
+      - uses: actions/cache@v4
         name: Setup pnpm cache
         with:
           path: ${{ steps.pnpm-cache.outputs.pnpm_cache_dir }}
           key: ${{ runner.os }}-pnpm-store-${{ hashFiles('./docs/pnpm-lock.yaml') }}
-          restore-keys: |
-            ${{ runner.os }}-pnpm-store-
+          restore-keys: ${{ runner.os }}-pnpm-store-
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
       - name: Test build website
-        run: pnpm build
+        id: build
+        run: |
+          if pnpm build; then
+            echo "build-success=true" >> $GITHUB_ENV
+          fi
+
+  comment-on-pr:
+    name: Comment on PR
+    runs-on: ubuntu-latest
+    if: ${{ always() }}
+    needs: [test-deploy]
+    steps:
+      - name: Find Comment
+        id: find_comment
+        uses: peter-evans/find-comment@v3
+        with:
+          issue-number: ${{ github.event.pull_request.number }}
+          body-includes: "📘 **Documentation Test Summary** 📘"
+
+      - name: Create or Update PR Comment
+        uses: peter-evans/create-or-update-comment@v4.0.0
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          comment-id: ${{ steps.find_comment.outputs.comment-id }}
+          edit-mode: replace
+          issue-number: ${{ github.event.pull_request.number }}
+          body: |
+            📘 **Documentation Test Summary** 📘
+
+            ${{ (needs.test-deploy.outputs.build-success == 'true' && 'The test build of the documentation has completed successfully. 🚀\n') }}
+            ${{ (needs.test-deploy.outputs.build-success == 'true' && 'The changes will be published upon merge to the main branch') }}
+            ${{ (needs.test-deploy.outputs.build-success != 'true' && 'There was an issue with the test build of the documentation. Please check the logs for more details. 🚨') }}

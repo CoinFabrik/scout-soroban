@@ -12,7 +12,7 @@ jobs:
     name: Test deployment
     runs-on: ubuntu-latest
     outputs:
-      build-success: ${{ steps.build.outputs.success }}
+      status: ${{ job.status }}
     defaults:
       run:
         working-directory: ./docs
@@ -47,10 +47,7 @@ jobs:
 
       - name: Test build website
         id: build
-        run: |
-          if pnpm build; then
-            echo "build-success=true" >> $GITHUB_ENV
-          fi
+        run: pnpm build
 
   comment-on-pr:
     name: Comment on PR
@@ -75,6 +72,6 @@ jobs:
           body: |
             📘 **Documentation Test Summary** 📘
 
-            ${{ (needs.test-deploy.outputs.build-success == 'true' && 'The test build of the documentation has completed successfully. 🚀\n') }}
-            ${{ (needs.test-deploy.outputs.build-success == 'true' && 'The changes will be published upon merge to the main branch') }}
-            ${{ (needs.test-deploy.outputs.build-success != 'true' && 'There was an issue with the test build of the documentation. Please check the logs for more details. 🚨') }}
+            ${{ (needs.test-deploy.outputs.status == 'success' && '✅ The test build of the documentation has completed successfully!' || '') }}
+            ${{ (needs.test-deploy.outputs.status == 'success' && '📝 The changes will be published upon merge to the main branch.' || '') }}
+            ${{ (needs.test-deploy.outputs.status != 'success' && '🚨 There was an issue with the test build of the documentation, please check the logs for more details.' || '') }}

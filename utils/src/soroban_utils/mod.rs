@@ -11,6 +11,7 @@ use rustc_span::def_id::DefId;
 /// Constants defining the fully qualified names of Soroban types.
 const SOROBAN_ENV: &str = "soroban_sdk::Env";
 const SOROBAN_ADDRESS: &str = "soroban_sdk::Address";
+const SOROBAN_MAP: &str = "soroban_sdk::Map";
 
 /// Determines whether a function defined by its `DefId` is part of a Soroban contract implementation.
 ///
@@ -54,20 +55,26 @@ pub fn is_soroban_function(
         .all(|pattern| checked_functions.contains(pattern))
 }
 
-/// Checks if the provided type is a Soroban environment (`soroban_sdk::Env`).
-pub fn is_soroban_env(cx: &LateContext<'_>, expr_type: Ty<'_>) -> bool {
+// Private helper function to match soroban types
+fn is_soroban_type(cx: &LateContext<'_>, expr_type: Ty<'_>, type_str: &str) -> bool {
     match expr_type.kind() {
-        TyKind::Adt(adt_def, _) => cx.tcx.def_path_str(adt_def.did()).contains(SOROBAN_ENV),
-        TyKind::Ref(_, ty, _) => is_soroban_env(cx, *ty),
+        TyKind::Adt(adt_def, _) => cx.tcx.def_path_str(adt_def.did()).contains(type_str),
+        TyKind::Ref(_, ty, _) => is_soroban_type(cx, *ty, type_str),
         _ => false,
     }
 }
 
+/// Checks if the provided type is a Soroban environment (`soroban_sdk::Env`).
+pub fn is_soroban_env(cx: &LateContext<'_>, expr_type: Ty<'_>) -> bool {
+    is_soroban_type(cx, expr_type, SOROBAN_ENV)
+}
+
 /// Checks if the provided type is a Soroban Address (`soroban_sdk::Address`).
 pub fn is_soroban_address(cx: &LateContext<'_>, expr_type: Ty<'_>) -> bool {
-    match expr_type.kind() {
-        TyKind::Adt(adt_def, _) => cx.tcx.def_path_str(adt_def.did()).contains(SOROBAN_ADDRESS),
-        TyKind::Ref(_, ty, _) => is_soroban_address(cx, *ty),
-        _ => false,
-    }
+    is_soroban_type(cx, expr_type, SOROBAN_ADDRESS)
+}
+
+/// Checks if the provided type is a Soroban Map (`soroban_sdk::Map`).
+pub fn is_soroban_map(cx: &LateContext<'_>, expr_type: Ty<'_>) -> bool {
+    is_soroban_type(cx, expr_type, SOROBAN_MAP)
 }

@@ -47,7 +47,7 @@ impl ZeroAddressContract {
             return Ok(false);
         }
         admin.require_auth();
-        return Ok(true);
+        Ok(true)
     }
 
     pub fn set(e: Env, admin: Address, data: i32) -> Result<(), Error>{
@@ -59,7 +59,7 @@ impl ZeroAddressContract {
     }
 
     pub fn get(e: Env) -> Result<i32, Error>{
-        Ok(e.storage().persistent().get::<DataKey, i32>(&DataKey::Data).ok_or(Error::NoData)?)
+        e.storage().persistent().get::<DataKey, i32>(&DataKey::Data).ok_or(Error::NoData)
     }
 
     pub fn change_admin(e: Env, admin: Address, new_admin: Address) -> Result<(), Error>{

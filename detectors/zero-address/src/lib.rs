@@ -78,7 +78,7 @@ fn expr_to_call<'hir>(kind: &'hir ExprKind<'hir>) -> Result<(&'hir Expr<'hir>, &
 
 fn expr_to_path<'hir>(kind: &'hir ExprKind<'hir>) -> Result<QPath<'hir>, ()>{
     if let ExprKind::Path(a) = kind{
-        Ok(a.clone())
+        Ok(*a)
     }else{
         Err(())
     }
@@ -130,7 +130,7 @@ fn resolution_to_local(resolution: &Res) -> Result<&HirId, ()>{
 
 //---------------------------------------------------------------------
 
-fn get_node_type<'a, 'b>(cx: &'b rustc_lint::LateContext<'a>, hir_id: &HirId) -> rustc_middle::ty::Ty<'a> {
+fn get_node_type<'a>(cx: &rustc_lint::LateContext<'a>, hir_id: &HirId) -> rustc_middle::ty::Ty<'a> {
     cx.typeck_results().node_type(*hir_id)
 }
 
@@ -164,7 +164,7 @@ fn remove_address_of<'hir>(expr: &'hir Expr<'hir>) -> &'hir Expr<'hir>{
     }
 }
 
-fn expr_is_zero_addr<'hir, 'a, 'b>(expr: &'hir Expr<'hir>, cx: &'b rustc_lint::LateContext<'a>) -> bool {
+fn expr_is_zero_addr<'hir>(expr: &'hir Expr<'hir>, cx: &rustc_lint::LateContext) -> bool {
     let r = || -> Result<bool, ()>{
         let args = || -> Result<&'hir [Expr<'hir>], ()>{
             let r = match_expr_as_function_call(expr, "soroban_sdk::Address", "from_string");
@@ -188,7 +188,7 @@ fn expr_is_zero_addr<'hir, 'a, 'b>(expr: &'hir Expr<'hir>, cx: &'b rustc_lint::L
         if args.len() != 2{
             return Ok(false);
         }
-        let env_arg = args.get(0).unwrap();
+        let env_arg = args.first().unwrap();
         let addr_arg = args.get(1).unwrap();
         
         //Check that the first argument is either of type soroban_sdk::Env or of type &soroban_sdk::Env.
@@ -208,7 +208,7 @@ fn expr_is_zero_addr<'hir, 'a, 'b>(expr: &'hir Expr<'hir>, cx: &'b rustc_lint::L
                 return Ok(false);
             }
             //'G'
-            if *data.get(0).unwrap() != 71_u8{
+            if *data.first().unwrap() != 71_u8{
                 return Ok(false);
             }
             //52 times 'A'
@@ -234,10 +234,7 @@ fn expr_is_zero_addr<'hir, 'a, 'b>(expr: &'hir Expr<'hir>, cx: &'b rustc_lint::L
             Ok(false)
         }
     }();
-    match r{
-        Err(_) => false,
-        Ok(x) => x,
-    }
+    r.unwrap_or(false)
 }
 
 fn get_param_hir_id(param: &Param) -> Option<HirId> {
@@ -268,7 +265,7 @@ impl<'tcx> LateLintPass<'tcx> for ZeroAddress {
         _: Span,
         id: LocalDefId,
     ) {
-        if !cx.effective_visibilities.is_public_at_level(id.clone(), Level::Reexported){
+        if !cx.effective_visibilities.is_public_at_level(id, Level::Reexported){
             return;
         }
 

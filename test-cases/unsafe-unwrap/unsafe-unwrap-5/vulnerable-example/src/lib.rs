@@ -13,12 +13,15 @@ pub enum Error {
 
 #[contractimpl]
 impl UnsafeUnwrap {
-    pub fn safe_unwrap(n: u64) -> u64 {
+    pub fn unwrap(n: u64) -> u64 {
         let result = Self::non_zero_or_error(n);
-        if result.is_err() {
+        // Using result is unsafe
+        let first_operation = result.unwrap().checked_mul(2);
+        if first_operation.is_none() {
             return 0;
         }
-        result.unwrap()
+        // Using first_operation is now safe
+        first_operation.unwrap()
     }
 
     pub fn non_zero_or_error(n: u64) -> Result<u64, Error> {
@@ -34,15 +37,16 @@ mod tests {
     use crate::UnsafeUnwrap;
 
     #[test]
+    #[should_panic(expected = "called `Result::unwrap()` on an `Err` value: CustomError")]
     fn test_unwrap_zero() {
         // Given
         let test_value = 0;
 
         // When
-        let result = UnsafeUnwrap::safe_unwrap(test_value);
+        let _result = UnsafeUnwrap::unwrap(test_value);
 
         // Then
-        assert_eq!(result, test_value);
+        // The test should panic
     }
 
     #[test]
@@ -51,9 +55,9 @@ mod tests {
         let test_value = 100;
 
         // When
-        let result = UnsafeUnwrap::safe_unwrap(test_value);
+        let result = UnsafeUnwrap::unwrap(test_value);
 
         // Then
-        assert_eq!(result, test_value);
+        assert_eq!(result, test_value * 2);
     }
 }

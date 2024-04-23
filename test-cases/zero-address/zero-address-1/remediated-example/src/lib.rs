@@ -35,12 +35,8 @@ pub enum Error {
 
 #[contractimpl]
 impl ZeroAddressContract {
-    fn zero_address(e: &Env) -> Address{
-        Address::from_string(&String::from_bytes(e, b"GAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAWHF"))
-    }
-
     pub fn init(e: Env, admin: Address) -> Result<(), Error>{
-        if admin == ZeroAddressContract::zero_address(&e){
+        if admin == soroban_sdk::Address::from_string(&String::from_bytes(&e, b"GAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAWHF")){
             return Err(Error::InvalidNewAdmin);
         }
         e.storage().persistent().set(&DataKey::Admin, &admin);
@@ -61,6 +57,9 @@ impl ZeroAddressContract {
     }
 
     pub fn set(e: Env, admin: Address, data: i32) -> Result<(), Error>{
+        if admin == Address::from_string(&String::from_bytes(&e, b"GAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAWHF")){
+            return Err(Error::InvalidNewAdmin);
+        }
         if !ZeroAddressContract::ensure_is_admin(&e, admin)?{
             return Err(Error::NotAdmin);
         }
@@ -73,11 +72,15 @@ impl ZeroAddressContract {
     }
 
     pub fn change_admin(e: Env, admin: Address, new_admin: Address) -> Result<(), Error>{
+        if admin == Address::from_string(&String::from_bytes(&e, b"GAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAWHF")){
+            return Err(Error::InvalidNewAdmin);
+        }
+
         if !ZeroAddressContract::ensure_is_admin(&e, admin)?{
             return Err(Error::NotAdmin);
         }
-
-        if new_admin == ZeroAddressContract::zero_address(&e){
+        
+        if new_admin == Address::from_string(&String::from_bytes(&e, b"GAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAWHF")){
             return Err(Error::InvalidNewAdmin);
         }
 

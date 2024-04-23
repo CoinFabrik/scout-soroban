@@ -1,6 +1,7 @@
+
 [package]
 edition = "2021"
-name = "unsafe-expect-vulnerable-3"
+name = "unsafe-map-get-vulnerable-1"
 version = "0.1.0"
 
 [lib]

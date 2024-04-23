@@ -1,4 +1,6 @@
 #![no_std]
+#![allow(clippy::unnecessary_literal_unwrap)]
+
 use soroban_sdk::{contract, contracterror, contractimpl};
 
 #[contract]
@@ -18,7 +20,12 @@ impl UnsafeUnwrap {
         if result.is_err() {
             return 0;
         }
-        result.unwrap()
+        let known_value = Some(1u64);
+        let first_operation = known_value.unwrap().checked_mul(result.unwrap());
+        if let Some(first_operation) = first_operation {
+            return first_operation;
+        }
+        0
     }
 
     pub fn non_zero_or_error(n: u64) -> Result<u64, Error> {

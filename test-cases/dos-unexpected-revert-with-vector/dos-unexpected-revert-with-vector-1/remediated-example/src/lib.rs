@@ -31,15 +31,10 @@ pub struct Candidate {
     votes: u64,
 }
 
+#[derive(Default)]
 #[contracttype]
 pub struct AlreadyVoted {
     voted: bool,
-}
-
-impl Default for AlreadyVoted {
-    fn default() -> Self {
-        AlreadyVoted { voted: false }
-    }
 }
 
 #[contracttype]
@@ -95,7 +90,7 @@ impl UnexpectedRevert {
             return Err(URError::VoteEnded);
         }
         if Self::account_has_voted(env.clone(), caller.clone()) {
-            return Err(URError::AccountAlreadyVoted);
+            Err(URError::AccountAlreadyVoted)
         } else {
             env.storage().instance().set(
                 &DataKey::Candidate(candidate.clone()),

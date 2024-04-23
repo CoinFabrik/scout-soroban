@@ -21,7 +21,8 @@ use rustc_span::def_id::DefId;
 use rustc_span::Span;
 use scout_audit_clippy_utils::diagnostics::span_lint;
 
-const LINT_MESSAGE: &str = "This vector operation is called without considering storage limitations";
+const LINT_MESSAGE: &str =
+    "This vector operation is called without considering storage limitations";
 
 dylint_linting::impl_late_lint! {
     pub UNEXPECTED_REVERT_WARN,
@@ -65,11 +66,12 @@ impl<'tcx> LateLintPass<'tcx> for UnexpectedRevertWarn {
                 if let ExprKind::MethodCall(path, _receiver, ..) = expr.kind {
                     let defid = self.cx.typeck_results().type_dependent_def_id(expr.hir_id);
                     let ty = Ty::new_foreign(self.cx.tcx, defid.unwrap());
-                    if ty.to_string().contains("soroban_sdk::Vec") {
-                        if path.ident.name.to_string() == "push_back" || path.ident.name.to_string() == "push_front" {
-                            self.push_def_id = defid;
-                        }
-                    } 
+                    if ty.to_string().contains("soroban_sdk::Vec")
+                        && (path.ident.name.to_string() == "push_back"
+                            || path.ident.name.to_string() == "push_front")
+                    {
+                        self.push_def_id = defid;
+                    }
                 }
                 walk_expr(self, expr);
             }
@@ -148,12 +150,7 @@ impl<'tcx> LateLintPass<'tcx> for UnexpectedRevertWarn {
                 &mut HashSet::<BasicBlock>::default(),
             );
             for place in unchecked_places {
-                span_lint(
-                    cx,
-                    UNEXPECTED_REVERT_WARN,
-                    place.1,
-                    LINT_MESSAGE
-                );
+                span_lint(cx, UNEXPECTED_REVERT_WARN, place.1, LINT_MESSAGE);
             }
         }
 

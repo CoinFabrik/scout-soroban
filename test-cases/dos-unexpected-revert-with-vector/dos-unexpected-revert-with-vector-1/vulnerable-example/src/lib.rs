@@ -65,7 +65,7 @@ impl UnexpectedRevert {
             return Err(URError::VoteEnded);
         }
         if state.already_voted.contains_key(caller.clone()) {
-            return Err(URError::AccountAlreadyVoted);
+            Err(URError::AccountAlreadyVoted)
         } else {
             state.candidates.push_back(candidate.clone());
             state.votes.set(candidate, 0);

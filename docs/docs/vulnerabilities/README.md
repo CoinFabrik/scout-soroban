@@ -224,7 +224,7 @@ This vulnerability falls under the [Validations and error handling category](#vu
 
 ### Unrestricted transfer from
 
-In an smart contract, allowing unrestricted `transfer_from` operations poses a significant vulnerability. When `from` arguments for that function is provided directly by the user, this might enable the withdrawal of funds from any actor with token approval on the contract. This could result in unauthorized transfers and loss of funds. To mitigate this vulnerability, instead of allowing an arbitrary `from` address, the `from` address should be restricted.
+In a smart contract, allowing unrestricted `transfer_from` operations poses a significant vulnerability. When `from` arguments for that function is provided directly by the user, this might enable the withdrawal of funds from any actor with token approval on the contract. This could result in unauthorized transfers and loss of funds. To mitigate this vulnerability, instead of allowing an arbitrary `from` address, the `from` address should be restricted.
 
 This vulnerability falls under the [Validations and error handling](#vulnerability-categories) category
 and has a Critical severity.

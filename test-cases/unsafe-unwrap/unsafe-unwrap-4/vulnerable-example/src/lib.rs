@@ -32,7 +32,7 @@ mod tests {
 
     #[test]
     #[should_panic(expected = "called `Result::unwrap()` on an `Err` value: CustomError")]
-    fn test_unwrap_or_zero() {
+    fn test_unwrap_zero() {
         // Given
         let test_value = 0;
 
@@ -44,12 +44,12 @@ mod tests {
     }
 
     #[test]
-    fn test_unwrap_or_non_zero() {
+    fn test_unwrap_non_zero() {
         // Given
         let test_value = 100;
 
         // When
-        let result = UnsafeUnwrap::unwrap(100);
+        let result = UnsafeUnwrap::unwrap(test_value);
 
         // Then
         assert_eq!(result.0, test_value);

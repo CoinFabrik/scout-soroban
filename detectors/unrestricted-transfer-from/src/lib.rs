@@ -6,14 +6,11 @@ extern crate rustc_hir;
 extern crate rustc_middle;
 extern crate rustc_span;
 
-
-
-
+use rustc_hir::PatKind;
 use rustc_hir::{
     intravisit::{walk_expr, Visitor},
-    Body, Expr, ExprKind, FnRetTy,
+    Body, Expr, ExprKind,
 };
-use rustc_hir::PatKind;
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::mir::{BasicBlock, BasicBlocks, Local, Operand, StatementKind, TerminatorKind};
 use rustc_span::Span;
@@ -47,12 +44,11 @@ impl<'tcx> LateLintPass<'tcx> for UnrestrictedTransferFrom {
         &mut self,
         cx: &LateContext<'tcx>,
         _: rustc_hir::intravisit::FnKind<'tcx>,
-        fn_decl: &'tcx rustc_hir::FnDecl<'tcx>,
+        _fn_decl: &'tcx rustc_hir::FnDecl<'tcx>,
         body: &'tcx rustc_hir::Body<'tcx>,
         _: Span,
         localdef: rustc_span::def_id::LocalDefId,
     ) {
-        
         struct UnrestrictedTransferFromFinder<'tcx, 'tcx_ref> {
             cx: &'tcx_ref LateContext<'tcx>,
             def_id: Option<rustc_span::def_id::DefId>,
@@ -64,57 +60,55 @@ impl<'tcx> LateLintPass<'tcx> for UnrestrictedTransferFrom {
 
         impl<'tcx> Visitor<'tcx> for UnrestrictedTransferFromFinder<'tcx, '_> {
             fn visit_expr(&mut self, expr: &'tcx Expr<'_>) {
-
                 if let ExprKind::MethodCall(path_segment, _, methodargs, ..) = expr.kind {
                     if path_segment.ident.name.to_string() == "transfer_from" {
-                        self.def_id = self.cx.typeck_results().type_dependent_def_id(path_segment.hir_id); 
-                        let mut possible_params = Vec::new(); 
-                        for i  in 0..self.the_body.params.len() {
-                            if let PatKind::Binding(_,_, name, _) = self.the_body.params[i].pat.kind {        
+                        self.def_id = self
+                            .cx
+                            .typeck_results()
+                            .type_dependent_def_id(path_segment.hir_id);
+                        let mut possible_params = Vec::new();
+                        for i in 0..self.the_body.params.len() {
+                            if let PatKind::Binding(_, _, name, _) =
+                                self.the_body.params[i].pat.kind
+                            {
                                 possible_params.push(name.to_string());
                             }
-                        }  
-                        let from_param = methodargs[1]; 
-                        if let ExprKind::AddrOf(_,_,new_exp,..) = from_param.kind { 
-                            if let ExprKind::Path(rustc_hir::QPath::Resolved(_, rustc_hir::Path{segments, ..}), ..) = new_exp.kind {
-                                let from_ref_param = segments.first(); 
-                                let from_addr; 
+                        }
+                        let from_param = methodargs[1];
+                        if let ExprKind::AddrOf(_, _, new_exp, ..) = from_param.kind {
+                            if let ExprKind::Path(
+                                rustc_hir::QPath::Resolved(_, rustc_hir::Path { segments, .. }),
+                                ..,
+                            ) = new_exp.kind
+                            {
+                                let from_ref_param = segments.first();
+                                let from_addr;
                                 if from_ref_param.is_some() {
                                     from_addr = from_ref_param.unwrap();
                                     if possible_params.contains(&from_addr.ident.name.to_string()) {
                                         self.span = Some(from_addr.ident.span);
-                                        self.from_ref = true; 
-                                    } 
-                                }   
-                            }           
+                                        self.from_ref = true;
+                                    }
+                                }
+                            }
                         }
                     }
-                    self.def_id = self.cx.typeck_results().type_dependent_def_id(path_segment.hir_id);             
+                    self.def_id = self
+                        .cx
+                        .typeck_results()
+                        .type_dependent_def_id(path_segment.hir_id);
                 }
                 walk_expr(self, expr);
             }
-        } 
-
+        }
 
         let mut utf_storage = UnrestrictedTransferFromFinder {
             cx,
             def_id: None,
-            //pusharg_def_id: None,
             span: None,
             from_ref: false,
             the_body: body,
         };
-
-        if let FnRetTy::Return(ret_ty) = fn_decl.output
-            && let rustc_hir::TyKind::Path(qpath) = &ret_ty.kind
-            && let rustc_hir::QPath::Resolved(_, path) = qpath
-            && path.segments.last().map_or(false, |s| {
-                s.ident.name.to_string() == "CallBuilder"
-                    || s.ident.name.to_string() == "CreateBuilder"
-            })
-        {
-            return;
-        }
 
         let mir_body = cx.tcx.optimized_mir(localdef.to_def_id());
 
@@ -199,38 +193,23 @@ impl<'tcx> LateLintPass<'tcx> for UnrestrictedTransferFrom {
                         if let TerminatorKind::Call {
                             func,
                             args: _,
-                            fn_span:_,
+                            fn_span: _,
                             target,
                             ..
                         } = &bbs[*bb].terminator().kind
                             && let Operand::Constant(cst) = func
                             && let rustc_middle::mir::Const::Val(_, val_type) = &cst.const_
                             && let rustc_middle::ty::TyKind::FnDef(_def, _) = val_type.kind()
+                            && target.is_some()
                         {
-                            /* if utf_storage.pusharg_def_id.is_some_and(|id| &id == def) {
-                                for arg in args {
-                                    if arg.place().map_or(false, |place| {
-                                        tainted_locals.iter().any(|l| l == &place.local)
-                                    }) {
-                                        scout_audit_clippy_utils::diagnostics::span_lint(
-                                            cx,
-                                            UNRESTRICTED_TRANSFER_FROM,
-                                            *fn_span,
-                                            LINT_MESSAGE,
-                                        );
-                                    }
-                                }
-                            } */
-                            if target.is_some() {
-                                navigate_trough_bbs(
-                                    _cx,
-                                    &target.unwrap(),
-                                    bbs,
-                                    _tainted_locals,
-                                    _tainted_selector_places,
-                                    _utf_storage,
-                                );
-                            }
+                            navigate_trough_bbs(
+                                _cx,
+                                &target.unwrap(),
+                                bbs,
+                                _tainted_locals,
+                                _tainted_selector_places,
+                                _utf_storage,
+                            );
                         }
                     }
                     navigate_trough_bbs(

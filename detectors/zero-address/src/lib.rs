@@ -6,17 +6,10 @@ extern crate rustc_span;
 extern crate rustc_middle;
 extern crate rustc_type_ir;
 
-use rustc_ast::{
-    LitKind,
-    LitIntType,
-    Label,
-};
+use rustc_ast::LitKind;
 use rustc_hir::def_id::LocalDefId;
 use rustc_hir::{
-    def::{
-        Res,
-        DefKind,
-    },
+    def::Res,
     intravisit::{
         walk_expr,
         FnKind,
@@ -25,48 +18,25 @@ use rustc_hir::{
     Expr,
     ExprKind,
     HirId,
-    LangItem,
-    LoopSource,
-    MatchSource,
     PatKind,
     QPath,
-    StmtKind,
-    ExprField,
-    Block,
-    PatField,
-    BindingAnnotation,
-    Pat,
     Path,
     PathSegment,
     Ty,
     Body,
     FnDecl,
     Param,
-    ArrayLen,
     BinOpKind,
     TyKind,
     BorrowKind,
     Mutability,
-    ImplItem,
 };
-use rustc_middle::{
-    ty::{
-        TyCtxt,
-        Interner,
-    },
-    middle::privacy::Level,
-};
+use rustc_middle::middle::privacy::Level;
 use rustc_lint::{
     LateContext,
     LateLintPass,
 };
-use rustc_span::{
-    Span,
-    symbol::{
-        Ident,
-    },
-    def_id::DefId,
-};
+use rustc_span::Span;
 use std::collections::HashSet;
 use scout_audit_clippy_utils::diagnostics::span_lint_and_help;
 use if_chain::if_chain;
@@ -98,40 +68,6 @@ fn type_to_path<'hir>(kind: &'hir TyKind<'hir>) -> Result<&'hir QPath<'hir>, ()>
 
 //---------------------------------------------------------------------
 
-fn stmt_to_expr<'hir>(kind: &'hir StmtKind<'hir>) -> Result<&'hir Expr<'hir>, ()>{
-    if let StmtKind::Expr(a) = kind{
-        Ok(&a)
-    }else{
-        Err(())
-    }
-}
-
-//---------------------------------------------------------------------
-
-fn expr_to_index<'hir>(kind: &'hir ExprKind<'hir>) -> Result<(&'hir Expr<'hir>, &'hir Expr<'hir>, Span), ()>{
-    if let ExprKind::Index(a, b, c) = kind{
-        Ok((a, b, c.clone()))
-    }else{
-        Err(())
-    }
-}
-
-fn expr_to_drop_temps<'hir>(kind: &'hir ExprKind<'hir>) -> Result<&'hir Expr<'hir>, ()>{
-    if let ExprKind::DropTemps(a) = kind{
-        Ok(a)
-    }else{
-        Err(())
-    }
-}
-
-fn expr_to_match<'hir>(kind: &'hir ExprKind<'hir>) -> Result<(&'hir Expr<'hir>, &'hir [rustc_hir::Arm<'hir>], MatchSource), ()>{
-    if let ExprKind::Match(a, b, c) = kind{
-        Ok((a, b, c.clone()))
-    }else{
-        Err(())
-    }
-}
-
 fn expr_to_call<'hir>(kind: &'hir ExprKind<'hir>) -> Result<(&'hir Expr<'hir>, &'hir [Expr<'hir>]), ()>{
     if let ExprKind::Call(a, b) = kind{
         Ok((a, b))
@@ -148,33 +84,9 @@ fn expr_to_path<'hir>(kind: &'hir ExprKind<'hir>) -> Result<QPath<'hir>, ()>{
     }
 }
 
-fn expr_to_struct<'hir>(kind: &'hir ExprKind<'hir>) -> Result<(&'hir QPath<'hir>, &'hir [ExprField<'hir>], Option<&'hir Expr<'hir>>), ()>{
-    if let ExprKind::Struct(a, b, c) = kind{
-        Ok((a, b, c.clone()))
-    }else{
-        Err(())
-    }
-}
-
 fn expr_to_lit<'hir>(kind: &'hir ExprKind<'hir>) -> Result<&'hir rustc_hir::Lit, ()>{
     if let ExprKind::Lit(a) = kind{
         Ok(a)
-    }else{
-        Err(())
-    }
-}
-
-fn expr_to_loop<'hir>(kind: &'hir ExprKind<'hir>) -> Result<(&'hir Block<'hir>, &Option<Label>, LoopSource, &Span), ()>{
-    if let ExprKind::Loop(a, b, c, d) = kind{
-        Ok((a, b, c.clone(), d))
-    }else{
-        Err(())
-    }
-}
-
-fn expr_to_method_call<'hir>(kind: &'hir ExprKind<'hir>) -> Result<(&'hir PathSegment<'hir>, &'hir Expr<'hir>, &'hir [Expr<'hir>], Span), ()>{
-    if let ExprKind::MethodCall(a, b, c, d) = kind{
-        Ok((a, b, c, d.clone()))
     }else{
         Err(())
     }
@@ -216,53 +128,6 @@ fn resolution_to_local(resolution: &Res) -> Result<&HirId, ()>{
     }
 }
 
-fn resolution_to_definition(resolution: &Res) -> Result<(&DefKind, &DefId), ()>{
-    if let Res::Def(a, b) = resolution{
-        Ok((a, b))
-    }else{
-        Err(())
-    }
-}
-
-//---------------------------------------------------------------------
-
-fn lit_to_int(kind: &LitKind) -> Result<(u128, LitIntType), ()>{
-    if let LitKind::Int(a, b) = kind{
-        Ok((a.clone(), b.clone()))
-    }else{
-        Err(())
-    }
-}
-
-//---------------------------------------------------------------------
-
-fn pattern_to_struct<'hir>(pat: &'hir PatKind<'hir>) -> Result<(&QPath<'hir>, &'hir [PatField<'hir>], bool), ()>{
-    if let PatKind::Struct(a, b, c) = pat{
-        Ok((a, b, c.clone()))
-    }else{
-        Err(())
-    }
-}
-
-fn pattern_to_binding<'hir>(pat: &'hir PatKind<'hir>) -> Result<(&BindingAnnotation, &HirId, &Ident, &Option<&'hir Pat<'hir>>), ()>{
-    if let PatKind::Binding(a, b, c, d) = pat{
-        Ok((a, b, c, d))
-    }else{
-        Err(())
-    }
-}
-
-//---------------------------------------------------------------------
-
-fn is_range(item: LangItem) -> bool{
-    match item{
-        LangItem::Range => true,
-        LangItem::RangeInclusiveStruct => true,
-        LangItem::RangeInclusiveNew => true,
-        _ => false,
-    }
-}
-
 //---------------------------------------------------------------------
 
 fn get_node_type<'a, 'b>(cx: &'b rustc_lint::LateContext<'a>, hir_id: &HirId) -> rustc_middle::ty::Ty<'a> {
@@ -299,7 +164,7 @@ fn remove_address_of<'hir>(expr: &'hir Expr<'hir>) -> &'hir Expr<'hir>{
     }
 }
 
-fn expr_is_zero_addr<'hir, 'a, 'b>(expr: &'hir Expr<'hir>, tcx: TyCtxt, cx: &'b rustc_lint::LateContext<'a>) -> bool {
+fn expr_is_zero_addr<'hir, 'a, 'b>(expr: &'hir Expr<'hir>, cx: &'b rustc_lint::LateContext<'a>) -> bool {
     let r = || -> Result<bool, ()>{
         let args = || -> Result<&'hir [Expr<'hir>], ()>{
             let r = match_expr_as_function_call(expr, "soroban_sdk::Address", "from_string");
@@ -427,9 +292,9 @@ impl<'tcx> LateLintPass<'tcx> for ZeroAddress {
                             for param in &self.acc_id_params {
                                 let param_hir_id = get_param_hir_id(param);
                                 if (param_hir_id == get_path_local_hir_id(lexpr)
-                                    && expr_is_zero_addr(rexpr, self.cx.tcx, self.cx)) ||
+                                    && expr_is_zero_addr(rexpr, self.cx)) ||
                                     (param_hir_id == get_path_local_hir_id(rexpr)
-                                    && expr_is_zero_addr(lexpr, self.cx.tcx, self.cx)) {
+                                    && expr_is_zero_addr(lexpr, self.cx)) {
                                     self.checked_params.insert(&param.hir_id);
                                 }
                             }

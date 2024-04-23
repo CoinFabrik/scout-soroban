@@ -72,6 +72,6 @@ jobs:
           body: |
             📘 **Documentation Test Summary** 📘
 
-            ${{ (needs.test-deploy.outputs.status == 'success' && 'The test build of the documentation has completed successfully. 🚀\n' || '') }}
-            ${{ (needs.test-deploy.outputs.status == 'success' && 'The changes will be published upon merge to the main branch' || '') }}
-            ${{ (needs.test-deploy.outputs.status != 'success' && 'There was an issue with the test build of the documentation. Please check the logs for more details. 🚨' || '') }}
+            ${{ (needs.test-deploy.outputs.status == 'success' && '✅ The test build of the documentation has completed successfully!' || '') }}
+            ${{ (needs.test-deploy.outputs.status == 'success' && '📝 The changes will be published upon merge to the main branch.' || '') }}
+            ${{ (needs.test-deploy.outputs.status != 'success' && '🚨 There was an issue with the test build of the documentation, please check the logs for more details.' || '') }}

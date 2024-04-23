@@ -65,59 +65,36 @@ impl<'tcx> LateLintPass<'tcx> for UnrestrictedTransferFrom {
         impl<'tcx> Visitor<'tcx> for UnrestrictedTransferFromFinder<'tcx, '_> {
             fn visit_expr(&mut self, expr: &'tcx Expr<'_>) {
 
-                match expr.kind {
-                    ExprKind::MethodCall(path_segment, _, methodargs, ..) => {
-                        if path_segment.ident.name.to_string() == "transfer_from" {
-                            self.def_id = self.cx.typeck_results().type_dependent_def_id(path_segment.hir_id); 
-                            
-                            let mut possible_params = Vec::new(); 
-                            for i  in 0..self.the_body.params.len() {
-                                if let PatKind::Binding(_,_, name, _) = self.the_body.params[i].pat.kind {
-                                   
-                                    possible_params.push(name.to_string());
-                                }
+                if let ExprKind::MethodCall(path_segment, _, methodargs, ..) = expr.kind {
+                    if path_segment.ident.name.to_string() == "transfer_from" {
+                        self.def_id = self.cx.typeck_results().type_dependent_def_id(path_segment.hir_id); 
+                        let mut possible_params = Vec::new(); 
+                        for i  in 0..self.the_body.params.len() {
+                            if let PatKind::Binding(_,_, name, _) = self.the_body.params[i].pat.kind {        
+                                possible_params.push(name.to_string());
                             }
-                            
-                            let from_param = methodargs[1];  
-                                match from_param.kind {
-                                    ExprKind::AddrOf(_, _, new_exp, ..) => {
-                                        match new_exp.kind {
-                                            ExprKind::Path(rustc_hir::QPath::Resolved(_, rustc_hir::Path{segments, ..}), ..) => {
-                                                let from_ref_param = segments.get(0); 
-                                                let from_addr; 
-                                                if from_ref_param.is_some() {
-                                                    from_addr = from_ref_param.unwrap(); 
-
-                                                    
-                                                    if possible_params.contains(&from_addr.ident.name.to_string()) {
-                                                        self.span = Some(from_addr.ident.span);
-                                                        self.from_ref = true; 
-                                                        
-                                                    } 
-                                                }
-                                                
-                                               
-                                            }
-                                            _ => {}
-                                            
-                                        }
-                                    }
-                                    _ => {}
-                                
-                                }
-                            
-
-                            
-                            self.def_id =
-                                self.cx.typeck_results().type_dependent_def_id(path_segment.hir_id);
+                        }  
+                        let from_param = methodargs[1]; 
+                        if let ExprKind::AddrOf(_,_,new_exp,..) = from_param.kind { 
+                            if let ExprKind::Path(rustc_hir::QPath::Resolved(_, rustc_hir::Path{segments, ..}), ..) = new_exp.kind {
+                                let from_ref_param = segments.first(); 
+                                let from_addr; 
+                                if from_ref_param.is_some() {
+                                    from_addr = from_ref_param.unwrap();
+                                    if possible_params.contains(&from_addr.ident.name.to_string()) {
+                                        self.span = Some(from_addr.ident.span);
+                                        self.from_ref = true; 
+                                    } 
+                                }   
+                            }           
                         }
                     }
-                    _ => {}
-                } 
-
+                    self.def_id = self.cx.typeck_results().type_dependent_def_id(path_segment.hir_id);             
+                }
                 walk_expr(self, expr);
             }
-        }
+        } 
+
 
         let mut utf_storage = UnrestrictedTransferFromFinder {
             cx,
@@ -212,12 +189,12 @@ impl<'tcx> LateLintPass<'tcx> for UnrestrictedTransferFrom {
                     //from here on, what I do is look for where the selector is used and where user given args are pushed to it
                     let mut tainted_selector_places: Vec<Local> = vec![destination.local];
                     fn navigate_trough_bbs(
-                        cx: &LateContext,
+                        _cx: &LateContext,
                         bb: &BasicBlock,
                         bbs: &BasicBlocks,
-                        tainted_locals: &Vec<Local>,
+                        _tainted_locals: &Vec<Local>,
                         _tainted_selector_places: &mut Vec<Local>,
-                        utf_storage: &UnrestrictedTransferFromFinder,
+                        _utf_storage: &UnrestrictedTransferFromFinder,
                     ) {
                         if let TerminatorKind::Call {
                             func,
@@ -246,12 +223,12 @@ impl<'tcx> LateLintPass<'tcx> for UnrestrictedTransferFrom {
                             } */
                             if target.is_some() {
                                 navigate_trough_bbs(
-                                    cx,
+                                    _cx,
                                     &target.unwrap(),
                                     bbs,
-                                    tainted_locals,
+                                    _tainted_locals,
                                     _tainted_selector_places,
-                                    utf_storage,
+                                    _utf_storage,
                                 );
                             }
                         }

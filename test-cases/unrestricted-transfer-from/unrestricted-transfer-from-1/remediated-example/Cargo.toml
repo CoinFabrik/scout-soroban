@@ -29,3 +29,8 @@ lto = true
 [profile.release-with-logs]
 inherits = "release"
 debug-assertions = true
+
+[workspace.metadata.dylint]
+libraries = [
+    { path="/home/sofia/Documentos/cf/pr/scout-soroban/detectors/unrestricted-transfer-from" },
+]

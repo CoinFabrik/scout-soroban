@@ -222,3 +222,9 @@ Modifying mappings with an arbitrary key given by the user could lead to uninten
 
 This vulnerability falls under the [Validations and error handling category](#vulnerability-categories) and assigned it a Critical severity.
 
+### Unsafe map get
+
+The use of certain methods (`get`, `get_unchecked`, `try_get_unchecked`) on a `Map` object in the Soroban environment without appropriate error handling can lead to potential runtime panics. This vulnerability stems from accessing the map's values with keys that may not exist, without using safer alternatives that check the existence of the key. Such practices can compromise the robustness of the smart contract by causing it to terminate unexpectedly, which may lead to denial of service or inconsistent state within the contract.
+
+This vulnerability falls under the [Validations and error handling category](#vulnerability-categories) category and is assigned a Medium severity level.
+

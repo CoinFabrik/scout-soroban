@@ -21,14 +21,12 @@ Consider the following `Soroban` contract:
     let state = Self::get_state(env);
     state.balances.get(owner).expect("could not get balance")
 }
-
-
-        
+  
 ```
 
 In this contract, the `balance_of` function uses the expect method to retrieve the balance of an account. If there is no entry for this account in the balances mapping, the contract will panic and halt execution, which could be exploited maliciously to disrupt the contract's operation.
 
-The vulnerable code example can be found [`here`](https://github.com/CoinFabrik/scout/tree/main/test-cases/unsafe-expect/unsafe-expect-1/vulnerable-example).
+The vulnerable code example can be found [`here`](https://github.com/CoinFabrik/scout-soroban/tree/main/test-cases/unsafe-expect/unsafe-expect-1/vulnerable-example).
 
 ## Remediation
 

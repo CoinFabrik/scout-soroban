@@ -222,6 +222,33 @@ Modifying mappings with an arbitrary key given by the user could lead to uninten
 
 This vulnerability falls under the [Validations and error handling category](#vulnerability-categories) and assigned it a Critical severity.
 
+### Unrestricted transfer from
+
+In a smart contract, allowing unrestricted `transfer_from` operations poses a significant vulnerability. When `from` arguments for that function is provided directly by the user, this might enable the withdrawal of funds from any actor with token approval on the contract. This could result in unauthorized transfers and loss of funds. To mitigate this vulnerability, instead of allowing an arbitrary `from` address, the `from` address should be restricted.
+
+This vulnerability falls under the [Validations and error handling](#vulnerability-categories) category
+and has a Critical severity.
+
+### DoS unexpected revert with vector
+
+Another type of Denial of Service attack is called unexpected revert. It occurs
+by preventing transactions by other users from being successfully executed,
+forcing the blockchain state to revert to its original state.
+
+A Denial of Service through unexpected revert can
+accomplished by exploiting a smart contract that does not manage storage size
+errors correctly. It can be prevented by using Mapping instead of Vec to avoid
+storage limit problems.
+
+This vulnerability again falls under the [Denial of Service](#vulnerability-categories) category
+and has a Medium severity.
+
+### Unsafe map get
+
+The use of certain methods (`get`, `get_unchecked`, `try_get_unchecked`) on a `Map` object in the Soroban environment without appropriate error handling can lead to potential runtime panics. This vulnerability stems from accessing the map's values with keys that may not exist, without using safer alternatives that check the existence of the key. Such practices can compromise the robustness of the smart contract by causing it to terminate unexpectedly, which may lead to denial of service or inconsistent state within the contract.
+
+This vulnerability falls under the [Validations and error handling category](#vulnerability-categories) category and is assigned a Medium severity level.
+
 ### Zero or test address
 
 The assignment of the zero address to a variable in a smart contract represents a critical vulnerability because it can lead to loss of control over the contract. This stems from the fact that the zero address does not have an associated private key, which means it's impossible to claim ownership, rendering any contract assets or functions permanently inaccessible.
@@ -230,4 +257,3 @@ Assigning a test address can also have similar implications, including the loss 
 
 This vulnerability falls under the [Validations and error handling](#vulnerability-categories) category
 and has a Medium severity.
-

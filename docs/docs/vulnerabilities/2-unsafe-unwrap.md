@@ -5,7 +5,7 @@
 - Vulnerability Category: `Validations and error handling`
 - Vulnerability Severity: `Minor`
 - Detectors: [`unsafe-unwrap`](https://github.com/CoinFabrik/scout-soroban/tree/main/detectors/unsafe-unwrap)
-- Test Cases: [`unsafe-unwrap-1`](https://github.com/CoinFabrik/scout-soroban/tree/main/test-cases/unsafe-unwrap/unsafe-unwrap-1)
+- Test Cases: [`unsafe-unwrap-1`](https://github.com/CoinFabrik/scout-soroban/tree/main/test-cases/unsafe-unwrap/unsafe-unwrap-1) [`unsafe-unwrap-2`](https://github.com/CoinFabrik/scout-soroban/tree/main/test-cases/unsafe-unwrap/unsafe-unwrap-2) [`unsafe-unwrap-3`](https://github.com/CoinFabrik/scout-soroban/tree/main/test-cases/unsafe-unwrap/unsafe-unwrap-3) 
 
 In Rust, the `unwrap` method is commonly used for error handling. It retrieves the inner value of an `Option` or `Result`. If an error or `None` occurs, it calls `panic!` without a custom error message.
 

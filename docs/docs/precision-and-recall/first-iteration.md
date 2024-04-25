@@ -24,7 +24,7 @@ After running Scout ([cargo-scout-audit version 0.2.4](https://crates.io/crates/
 
 We subsequently refined the detectors and released an updated version of Scout ([cargo-scout-audit version 0.2.6](https://crates.io/crates/cargo-scout-audit/0.2.6)), which included enhancements. We then re-ran the tool, focusing on the revised detectors. Our modifications were not limited to the two detectors that produced false positives; we also adjusted other detectors that we believed could potentially lead to false positives in similar situations. As a result, our analysis led to improvements on five detectors.
 
-In addition to analyzing Scout as a single source of triggers, we conducted two other analyses (refer to [Appendices](#appendices) section below). Firstly, we examined the rates of false positives per smart contract/project, which reflects the perceived quality from the user's perspective (those who would run the tool in their project individually). Secondly, we assessed the rate of false positives per detector to determine the performance of each detector and identify areas needing improvement.
+In addition to analyzing Scout as a single source of triggers, we conducted two other analyses (refer to Appendices section below). Firstly, we examined the rates of false positives per smart contract/project, which reflects the perceived quality from the user's perspective (those who would run the tool in their project individually). Secondly, we assessed the rate of false positives per detector to determine the performance of each detector and identify areas needing improvement.
 
 We have already begun the next iteration of Precision and Recall, focusing on further refining Scout's detectors. We will conduct new runs of the tool and analyze the results, including the latest detectors additions. This analysis will enable us to confirm the final rate of false positives after the improvements, completing Table 2: False Positives per Detector.
 
@@ -108,7 +108,7 @@ We have conducted an initial review of the Soroban projects and identified vulne
 
 Therefore, this report does not contain explicit references to the analyzed projects.
 
-## Appendices {#appendices}
+## Appendices
 
 ### Appendix 1: False Positive Alarms per Project
 

@@ -249,3 +249,11 @@ The use of certain methods (`get`, `get_unchecked`, `try_get_unchecked`) on a `M
 
 This vulnerability falls under the [Validations and error handling category](#vulnerability-categories) category and is assigned a Medium severity level.
 
+### Zero or test address
+
+The assignment of the zero address to a variable in a smart contract represents a critical vulnerability because it can lead to loss of control over the contract. This stems from the fact that the zero address does not have an associated private key, which means it's impossible to claim ownership, rendering any contract assets or functions permanently inaccessible.
+
+Assigning a test address can also have similar implications, including the loss of access or granting access to a malicious actor if its private keys are not handled with care.
+
+This vulnerability falls under the [Validations and error handling](#vulnerability-categories) category
+and has a Medium severity.

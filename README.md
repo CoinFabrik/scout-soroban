@@ -68,6 +68,7 @@ Visit [Scout's website](https://coinfabrik.github.io/scout-soroban/) to view the
 | [dos-unexpected-revert-with-vector](https://github.com/CoinFabrik/scout-soroban/tree/main/detectors/dos-unexpected-revert-with-vector)                           | DoS due to improper storage. | [1](https://github.com/CoinFabrik/scout-soroban/tree/main/test-cases/dos-unexpected-revert-with-vector/dos-unexpected-revert-with-vector-1)          | Medium  |
 | [unrestricted-transfer-from](https://github.com/CoinFabrik/scout-soroban/tree/main/detectors/unrestricted-transfer-from)                           | Avoid passing an user-defined parameter as a `from` field in transfer-from. | [1](https://github.com/CoinFabrik/scout-soroban/tree/main/test-cases/unrestricted-transfer-from/unrestricted-transfer-from-1)                   | Critical  |
 | [unsafe-map-get](https://github.com/CoinFabrik/scout-soroban/tree/main/detectors/unsafe-map-get)                           | Inappropriate usage of the `get` method for `Map` in soroban | [1](https://github.com/CoinFabrik/scout-soroban/tree/main/test-cases/unsafe-map-get/unsafe-map-get-1)              | Medium |
+| [zero-or-test-address](https://github.com/CoinFabrik/scout-soroban/tree/main/detectors/zero-or-test-address)                           | Avoid zero or test address assignment to prevent contract control loss. | [1](https://github.com/CoinFabrik/scout-soroban/tree/main/test-cases/zero-or-test-address/zero-or-test-address-1)                   | Validations and error handling  |
 
 
 ## Tests

@@ -228,3 +228,17 @@ In a smart contract, allowing unrestricted `transfer_from` operations poses a si
 
 This vulnerability falls under the [Validations and error handling](#vulnerability-categories) category
 and has a Critical severity.
+
+### DoS unexpected revert with vector
+
+Another type of Denial of Service attack is called unexpected revert. It occurs
+by preventing transactions by other users from being successfully executed,
+forcing the blockchain state to revert to its original state.
+
+A Denial of Service through unexpected revert can
+accomplished by exploiting a smart contract that does not manage storage size
+errors correctly. It can be prevented by using Mapping instead of Vec to avoid
+storage limit problems.
+
+This vulnerability again falls under the [Denial of Service](#vulnerability-categories) category
+and has a Medium severity.

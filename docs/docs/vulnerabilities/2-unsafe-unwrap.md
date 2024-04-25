@@ -32,7 +32,7 @@ impl UnsafeUnwrap {
 }
 ```
 
-In this contract, the `unwrap` function uses the `unwrap` method to save the result of the `non zero or error` function. If the function returns `Err`, the contract will panic and halt execution, potentially leading to malicious exploitation to disrupt the contract's operation.
+In this contract, the `unwrap` function uses the `unwrap` method to save the result of the `non_zero_or_error` function. If the function returns `Err`, the contract will panic and halt execution, potentially leading to malicious exploitation to disrupt the contract's operation.
 
 The vulnerable code example can be found [`here`](https://github.com/CoinFabrik/scout-soroban/tree/main/test-cases/unsafe-unwrap/unsafe-unwrap-1/vulnerable-example).
 

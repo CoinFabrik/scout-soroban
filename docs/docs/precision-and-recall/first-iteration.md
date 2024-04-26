@@ -11,8 +11,12 @@ At the end of January, we launched the first prototype of Scout for Soroban. Ove
 Currently, the tool offers the following features:
 
 - A CLI tool.
-- Detection capabilities for 18 vulnerabilities (and growing).
-- Different output options so that users can chose the one that best suit their needs (HTML, markdown, pdf and JSON)
+- Detection capabilities for 19 warnings (and growing).
+  - 4 enhancement suggestions.
+  - 2 minor vulnerabilities.
+  - 7 medium vulnerabilities.
+  - 6 critical vulnerabilities.
+- Different output options so that users can chose the one that best suit their needs (HTML, markdown, pdf and JSON).
 - A [VS Code extension](https://marketplace.visualstudio.com/items?itemName=CoinFabrik.scout-audit) to integrate Scout into the development workspace.
 - A [GitHub action](https://github.com/CoinFabrik/scout-actions) to include Scout in the CI/CD workflow.
 
@@ -32,7 +36,7 @@ We have already begun the next iteration of Precision and Recall, focusing on fu
 
 As we analyzed the results from running the tool, we identified that most of the false positives occur in `unsafe-unwrap`  and `set-contract-storage` detectors. We focused our work on improving the precision of these two detectors, as well as other detectors that could be enhanced from similar checks.
 
-### On unsafe-unwrap
+### On `unsafe-unwrap`
 
 For `unsafe-unwrap`, we noticed cases where previous checks in the analyzed code made the particular use of `unwrap()` not result in an error. We updated the detector to validate whether these checks are present in the code, decreasing the amount of false positive detections on a second run of the tool.
 
@@ -64,9 +68,9 @@ pub  fn  some_function(e:  &Env)  {
 
 Finally, we identified that the same checks could be applied to the detector `unsafe-expect`, and updated it accordingly.
 
-### On set-contract-storage
+### On `set-contract-storage`
 
-Upon analyzing false positives in the set-contract-storage detector, we identified use cases where the authorization to use env.storage() was done in a function outside of the analysis context of our detector, or the storage method being detected (i.e: get) did not represent a vulnerability.  
+Upon analyzing false positives in the `set-contract-storage` detector, we identified use cases where the authorization to use `env.storage()` was done in a function outside of the analysis context of our detector, or the storage method being detected (e.g: get) did not represent a vulnerability.  
   
 We extended the analysis context of our detector to identify these authorizations in parent functions and added the capability for the detector to now differentiate between various storage types from the Soroban SDK.
 
@@ -96,17 +100,15 @@ env.storage().instance().set(&DataKey::State,  &State::new(storage,  adder,  sub
 
 The same extension of the analysis context was also applied on detectors `unprotected-mapping-operation` and `unprotected-update-contract-wasm`.
 
+### Enhanced Authentication Detection: Context-Aware Analysis
+
+We have introduced a new feature that significantly enhances the capability of many of our detectors by making them inter-procedural context-aware. Previously, many authentication patterns caused our detectors to issue false warnings: alerts that were triggered even when the necessary verifications had been correctly executed. Our refined approach involves creating a map that includes methods and the methods they invoke. This allows us to defer analysis until all relevant methods have been reviewed. By doing this, we can maintain a graph of functions, aimed at minimizing false positives. This enhancement is particularly beneficial for authentication-related detectors, as it enables the construction of a tree of authenticated methods, ensuring more accurate detection and fewer errors.
+
 ## Improvements on Troubleshooting Documentation
 
-As we used Scout over a variety of projects, we noticed some issues when running the tool on contracts performing crossed calls. For these cases we found that an easy troubleshoot was compiling the second contract first (soroban contract build) before running Scout on the first one.
+As we used Scout over a variety of projects, we noticed some issues when running the tool on contracts performing crossed calls. For these cases we found that a solution is compiling the second contract first (`soroban contract build`) before running Scout on the first one.
 
 On the other hand, as we tried Scout on different environments, we noticed some installation caveats. We wrote down a [troubleshooting guide](https://github.com/CoinFabrik/scout-soroban/blob/main/docs/docs/intro.md#troubleshooting-guide) to aid the user on particular installation issues.
-
-## Responsible Disclosure
-
-We have conducted an initial review of the Soroban projects and identified vulnerabilities in some of them that require attention. A more comprehensive security analysis is currently underway by one of our auditors. If vulnerabilities are confirmed, we will engage with each project and responsibly disclose our findings to facilitate their correction and contribute to the security of the ecosystem.
-
-Therefore, this report does not contain explicit references to the analyzed projects.
 
 ## Appendices
 

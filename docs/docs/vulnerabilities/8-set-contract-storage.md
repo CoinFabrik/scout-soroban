@@ -4,7 +4,7 @@
 - Vulnerability Category: `Authorization`
 - Severity: `Critical`
 - Detectors: [`set-contract-storage`](https://github.com/CoinFabrik/scout-soroban/tree/main/detectors/set-contract-storage)
-- Test Cases: [`set-contract-storage-1`](https://github.com/CoinFabrik/scout-soroban/tree/main/test-cases/set-contract-storage/set-contract-storage-1)[`set-contract-storage-2`](https://github.com/CoinFabrik/scout-soroban/tree/main/test-cases/set-contract-storage/set-contract-storage-2)[`set-contract-storage-3`](https://github.com/CoinFabrik/scout-soroban/tree/main/test-cases/set-contract-storage/set-contract-storage-3)
+- Test Cases: [`set-contract-storage-1`](https://github.com/CoinFabrik/scout-soroban/tree/main/test-cases/set-contract-storage/set-contract-storage-1) [`set-contract-storage-2`](https://github.com/CoinFabrik/scout-soroban/tree/main/test-cases/set-contract-storage/set-contract-storage-2) [`set-contract-storage-3`](https://github.com/CoinFabrik/scout-soroban/tree/main/test-cases/set-contract-storage/set-contract-storage-3)
 
 Smart contract can store important information in memory which changes 
 through the contract's lifecycle. Changes happen via user interaction with 

@@ -7,7 +7,7 @@
 - Detectors: [`insufficiently-random-values`](https://github.com/CoinFabrik/scout-soroban/tree/main/detectors/insufficiently-random-values)
 - Test Cases: [`insufficiently-random-values-1`](https://github.com/CoinFabrik/scout-soroban/tree/main/test-cases/insufficiently-random-values/insufficiently-random-values-1)
 
-Using block attributes like `timestamp` or `sequence` for random number generation in Soroban Substrate smart contracts is not recommended due to the predictability of these values. Block attributes are publicly visible and deterministic, making it easy for malicious actors to anticipate their values and manipulate outcomes to their advantage. Furthermore, validators could potentially influence these attributes, further exacerbating the risk of manipulation. For truly random number generation, it's important to use a source that is both unpredictable and external to the blockchain environment, reducing the potential for malicious exploitation.
+Using block attributes like `timestamp` or `sequence` for random number generation in Soroban smart contracts is not recommended due to the predictability of these values. Block attributes are publicly visible and deterministic, making it easy for malicious actors to anticipate their values and manipulate outcomes to their advantage. Furthermore, validators could potentially influence these attributes, further exacerbating the risk of manipulation. For truly random number generation, it's important to use a source that is both unpredictable and external to the blockchain environment, reducing the potential for malicious exploitation.
 
 ## Exploit Scenario
 

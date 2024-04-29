@@ -4,7 +4,7 @@
 - Vulnerability Category: `Validations and error handling`
 - Severity: `Critical`
 - Detectors: [`avoid-unsafe-block`](https://github.com/CoinFabrik/scout-soroban/tree/main/detectors/avoid-unsafe-block)
-- Test Cases: [`avoid-unsafe-block-1`](https://github.com/CoinFabrik/scout-soroban/tree/main/test-cases/set-contract-storage/avoid-unsafe-block-1)
+- Test Cases: [`avoid-unsafe-block-1`](https://github.com/CoinFabrik/scout-soroban/tree/main/test-cases/avoid-unsafe-block/avoid-unsafe-block-1)
 
 The use of unsafe blocks in Rust is generally discouraged due to the potential risks it poses to the safety and reliability of the code. Rust's primary appeal lies in its ability to provide memory safety guarantees, which are largely enforced through its ownership and type systems. When you enter an unsafe block, you're effectively bypassing these safety checks. This can lead to various issues, such as undefined behavior, memory leaks, or security vulnerabilities. These blocks require the programmer to manually ensure that memory is correctly managed and accessed, which is prone to human error and can be challenging even for experienced developers. Therefore, unsafe blocks should only be used when absolutely necessary and when the safety of the operations within can be assured.
 

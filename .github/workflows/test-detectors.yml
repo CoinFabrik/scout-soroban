@@ -121,7 +121,9 @@ jobs:
           restore-keys: ${{ runner.os }}-tests-
 
       - name: Run unit and integration tests
-        run: python scripts/run-tests.py --detector=${{ matrix.detector }}
+        run: |
+          rustup component add rust-src --toolchain nightly-2023-12-16-x86_64-apple-darwin
+          python scripts/run-tests.py --detector=${{ matrix.detector }}
 
   comment-on-pr:
     name: Comment on PR

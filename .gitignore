@@ -41,3 +41,5 @@ node_modules
 .vscode/
 .idea/
 !/.vscode/
+
+**/__pycache__/

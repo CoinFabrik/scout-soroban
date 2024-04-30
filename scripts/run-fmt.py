@@ -22,7 +22,11 @@ def run_fmt(directories):
             if is_rust_project(root):
                 start_time = time.time()
                 returncode, _, stderr = run_subprocess(
-                    ["cargo", "fmt", "--all", "--check"],
+                    ["cargo", "fmt"],
+                    cwd=root,
+                )
+                returncode, _, stderr = run_subprocess(
+                    ["cargo", "fmt", "--check"],
                     cwd=root,
                 )
                 print_results(

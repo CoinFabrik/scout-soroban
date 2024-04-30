@@ -23,7 +23,7 @@ impl UnsafeExpect {
             // Save the state.
             env.storage().persistent().set(&STATE, &state);
         }
-        
+
         state
     }
 

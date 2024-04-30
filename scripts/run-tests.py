@@ -48,7 +48,7 @@ def run_unit_tests(root):
 def run_integration_tests(detector, root):
     start_time = time.time()
 
-    returncode, stdout, stderr = run_subprocess(
+    returncode, stdout, _ = run_subprocess(
         [
             "cargo",
             "scout-audit",
@@ -62,8 +62,6 @@ def run_integration_tests(detector, root):
     )
 
     if stdout is None:
-        for line in stderr.splitlines():
-            print(f" error: {line}")
         print(
             f"{RED}Failed to run integration tests in {root} - Metadata returned empty.{ENDC}"
         )

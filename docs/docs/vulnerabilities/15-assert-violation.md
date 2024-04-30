@@ -11,7 +11,7 @@ The `assert!` macro is used in Rust to ensure that a certain condition holds tru
 
 ## Exploit Scenario
 
-Consider the following `ink!` contract:
+Consider the following `Soroban` contract:
 
 ```rust
     pub fn assert_if_greater_than_10(_env: Env, value: u128) -> bool {

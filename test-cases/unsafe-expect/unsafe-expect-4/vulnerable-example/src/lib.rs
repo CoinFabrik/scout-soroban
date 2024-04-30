@@ -1,3 +1,4 @@
+#![no_std]
 use soroban_sdk::{contract, contractimpl, contracttype, symbol_short, Address, Env, Map, Symbol};
 
 #[contract]
@@ -22,7 +23,7 @@ impl UnsafeExpect {
             // Save the state.
             env.storage().persistent().set(&STATE, &state);
         }
-
+        
         state
     }
 

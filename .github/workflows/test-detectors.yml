@@ -122,7 +122,7 @@ jobs:
 
       - name: Run unit and integration tests
         run: |
-          rustup target add x86_64-apple-darwin
+          rustup toolchain install nightly-2023-12-16-x86_64-apple-darwin
           rustup component add rust-src --toolchain nightly-2023-12-16-x86_64-apple-darwin
           python scripts/run-tests.py --detector=${{ matrix.detector }}
 

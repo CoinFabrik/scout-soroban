@@ -59,7 +59,6 @@ impl UnexpectedRevert {
     }
 
     pub fn add_candidate(env: Env, candidate: Address, caller: Address) -> Result<(), URError> {
-        caller.require_auth();
         let mut state = Self::get_state(env.clone());
         if Self::vote_ended(env.clone()) {
             return Err(URError::VoteEnded);

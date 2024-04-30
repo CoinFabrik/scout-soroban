@@ -106,3 +106,48 @@ You'll also need to have installed the CLI, as the extension uses the CLI to per
 ### Usage
 
 After you've installed the extension, simply open a project workspace that contains any Soroban (.rs) files. You will see potential issues and warnings via a wiggle underline of the relevant code.
+
+
+## Troubleshooting Guide
+
+### 1. Installation Troubleshooting
+
+**Issue**: Difficulties installing dependencies and Scout.
+
+**Solution**:
+
+- For Dylint:
+
+To install necessary libraries for Dylint, run the following commands:
+  ```bash
+  sudo apt install libssl-dev
+  sudo apt install pkg-config
+  ```
+
+- For C Compiler (gcc). 
+
+To install gcc, which is required for some components, use:
+  ```bash
+  sudo apt install gcc
+  ```
+
+- For error `error[E0658]`. 
+
+When encountering this error `error[E0658]: use of unstable library feature 'stdsimd'`, run cargo clean and ensure you are using this version of rustup:
+```bash
+ cargo clean
+ rustup default nightly-2023-12-16
+ ```
+
+### 2. Crossed Contract Calls
+
+**Issue**: Scout encounters issues when analyzing contracts that perform crossed calls.
+
+**Solution**:
+- When encountering problems with crossed calls, it's beneficial to compile the dependent contract first. Run the following command to build the second contract:
+```bash
+  soroban contract build
+```
+
+
+

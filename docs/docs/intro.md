@@ -96,7 +96,6 @@ Usage: `cargo scout-audit --output-format html`
 
 We built the Scout VSCode Extension to help developers write secure and more robust smart contracts. Listing security issues, and highlighting issues with squiggles and hover-over descriptions, we hope our extension will help you catch vulnerabilities during development.
 
-
 ### Installation
 
 Install Scout from the Marketplace within the Extensions tab of Visual Studio Code. You can find the extension [here](https://marketplace.visualstudio.com/items?itemName=CoinFabrik.scout-audit).
@@ -119,6 +118,7 @@ After you've installed the extension, simply open a project workspace that conta
 - For Dylint:
 
 To install necessary libraries for Dylint, run the following commands:
+
   ```bash
   sudo apt install libssl-dev
   sudo apt install pkg-config
@@ -144,7 +144,9 @@ When encountering this error `error[E0658]: use of unstable library feature 'std
 **Issue**: Scout encounters issues when analyzing contracts that perform crossed calls.
 
 **Solution**:
+
 - When encountering problems with crossed calls, it's beneficial to compile the dependent contract first. Run the following command to build the second contract:
+
 ```bash
   soroban contract build
 ```

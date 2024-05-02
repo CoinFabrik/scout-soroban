@@ -6,7 +6,7 @@ sidebar_position: 7
 
 At CoinFabrik, we understand the importance of ensuring code quality and security in every step of the development process. That's why we've developed a GitHub action to integrate Scout into the CI/CD pipeline.
 
-Scout is triggered upon every commit pushed to a pull request, automatically running the tool against the code changes. This immediate feedback loop allows developers to quickly address any issues before merging the code into the main branch, reducing the risk of introducing bugs or vulnerabilities.
+Scout is triggered upon every commit pushed to a pull request, automatically running the tool against the targeted smart contracts. This immediate feedback loop allows developers to quickly address any issues before merging the code into the main branch, reducing the risk of introducing bugs or vulnerabilities.
 
 ## Quick Start
 

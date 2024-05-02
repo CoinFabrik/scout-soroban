@@ -42,7 +42,7 @@ jobs:
       matrix:
         os:
           - ubuntu-latest
-          - macos-latest
+          - macos-13
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout repository
@@ -97,7 +97,7 @@ jobs:
       matrix:
         os:
           - ubuntu-latest
-          - macos-latest
+          - macos-13
         detector: ${{fromJson(needs.prepare-detector-matrix.outputs.matrix)}}
     runs-on: ${{ matrix.os }}
     outputs:
@@ -121,7 +121,10 @@ jobs:
           restore-keys: ${{ runner.os }}-tests-
 
       - name: Run unit and integration tests
-        run: python scripts/run-tests.py --detector=${{ matrix.detector }}
+        run: |
+          rustup toolchain install nightly-2023-12-16-x86_64-apple-darwin
+          rustup component add rust-src --toolchain nightly-2023-12-16-x86_64-apple-darwin
+          python scripts/run-tests.py --detector=${{ matrix.detector }}
 
   comment-on-pr:
     name: Comment on PR
@@ -136,11 +139,13 @@ jobs:
         id: ubuntu_status
         working-directory: build-status-ubuntu-latest
         run: echo "status=$(cat status-ubuntu-latest.txt)" >> $GITHUB_OUTPUT
+        continue-on-error: true
 
       - name: Read macOS build status
         id: macos_status
         working-directory: build-status-macos-latest
         run: echo "status=$(cat status-macos-latest.txt)" >> $GITHUB_OUTPUT
+        continue-on-error: true
 
       - name: Find comment
         id: find_comment

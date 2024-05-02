@@ -26,11 +26,13 @@ Afterwards, install Scout with the following command:
 cargo install cargo-scout-audit
 ```
 
-To run Scout on your project, navigate to its root directory and execute the following command:
+To run Scout on your project, navigate to the root directory of your smart contract (where the `Cargo.toml` file is) and execute the following command:
 
 ```bash
 cargo scout-audit
 ```
+
+:warning: Make sure that your smart contracts compile properly. Scout won't run if any compilation errors exist.
 
 For more information on installation and usage, please refer to the [Getting Started](https://coinfabrik.github.io/scout-soroban/docs/intro) section in our documentation below.
 
@@ -42,8 +44,6 @@ For more information on installation and usage, please refer to the [Getting Sta
 - [Contribute](https://coinfabrik.github.io/scout-soroban/docs/contribute)
 - [Architecture](https://coinfabrik.github.io/scout-soroban/docs/architecture)
 - [Blog](https://blog.coinfabrik.com/)
-
-Visit [Scout's website](https://coinfabrik.github.io/scout-soroban/) to view the full documentation.
 
 ## Detectors
 

@@ -48,4 +48,4 @@ jobs:
 
 Scout results are display as a comment in the pull request.
 
-![Scout Action output example.](/assets/github-action-output.jpg)
+![Scout Action output example.](../static/img/github-action-output.jpg)

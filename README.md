@@ -26,26 +26,19 @@ Afterwards, install Scout with the following command:
 cargo install cargo-scout-audit
 ```
 
-To run Scout on your project, navigate to its root directory and execute the following command:
+To run Scout on your project, navigate to the root directory of your smart contract (where the `Cargo.toml` file is) and execute the following command:
 
 ```bash
 cargo scout-audit
 ```
 
+:warning: Make sure that your smart contracts compile properly. Scout won't run if any compilation errors exist.
+
 For more information on installation and usage, please refer to the [Getting Started](https://coinfabrik.github.io/scout-soroban/docs/intro) section in our documentation below.
 
-# Documentation
-
-- [Getting Started](https://coinfabrik.github.io/scout-soroban/docs/intro)
-- [Vulnerabilities](https://coinfabrik.github.io/scout-soroban/docs/vulnerabilities)
-- [Detectors](https://coinfabrik.github.io/scout-soroban/docs/detectors)
-- [Contribute](https://coinfabrik.github.io/scout-soroban/docs/contribute)
-- [Architecture](https://coinfabrik.github.io/scout-soroban/docs/architecture)
-- [Blog](https://blog.coinfabrik.com/)
-
-Visit [Scout's website](https://coinfabrik.github.io/scout-soroban/) to view the full documentation.
-
 ## Detectors
+
+Currently Scout includes the following detectors.
 
 | Detector ID                                                                                                              | What it Detects                                                                                                                                                                                           | Test Cases                                                                                                                                                                                                                                               | Severity    |
 | ------------------------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------- |
@@ -70,6 +63,37 @@ Visit [Scout's website](https://coinfabrik.github.io/scout-soroban/) to view the
 | [unsafe-map-get](https://github.com/CoinFabrik/scout-soroban/tree/main/detectors/unsafe-map-get)                           | Inappropriate usage of the `get` method for `Map` in soroban | [1](https://github.com/CoinFabrik/scout-soroban/tree/main/test-cases/unsafe-map-get/unsafe-map-get-1)              | Medium |
 | [zero-or-test-address](https://github.com/CoinFabrik/scout-soroban/tree/main/detectors/zero-or-test-address)                           | Avoid zero or test address assignment to prevent contract control loss. | [1](https://github.com/CoinFabrik/scout-soroban/tree/main/test-cases/zero-or-test-address/zero-or-test-address-1)                   | Validations and error handling  |
 
+## Output formats
+
+You can choose the output format that best suit your needs (html or markdown). To specify the desired output run the following command:
+
+```
+cargo scout-audit --output-format [html|md]
+```
+
+**Example HTML report**
+
+![Scout HTML report.](/docs/static/img/scout-soroban-html.jpg)
+
+## VS Code extension
+
+Add Scout to your development workspace with Scout's VS Code extension to run Scout automatically upon saving your file.
+
+![Scout VS Code extension.](/assets/vscode-extension.png)
+
+
+
+:point_right: Download Scout VS Code from [Visual Studio Marketplace](https://marketplace.visualstudio.com/items?itemName=CoinFabrik.scout-audit).
+
+## Scout GitHub Action
+
+Integrate Scout into your CI/CD pipeline! Automatically run the tool against the targeted smart contracts. This immediate feedback loop allows developers to quickly address any issues before merging the code into the main branch, reducing the risk of introducing bugs or vulnerabilities.
+
+**Scout output as a comment in a pull request**
+
+![Scout GitHub action output](/docs/static/img/github-action-output.jpg)
+
+:point_right: Find Scout GitHub Action in [GitHub Marketplace](https://github.com/marketplace/actions/run-scout-action).
 
 ## Tests
 
@@ -83,9 +107,18 @@ cargo test --all --all-features
 
 In order to run the tests for a particular test-case, run the same command on that particular test-case folder (e.g: `test-cases/divide-before-multiply/divide-before-multiply-1`)
 
+# Documentation
+
+- [Getting Started](https://coinfabrik.github.io/scout-soroban/docs/intro)
+- [Vulnerabilities](https://coinfabrik.github.io/scout-soroban/docs/vulnerabilities)
+- [Detectors](https://coinfabrik.github.io/scout-soroban/docs/detectors)
+- [Contribute](https://coinfabrik.github.io/scout-soroban/docs/contribute)
+- [Architecture](https://coinfabrik.github.io/scout-soroban/docs/architecture)
+- [Blog](https://blog.coinfabrik.com/)
+
 ## Acknowledgements
 
-Scout Soroban is an open source vulnerability analyzer developed by [CoinFabrik's](https://www.coinfabrik.com/) Research and Development team.
+Scout for Soroban is an open source vulnerability analyzer developed by [CoinFabrik's](https://www.coinfabrik.com/) Research and Development team.
 
 We received support through a grant from the [Stellar Community Fund (SCF)](https://communityfund.stellar.org/).
 

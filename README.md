@@ -36,16 +36,9 @@ cargo scout-audit
 
 For more information on installation and usage, please refer to the [Getting Started](https://coinfabrik.github.io/scout-soroban/docs/intro) section in our documentation below.
 
-# Documentation
-
-- [Getting Started](https://coinfabrik.github.io/scout-soroban/docs/intro)
-- [Vulnerabilities](https://coinfabrik.github.io/scout-soroban/docs/vulnerabilities)
-- [Detectors](https://coinfabrik.github.io/scout-soroban/docs/detectors)
-- [Contribute](https://coinfabrik.github.io/scout-soroban/docs/contribute)
-- [Architecture](https://coinfabrik.github.io/scout-soroban/docs/architecture)
-- [Blog](https://blog.coinfabrik.com/)
-
 ## Detectors
+
+Currently Scout includes the following detectors.
 
 | Detector ID                                                                                                              | What it Detects                                                                                                                                                                                           | Test Cases                                                                                                                                                                                                                                               | Severity    |
 | ------------------------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------- |
@@ -70,6 +63,31 @@ For more information on installation and usage, please refer to the [Getting Sta
 | [unsafe-map-get](https://github.com/CoinFabrik/scout-soroban/tree/main/detectors/unsafe-map-get)                           | Inappropriate usage of the `get` method for `Map` in soroban | [1](https://github.com/CoinFabrik/scout-soroban/tree/main/test-cases/unsafe-map-get/unsafe-map-get-1)              | Medium |
 | [zero-or-test-address](https://github.com/CoinFabrik/scout-soroban/tree/main/detectors/zero-or-test-address)                           | Avoid zero or test address assignment to prevent contract control loss. | [1](https://github.com/CoinFabrik/scout-soroban/tree/main/test-cases/zero-or-test-address/zero-or-test-address-1)                   | Validations and error handling  |
 
+## Output formats
+
+You can choose the output format that best suit your needs (html or markdown). To specify the desired output run the following command:
+
+```
+cargo scout-audit --output-format [html|md]
+```
+
+![Scout HTML report.](/docs/static/img/html.png)
+
+## VS Code extension
+
+Add Scout to your development workspace with Scout's VS Code extension and run Scout automatically upon saving your file.
+
+![Scout VS Code extension.](/assets/vscode-extension.png)
+
+Download Scout VS Code from [Visual Studio Marketplace](https://marketplace.visualstudio.com/items?itemName=CoinFabrik.scout-audit).
+
+## Scout GitHub Action
+
+Integrate Scout into your CI/CD pipeline! Automatically run the tool against the targeted smart contracts. This immediate feedback loop allows developers to quickly address any issues before merging the code into the main branch, reducing the risk of introducing bugs or vulnerabilities.
+
+![Scout GitHub action output](/docs/static/img/github-action-output.jpg)
+
+Find Scout GitHub Action in [GitHub Marketplace](https://github.com/marketplace/actions/run-scout-action).
 
 ## Tests
 
@@ -82,6 +100,15 @@ cargo test --all --all-features
 ```
 
 In order to run the tests for a particular test-case, run the same command on that particular test-case folder (e.g: `test-cases/divide-before-multiply/divide-before-multiply-1`)
+
+# Documentation
+
+- [Getting Started](https://coinfabrik.github.io/scout-soroban/docs/intro)
+- [Vulnerabilities](https://coinfabrik.github.io/scout-soroban/docs/vulnerabilities)
+- [Detectors](https://coinfabrik.github.io/scout-soroban/docs/detectors)
+- [Contribute](https://coinfabrik.github.io/scout-soroban/docs/contribute)
+- [Architecture](https://coinfabrik.github.io/scout-soroban/docs/architecture)
+- [Blog](https://blog.coinfabrik.com/)
 
 ## Acknowledgements
 

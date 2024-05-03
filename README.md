@@ -34,7 +34,7 @@ cargo scout-audit
 
 :warning: Make sure that your smart contracts compile properly. Scout won't run if any compilation errors exist.
 
-For more information on installation and usage, please refer to the [Getting Started](https://coinfabrik.github.io/scout-soroban/docs/intro) section in our documentation below.
+For more information on installation and usage, please refer to the [Getting Started](https://coinfabrik.github.io/scout-soroban/docs/intro) section in our documentation section below.
 
 ## Detectors
 
@@ -107,7 +107,9 @@ cargo test --all --all-features
 
 In order to run the tests for a particular test-case, run the same command on that particular test-case folder (e.g: `test-cases/divide-before-multiply/divide-before-multiply-1`)
 
-# Documentation
+## Documentation
+
+Follow our documentation links below and learn more about the vulnerabilities detected by Scout, how the tool works and how to contribute to the project!
 
 - [Getting Started](https://coinfabrik.github.io/scout-soroban/docs/intro)
 - [Vulnerabilities](https://coinfabrik.github.io/scout-soroban/docs/vulnerabilities)

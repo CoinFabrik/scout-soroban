@@ -71,23 +71,29 @@ You can choose the output format that best suit your needs (html or markdown). T
 cargo scout-audit --output-format [html|md]
 ```
 
+**Example HTML report**
+
 ![Scout HTML report.](/docs/static/img/html.png)
 
 ## VS Code extension
 
-Add Scout to your development workspace with Scout's VS Code extension and run Scout automatically upon saving your file.
+Add Scout to your development workspace with Scout's VS Code extension to run Scout automatically upon saving your file.
 
 ![Scout VS Code extension.](/assets/vscode-extension.png)
 
-Download Scout VS Code from [Visual Studio Marketplace](https://marketplace.visualstudio.com/items?itemName=CoinFabrik.scout-audit).
+
+
+:point_right: Download Scout VS Code from [Visual Studio Marketplace](https://marketplace.visualstudio.com/items?itemName=CoinFabrik.scout-audit).
 
 ## Scout GitHub Action
 
 Integrate Scout into your CI/CD pipeline! Automatically run the tool against the targeted smart contracts. This immediate feedback loop allows developers to quickly address any issues before merging the code into the main branch, reducing the risk of introducing bugs or vulnerabilities.
 
+**Scout output as a comment in a pull request**
+
 ![Scout GitHub action output](/docs/static/img/github-action-output.jpg)
 
-Find Scout GitHub Action in [GitHub Marketplace](https://github.com/marketplace/actions/run-scout-action).
+:point_right: Find Scout GitHub Action in [GitHub Marketplace](https://github.com/marketplace/actions/run-scout-action).
 
 ## Tests
 
@@ -112,7 +118,7 @@ In order to run the tests for a particular test-case, run the same command on th
 
 ## Acknowledgements
 
-Scout Soroban is an open source vulnerability analyzer developed by [CoinFabrik's](https://www.coinfabrik.com/) Research and Development team.
+Scout for Soroban is an open source vulnerability analyzer developed by [CoinFabrik's](https://www.coinfabrik.com/) Research and Development team.
 
 We received support through a grant from the [Stellar Community Fund (SCF)](https://communityfund.stellar.org/).
 

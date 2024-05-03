@@ -73,7 +73,7 @@ cargo scout-audit --output-format [html|md]
 
 **Example HTML report**
 
-![Scout HTML report.](/docs/static/img/html.png)
+![Scout HTML report.](/docs/static/img/scout-soroban-html.jpg)
 
 ## VS Code extension
 

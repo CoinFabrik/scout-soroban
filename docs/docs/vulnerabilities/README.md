@@ -257,3 +257,9 @@ Assigning a test address can also have similar implications, including the loss 
 
 This vulnerability falls under the [Validations and error handling](#vulnerability-categories) category
 and has a Medium severity.
+
+### Incorrect Exponentiation
+
+It's common to use `^` for exponentiation. However in Rust, `^` is the XOR operator. If the `^` operator is used, it could lead to unexpected behavior in the contract. It's recommended to use the method `pow()` for exponentiation or `.bitxor()` for XOR operations.
+
+This vulnerability falls under the [Arithmetic](#vulnerability-categories) category and has a Critical severity.

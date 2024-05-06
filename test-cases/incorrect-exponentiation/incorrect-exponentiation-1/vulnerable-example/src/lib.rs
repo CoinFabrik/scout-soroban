@@ -33,7 +33,7 @@ impl IncorrectExponentiation {
         .expect("Data not found");
         
         data = data ^ 3;
-        return data;
+        data
     }
 
 }
@@ -50,7 +50,7 @@ mod tests {
     let contract_id = env.register_contract(None, IncorrectExponentiation);
     let client = IncorrectExponentiationClient::new(&env, &contract_id);
     env.mock_all_auths();
-    let user = <Address as testutils::Address>::generate(&env);
+    let _user = <Address as testutils::Address>::generate(&env);
 
 
     client.init();

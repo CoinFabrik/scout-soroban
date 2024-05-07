@@ -1,43 +1,41 @@
-# Zero or test address
+# Incorrect Exponentiation
 
 ### What it does
-Checks whether the zero address is being inputed to a function without validation.
+
+Warns about `^` being a `bit XOR` operation instead of an exponentiation.  
 
 ### Why is this bad?
-Because the private key for the zero address is known, anyone could take ownership of the contract.
+
+It can introduce unexpected behaviour in the smart contract.
+
+#### More info
+
+- https://doc.rust-lang.org/std/ops/trait.BitXor.html#tymethod.bitxor
 
 ### Example
 
 ```rust
-pub fn set(e: Env, admin: Address, data: i32) -> Result<(), Error> {
-    if !ZeroAddressContract::ensure_is_admin(&e, admin)? {
-        return Err(Error::NotAdmin);
+    pub fn exp_data_3(e: Env) -> u128 {
+        let mut data = e.storage()
+        .instance()
+        .get::<DataKey, u128>(&DataKey::Data)
+        .expect("Data not found");
+        data = data ^ 3;
+        return data;
     }
-    e.storage().persistent().set(&DataKey::Data, &data);
-    Ok(())
-}
 ```
-
-
 Use instead:
+
 ```rust
-pub fn set(e: Env, admin: Address, data: i32) -> Result<(), Error> {
-    if admin
-        == Address::from_string(&String::from_bytes(
-            &e,
-            b"GAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAWHF",
-        ))
-    {
-        return Err(Error::InvalidNewAdmin);
+     pub fn exp_data_3(e: Env) -> u128 {
+        let data = e.storage()
+        .instance()
+        .get::<DataKey, u128>(&DataKey::Data)
+        .expect("Data not found");
+        return data.pow(3);
     }
-    if !ZeroAddressContract::ensure_is_admin(&e, admin)? {
-        return Err(Error::NotAdmin);
-    }
-    e.storage().persistent().set(&DataKey::Data, &data);
-    Ok(())
-}
 ```
 
 ### Implementation
 
-The detector's implementation can be found at [this link](https://github.com/CoinFabrik/scout-soroban/tree/main/detectors/zero-or-test-address).
+The detector's implementation can be found at [this link](https://github.com/CoinFabrik/scout-soroban/tree/main/detectors/incorrect-exponentiation).

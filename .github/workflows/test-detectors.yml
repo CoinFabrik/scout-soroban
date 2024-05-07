@@ -57,11 +57,13 @@ jobs:
           key: ${{ runner.os }}-tests-${{ hashFiles('**/Cargo.lock') }}
           restore-keys: ${{ runner.os }}-tests-
 
-      - name: Install Rust nightly
-        run: rustup install nightly-2023-12-16
+      - name: Install Rust nightly and add rust-src
+        run: |
+          rustup install nightly-2023-12-16
+          rustup +nightly component add rust-src
 
       - name: Install dylint, dylint-link and cargo-scout-audit
-        run: cargo +nightly-2023-12-16 install cargo-dylint dylint-link cargo-scout-audit@0.2.8
+        run: cargo +nightly-2023-12-16 install cargo-dylint dylint-link cargo-scout-audit
 
       - name: Determine build status and write to file
         run: echo "${{ job.status }}" > status-${{ matrix.os }}.txt
@@ -139,7 +141,7 @@ jobs:
 
       - name: Read macOS build status
         id: macos_status
-        working-directory: build-status-macos-latest
+        working-directory: build-status-macos-13
         run: echo "status=$(cat status-macos-13.txt)" >> $GITHUB_OUTPUT
 
       - name: Find comment

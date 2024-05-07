@@ -1,4 +1,5 @@
 #![no_std]
+#![allow(clippy::assign_op_pattern)]
 
 use soroban_sdk::{contract, contractimpl, contracttype, Env};
 

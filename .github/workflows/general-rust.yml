@@ -8,6 +8,7 @@ on:
       - "scripts/**"
       - "!detectors/**/*.md"
       - "!test-cases/**/*.md"
+  workflow_dispatch:
 
 env:
   CARGO_TERM_COLOR: always

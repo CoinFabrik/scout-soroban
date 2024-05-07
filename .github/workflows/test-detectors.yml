@@ -60,7 +60,7 @@ jobs:
       - name: Install Rust nightly and add rust-src
         run: |
           rustup install nightly-2023-12-16
-          rustup +nightly component add rust-src
+          rustup component add rust-src --toolchain nightly-2023-12-16
 
       - name: Install dylint, dylint-link and cargo-scout-audit
         run: cargo +nightly-2023-12-16 install cargo-dylint dylint-link cargo-scout-audit
@@ -121,6 +121,9 @@ jobs:
             ~/.rustup
           key: ${{ runner.os }}-tests-${{ hashFiles('**/Cargo.lock') }}
           restore-keys: ${{ runner.os }}-tests-
+
+      - name: Show rust components
+        run: rustup component list
 
       - name: Run unit and integration tests
         run: python scripts/run-tests.py --detector=${{ matrix.detector }}

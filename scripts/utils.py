@@ -78,7 +78,7 @@ def print_results(returncode, error_message, check_type, root, elapsed_time):
     )
     if returncode != 0:
         print(f"\n{RED}{check_type.capitalize()} {issue_type} found in: {root}{ENDC}\n")
-        if not error_message is None:
+        if error_message is not None:
             for line in error_message.strip().split("\n"):
                 print(f"| {line}")
             print("\n")

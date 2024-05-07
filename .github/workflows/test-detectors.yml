@@ -61,7 +61,7 @@ jobs:
         run: rustup install nightly-2023-12-16
 
       - name: Install dylint, dylint-link and cargo-scout-audit
-        run: cargo +nightly-2023-12-16 install cargo-dylint dylint-link cargo-scout-audit
+        run: cargo +nightly-2023-12-16 install cargo-dylint dylint-link cargo-scout-audit@0.2.8
 
       - name: Determine build status and write to file
         run: echo "${{ job.status }}" > status-${{ matrix.os }}.txt

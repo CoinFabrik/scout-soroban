@@ -56,7 +56,6 @@ mod tests {
     client.init();
     client.set_data(&10_u128);
     
-    //EXPECTED TO FAIL TO SHOW THAT ^ IS NOT .pow()
-    assert_eq!(client.exp_data_3(), 1000);
+    assert_eq!(client.exp_data_3(), 9);
 }
 }

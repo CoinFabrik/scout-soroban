@@ -122,9 +122,6 @@ jobs:
           key: ${{ runner.os }}-tests-${{ hashFiles('**/Cargo.lock') }}
           restore-keys: ${{ runner.os }}-tests-
 
-      - name: Show rust components
-        run: rustup component list
-
       - name: Run unit and integration tests
         run: python scripts/run-tests.py --detector=${{ matrix.detector }}
 

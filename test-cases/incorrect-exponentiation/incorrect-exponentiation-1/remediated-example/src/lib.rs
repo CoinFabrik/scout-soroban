@@ -23,7 +23,7 @@ impl IncorrectExponentiation {
     pub fn init(e: Env){
         e.storage()
             .instance()
-            .set::<DataKey, u128>(&DataKey::Data, &((255_u128.pow(2)) - 1));
+            .set::<DataKey, u128>(&DataKey::Data, &(255_u128.pow(2) - 1));
     }
     
     pub fn get_data(e: Env) -> Result<u128, IEError> {
@@ -35,7 +35,6 @@ impl IncorrectExponentiation {
             None => return Err(IEError::CouldntRetrieveData)
         }
     }
-
 }
 
 #[cfg(test)]

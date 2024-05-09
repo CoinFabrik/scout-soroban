@@ -1,7 +1,14 @@
 #![no_std]
 #![allow(clippy::assign_op_pattern)]
 
-use soroban_sdk::{contract, contractimpl, contracttype, Env};
+use soroban_sdk::{contract, contractimpl, contracttype, contracterror, Env};
+
+#[contracterror]
+#[derive(Copy, Clone, Debug, Eq, PartialEq, PartialOrd, Ord)]
+#[repr(u32)]
+pub enum IEError {
+    CouldntRetrieveData = 1,
+}
 
 #[contracttype]
 #[derive(Clone)]
@@ -14,27 +21,20 @@ pub struct IncorrectExponentiation;
 
 #[contractimpl]
 impl IncorrectExponentiation {
-    pub fn init(e: Env) {
+    pub fn init(e: Env){
         e.storage()
             .instance()
             .set::<DataKey, u128>(&DataKey::Data, &((255_u128 ^ 2) - 1));
     }
 
-    pub fn set_data(e: Env, new_data: u128) {
-        e.storage()
+    pub fn get_data(e: Env) -> Result<u128, IEError> {
+        let data = e.storage()
             .instance()
-            .set::<DataKey, u128>(&DataKey::Data, &new_data);
-    }
-
-    pub fn exp_data_3(e: Env) -> u128 {
-        let mut data = e
-            .storage()
-            .instance()
-            .get::<DataKey, u128>(&DataKey::Data)
-            .expect("Data not found");
-
-        data = data ^ 3;
-        data
+            .get(&DataKey::Data);
+        match data {
+            Some(x) => Ok(x),
+            None => return Err(IEError::CouldntRetrieveData)
+        }
     }
 }
 
@@ -53,8 +53,6 @@ mod tests {
         let _user = <Address as testutils::Address>::generate(&env);
 
         client.init();
-        client.set_data(&10_u128);
-
-        assert_eq!(client.exp_data_3(), 9);
+        assert_ne!(client.get_data(), 65024);
     }
 }

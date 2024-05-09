@@ -15,24 +15,19 @@ It can introduce unexpected behaviour in the smart contract.
 ### Example
 
 ```rust
-    pub fn exp_data_3(e: Env) -> u128 {
-        let mut data = e.storage()
-        .instance()
-        .get::<DataKey, u128>(&DataKey::Data)
-        .expect("Data not found");
-        data = data ^ 3;
-        return data;
+    pub fn init(e: Env){
+        e.storage()
+            .instance()
+            .set::<DataKey, u128>(&DataKey::Data, &((255_u128 ^ 2) - 1));
     }
 ```
 Use instead:
 
 ```rust
-     pub fn exp_data_3(e: Env) -> u128 {
-        let data = e.storage()
-        .instance()
-        .get::<DataKey, u128>(&DataKey::Data)
-        .expect("Data not found");
-        return data.pow(3);
+     pub fn init(e: Env) {
+        e.storage()
+            .instance()
+            .set::<DataKey, u128>(&DataKey::Data, &(255_u128.pow(2) - 1));
     }
 ```
 

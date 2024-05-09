@@ -14,12 +14,6 @@ pub struct IncorrectExponentiation;
 #[contractimpl]
 impl IncorrectExponentiation {
 
-    pub fn init(e: Env){
-        e.storage()
-        .instance()
-        .set::<DataKey, u128>(&DataKey::Data, &((255_u128^2) - 1));
-    }
-
     pub fn set_data(e: Env, new_data: u128) {
         e.storage()
         .instance()
@@ -53,8 +47,6 @@ mod tests {
     env.mock_all_auths();
     let _user = <Address as testutils::Address>::generate(&env);
 
-
-    client.init();
     client.set_data(&10_u128);
     
     assert_eq!(client.exp_data_3(), 9);

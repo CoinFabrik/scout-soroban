@@ -21,8 +21,8 @@ In the following example, the `^` operand is being used for exponentiation. But 
         .get::<DataKey, u128>(&DataKey::Data)
         .expect("Data not found");
         
-        data = data ^ 3;
-        return data;
+        data ^= 3;
+        data
     }
 ```
 
@@ -39,7 +39,7 @@ A possible solution is to use the method `pow()`. But, if a XOR operation is wan
         .get::<DataKey, u128>(&DataKey::Data)
         .expect("Data not found");
 
-        return data.pow(3);
+        data.pow(3)
     }
 ```
 

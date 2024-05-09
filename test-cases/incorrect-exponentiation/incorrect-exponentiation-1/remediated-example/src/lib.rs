@@ -20,12 +20,12 @@ pub struct IncorrectExponentiation;
 
 #[contractimpl]
 impl IncorrectExponentiation {
-    pub fn init(e: Env) {
+    pub fn init(e: Env){
         e.storage()
             .instance()
-            .set::<DataKey, u128>(&DataKey::Data, &(255_u128.pow(2) - 1));
+            .set::<DataKey, u128>(&DataKey::Data, &((255_u128 ^ 2) - 1));
     }
-
+    
     pub fn get_data(e: Env) -> Result<u128, IEError> {
         let data = e.storage()
             .instance()
@@ -35,6 +35,7 @@ impl IncorrectExponentiation {
             None => return Err(IEError::CouldntRetrieveData)
         }
     }
+
 }
 
 #[cfg(test)]
@@ -45,13 +46,15 @@ mod tests {
 
     #[test]
     fn simple_test() {
-        let env = Env::default();
-        let contract_id = env.register_contract(None, IncorrectExponentiation);
-        let client = IncorrectExponentiationClient::new(&env, &contract_id);
-        env.mock_all_auths();
-        let _user = <Address as testutils::Address>::generate(&env);
+    let env = Env::default();
+    let contract_id = env.register_contract(None, IncorrectExponentiation);
+    let client = IncorrectExponentiationClient::new(&env, &contract_id);
+    env.mock_all_auths();
+    let _user = <Address as testutils::Address>::generate(&env);
 
         client.init();
         assert_eq!(client.get_data(), 65024);
     }
 }
+
+

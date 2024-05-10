@@ -25,7 +25,7 @@ impl IncorrectExponentiation {
             .instance()
             .set::<DataKey, u128>(&DataKey::Data, &(255_u128.pow(2) - 1));
     }
-    
+
     pub fn get_data(e: Env) -> Result<u128, IEError> {
         let data = e.storage().instance().get(&DataKey::Data);
         match data {
@@ -53,5 +53,3 @@ mod tests {
         assert_eq!(client.get_data(), 65024);
     }
 }
-
-

@@ -26,7 +26,7 @@ dylint_linting::impl_late_lint! {
         name: "Unexpected Revert Inserting to Storage",
         long_message: " It occurs by preventing transactions by other users from being successfully executed forcing the blockchain state to revert to its original state.",
         severity: "Medium",
-        help: "https://github.com/CoinFabrik/scout-soroban/tree/main/detectors/dos-unexpected-revert-with-vector",
+        help: "https://coinfabrik.github.io/scout-soroban/docs/detectors/dos-unexpected-revert-with-vector",
         vulnerability_class: "Denial of Service",
     }
 }

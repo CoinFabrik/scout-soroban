@@ -22,7 +22,7 @@ dylint_linting::declare_late_lint! {
         name: "Unused Return Enum",
         long_message: "Soroban functions can return a Result enum with a custom error type. This is useful for the caller to know what went wrong when the message fails. The definition of the Result type enum consists of two variants: Ok and Err. If any of the variants is not used, the code could be simplified or it could imply a bug.    ",
         severity: "Minor",
-        help: "https://github.com/CoinFabrik/scout-soroban/tree/main/detectors/unused-return-enum",
+        help: "https://coinfabrik.github.io/scout-soroban/docs/detectors/unused-return-enum",
         vulnerability_class: "Validations and error handling",
     }
 }

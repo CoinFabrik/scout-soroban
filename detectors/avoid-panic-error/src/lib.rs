@@ -63,7 +63,7 @@ dylint_linting::impl_pre_expansion_lint! {
         name: "Avoid panic! macro",
         long_message: "The use of the panic! macro to stop execution when a condition is not met is useful for testing and prototyping but should be avoided in production code. Using Result as the return type for functions that can fail is the idiomatic way to handle errors in Rust.    ",
         severity: "Enhancement",
-        help: "https://github.com/CoinFabrik/scout-soroban/tree/main/detectors/avoid-panic-error",
+        help: "https://coinfabrik.github.io/scout-soroban/docs/detectors/avoid-panic-error",
         vulnerability_class: "Validations and error handling",
     }
 }

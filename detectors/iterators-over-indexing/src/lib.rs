@@ -31,7 +31,7 @@ dylint_linting::declare_late_lint! {
         name: "Iterators Over Indexing",
         long_message: "Instead, use an iterator or index to `.len()`.",
         severity: "Medium",
-        help: "https://github.com/CoinFabrik/scout-soroban/tree/main/detectors/iterators-over-indexing",
+        help: "https://coinfabrik.github.io/scout-soroban/docs/detectors/iterators-over-indexing",
         vulnerability_class: "Incorrect Use of Indexing",
     }
 }

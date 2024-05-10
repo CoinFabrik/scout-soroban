@@ -57,7 +57,7 @@ dylint_linting::declare_late_lint! {
         name: "Avoid unsafe block",
         long_message: "The unsafe block is used to bypass Rust's safety checks. It is recommended to avoid using unsafe blocks as much as possible, and to use them only when necessary.    ",
         severity: "Enhancement",
-        help: "https://github.com/CoinFabrik/scout-soroban/tree/main/detectors/avoid-unsafe-block",
+        help: "https://coinfabrik.github.io/scout-soroban/docs/detectors/avoid-unsafe-block",
         vulnerability_class: "Best practices",
     }
 }

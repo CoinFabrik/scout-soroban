@@ -56,7 +56,7 @@ dylint_linting::declare_late_lint! {
         name: "Divide Before Multiply",
         long_message: "Performing a division operation before a multiplication can lead to a loss of precision. This issue becomes significant in programs like smart contracts where numerical precision is crucial.",
         severity: "Medium",
-        help: "https://github.com/CoinFabrik/scout-soroban/tree/main/detectors/divide-before-multiply",
+        help: "https://coinfabrik.github.io/scout-soroban/docs/detectors/divide-before-multiply",
         vulnerability_class: "Arithmetic",
     }
 }

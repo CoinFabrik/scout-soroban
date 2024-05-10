@@ -26,7 +26,7 @@ dylint_linting::impl_late_lint! {
         name: "Unrestricted Transfer From",
         long_message: "In an smart contract, allowing unrestricted transfer_from operations poses a significant vulnerability. When from arguments for that function is provided directly by the user, this might enable the withdrawal of funds from any actor with token approval on the contract. This could result in unauthorized transfers and loss of funds. To mitigate this vulnerability, instead of allowing an arbitrary from address, the from address should be restricted.",
         severity: "Critical",
-        help: "https://github.com/CoinFabrik/scout-soroban/tree/main/detectors/unrestricted-transfer-from",
+        help: "https://coinfabrik.github.io/scout-soroban/docs/detectors/unrestricted-transfer-from",
         vulnerability_class: "Validations and error handling",
     }
 }

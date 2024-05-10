@@ -26,7 +26,7 @@ dylint_linting::declare_late_lint! {
         name: "Unsafe Map Get",
         long_message: "This vulnerability class pertains to the inappropriate usage of the get method for Map in soroban",
         severity: "Medium",
-        help: "https://github.com/CoinFabrik/scout-soroban/tree/main/detectors/unsafe-map-get",
+        help: "https://coinfabrik.github.io/scout-soroban/docs/detectors/unsafe-map-get",
         vulnerability_class: "Validations and error handling",
     }
 }

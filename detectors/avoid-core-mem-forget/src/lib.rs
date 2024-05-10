@@ -50,7 +50,7 @@ dylint_linting::impl_pre_expansion_lint! {
         name: "Avoid core::mem::forget usage",
         long_message: "The core::mem::forget function is used to forget about a value without running its destructor. This could lead to memory leaks and logic errors.",
         severity: "Enhancement",
-        help: "https://github.com/CoinFabrik/scout-soroban/tree/main/detectors/avoid-core-mem-forget",
+        help: "https://coinfabrik.github.io/scout-soroban/docs/detectors/avoid-core-mem-forget",
         vulnerability_class: "Best practices",
     }
 }

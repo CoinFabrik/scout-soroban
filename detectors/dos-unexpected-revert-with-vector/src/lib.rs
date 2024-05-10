@@ -61,7 +61,6 @@ impl<'tcx> LateLintPass<'tcx> for UnexpectedRevertWarn {
                     let defid = self.cx.typeck_results().type_dependent_def_id(expr.hir_id);
                     let ty = Ty::new_foreign(self.cx.tcx, defid.unwrap());
                     if path.ident.name.to_string() == "require_auth" {
-                        //println!("este es un require auth");
                         self.require_auth = true;
                     }
                     if ty.to_string().contains("soroban_sdk::Vec")

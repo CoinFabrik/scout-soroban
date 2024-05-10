@@ -20,7 +20,3 @@ strip = "symbols"
 debug-assertions = true
 inherits = "release"
 
-[workspace.metadata.dylint]
-libraries = [
-    { path="/home/sofia/Documentos/cf/pr/scout-soroban/detectors/unrestricted-transfer-from" },
-]

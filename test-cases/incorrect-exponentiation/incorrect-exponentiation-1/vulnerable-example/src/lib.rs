@@ -47,8 +47,8 @@ mod tests {
     env.mock_all_auths();
     let _user = <Address as testutils::Address>::generate(&env);
 
-    client.set_data(&10_u128);
+    client.set_data(&3_u128);
     
-    assert_eq!(client.exp_data_3(), 9);
+    assert_ne!(client.exp_data_3(), 27);
 }
 }

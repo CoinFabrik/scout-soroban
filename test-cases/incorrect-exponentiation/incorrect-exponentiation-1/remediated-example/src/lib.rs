@@ -1,6 +1,6 @@
 #![no_std]
 
-use soroban_sdk::{contract, contractimpl, contracttype, Env};
+use soroban_sdk::{contract, contractimpl,contracterror, contracttype, Env};
 
 #[contracttype]
 #[derive(Clone)]
@@ -8,27 +8,33 @@ enum DataKey {
     Data,
 }
 
+// Agrega el atributo #[contracterror] a la definición de IEError
+#[contracterror]
+#[derive(Copy, Clone, Debug, Eq, PartialEq, PartialOrd, Ord)]
+#[repr(u32)]
+pub enum IEError {
+    CouldntRetrieveData = 1,
+}
+
 #[contract]
 pub struct IncorrectExponentiation;
 
 #[contractimpl]
 impl IncorrectExponentiation {
-
     pub fn set_data(e: Env, new_data: u128) {
         e.storage()
         .instance()
         .set::<DataKey, u128>(&DataKey::Data, &new_data);
     }
 
-    pub fn exp_data_3(e: Env) -> u128 {
-        let data = e.storage()
-        .instance()
-        .get::<DataKey, u128>(&DataKey::Data)
-        .expect("Data not found");
-
-        data.pow(3)
+    pub fn exp_data_3(e: Env) -> Result<u128, IEError> {
+        let data:Option<u128> =  e.storage().instance().get(&DataKey::Data);
+        match data 
+        {
+            Some(x) => return Ok(x.pow(3)),
+            None =>return  Err(IEError::CouldntRetrieveData),
+        }
     }
-
 }
 
 #[cfg(test)]
@@ -47,10 +53,8 @@ mod tests {
 
 
 
-    client.set_data(&10_u128);
+    client.set_data(&3_u128);
 
-    assert_eq!(client.exp_data_3(), 1000);
+    assert_eq!(client.exp_data_3(), 27);
 }
 }
-
-

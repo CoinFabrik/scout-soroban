@@ -6,7 +6,7 @@ sidebar_position: 8
 
 Add Scout to your development workspace with Scout's VS Code extension and run Scout automatically upon saving your file.
 
-![Scout VS Code extension.](/docs/static/img/vscode-extension.png)
+![Scout VS Code extension.](../docs/static/img/vscode-extension.png)
 
 :warning: To ensure the extension runs properly, make sure that you open the directory containing your smart contract, rather than the entire project. For example, if your smart contracts are located in `myproject/contracts`, and you want to work on the `token` contract while using the Scout VS Code Extension, open `myproject/contracts/token`.
 

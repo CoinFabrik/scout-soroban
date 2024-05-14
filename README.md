@@ -14,25 +14,39 @@ Our interest in this project comes from our experience in manual auditing and vu
 
 ## Quick Start
 
-For a quick start, make sure that [Cargo](https://doc.rust-lang.org/cargo/getting-started/installation.html) is installed on your computer. Then, install Scout dependencies by running the following command:
+Make sure that [Cargo](https://doc.rust-lang.org/cargo/getting-started/installation.html) is installed on your computer. Then, follow these 5 simple steps:
+
+**1. Install Rust Nightly Toolchain:**
 
 ```bash
-cargo install cargo-dylint dylint-link
+rustup toolchain install nightly-2023-12-16
 ```
 
-Afterwards, install Scout with the following command:
+**2. Set Default Nightly Toolchain:**
 
 ```bash
-cargo install cargo-scout-audit
+rustup default nightly-2023-12-16
 ```
 
-Finally, install additional Rust components required by Scout.
+**3. Add rust-src Component:**
 
 ```bash
 rustup component add rust-src --toolchain nightly-2023-12-16
 ```
 
-To run Scout on your project, navigate to the root directory of your smart contract (where the `Cargo.toml` file is) and execute the following command:
+**4. Install additional tools required by Scout:**
+
+```bash
+cargo install cargo-dylint dylint-link mdbook
+```
+
+**5. Install Scout Audit:**
+
+```bash
+cargo install cargo-scout-audit
+```
+
+Finally, to run Scout on your project, navigate to the root directory of your smart contract (where the `Cargo.toml` file is) and execute the following command:
 
 ```bash
 cargo scout-audit

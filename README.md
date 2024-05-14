@@ -26,6 +26,12 @@ Afterwards, install Scout with the following command:
 cargo install cargo-scout-audit
 ```
 
+Finally, install additional Rust components required by Scout.
+
+```bash
+rustup component add rust-src --toolchain nightly-2023-12-16
+```
+
 To run Scout on your project, navigate to the root directory of your smart contract (where the `Cargo.toml` file is) and execute the following command:
 
 ```bash
@@ -62,6 +68,7 @@ Currently Scout includes the following detectors.
 | [unrestricted-transfer-from](https://github.com/CoinFabrik/scout-soroban/tree/main/detectors/unrestricted-transfer-from)                           | Avoid passing an user-defined parameter as a `from` field in transfer-from. | [1](https://github.com/CoinFabrik/scout-soroban/tree/main/test-cases/unrestricted-transfer-from/unrestricted-transfer-from-1)                   | Critical  |
 | [unsafe-map-get](https://github.com/CoinFabrik/scout-soroban/tree/main/detectors/unsafe-map-get)                           | Inappropriate usage of the `get` method for `Map` in soroban | [1](https://github.com/CoinFabrik/scout-soroban/tree/main/test-cases/unsafe-map-get/unsafe-map-get-1)              | Medium |
 | [zero-or-test-address](https://github.com/CoinFabrik/scout-soroban/tree/main/detectors/zero-or-test-address)                           | Avoid zero or test address assignment to prevent contract control loss. | [1](https://github.com/CoinFabrik/scout-soroban/tree/main/test-cases/zero-or-test-address/zero-or-test-address-1)                   | Validations and error handling  |
+| [incorrect-exponentation](https://github.com/CoinFabrik/scout-soroban/tree/main/detectors/incorrect-exponentiation)                           | Warns against incorrect usage of ´^´.  | [1](https://github.com/CoinFabrik/scout-soroban/tree/main/test-cases/incorrect-exponentiation/incorrect-exponentiation-1)                   | Critical  |
 
 ## Output formats
 
@@ -75,13 +82,15 @@ cargo scout-audit --output-format [html|md]
 
 ![Scout HTML report.](/docs/static/img/scout-soroban-html.jpg)
 
-## VS Code extension
+## Scout VS Code extension
 
 Add Scout to your development workspace with Scout's VS Code extension to run Scout automatically upon saving your file.
 
 ![Scout VS Code extension.](/assets/vscode-extension.png)
 
+:warning: To ensure the extension runs properly, make sure that you open the directory containing your smart contract, rather than the entire project. For example, if your smart contracts are located in `myproject/contracts`, and you want to work on the `token` contract while using the Scout VS Code Extension, open `myproject/contracts/token`.
 
+:bulb: Tip: To see the errors highlighted in your code, we recommend installing the [Error Lens Extension](https://marketplace.visualstudio.com/items?itemName=usernamehw.errorlens).
 
 :point_right: Download Scout VS Code from [Visual Studio Marketplace](https://marketplace.visualstudio.com/items?itemName=CoinFabrik.scout-audit).
 
@@ -133,3 +142,4 @@ Our team has an academic background in computer science and mathematics, with wo
 ## License
 
 Scout is licensed and distributed under a MIT license. [Contact us](https://www.coinfabrik.com/) if you're looking for an exception to the terms.
+

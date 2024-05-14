@@ -40,9 +40,15 @@ Afterwards, install Scout with the following command:
 cargo install cargo-scout-audit
 ```
 
+Finally, install additional Rust components required by Scout.
+
+```bash
+rustup component add rust-src --toolchain nightly-2023-12-16
+```
+
 ### Usage
 
-To run Scout on your project, navigate to its root directory and execute the following command:
+To run Scout on your project, navigate to the root directory of your smart contract (where the `Cargo.toml` file is) and execute the following command:
 
 ```bash
 cargo scout-audit

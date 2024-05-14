@@ -8,6 +8,7 @@ on:
       - "scripts/**"
       - "!detectors/**/*.md"
       - "!test-cases/**/*.md"
+  workflow_dispatch:
 
 env:
   CARGO_TERM_COLOR: always
@@ -57,8 +58,10 @@ jobs:
           key: ${{ runner.os }}-tests-${{ hashFiles('**/Cargo.lock') }}
           restore-keys: ${{ runner.os }}-tests-
 
-      - name: Install Rust nightly
-        run: rustup install nightly-2023-12-16
+      - name: Install Rust nightly and add rust-src
+        run: |
+          rustup install nightly-2023-12-16
+          rustup component add rust-src --toolchain nightly-2023-12-16
 
       - name: Install dylint, dylint-link and cargo-scout-audit
         run: cargo +nightly-2023-12-16 install cargo-dylint dylint-link cargo-scout-audit
@@ -121,10 +124,7 @@ jobs:
           restore-keys: ${{ runner.os }}-tests-
 
       - name: Run unit and integration tests
-        run: |
-          rustup toolchain install nightly-2023-12-16-x86_64-apple-darwin
-          rustup component add rust-src --toolchain nightly-2023-12-16-x86_64-apple-darwin
-          python scripts/run-tests.py --detector=${{ matrix.detector }}
+        run: python scripts/run-tests.py --detector=${{ matrix.detector }}
 
   comment-on-pr:
     name: Comment on PR
@@ -139,13 +139,11 @@ jobs:
         id: ubuntu_status
         working-directory: build-status-ubuntu-latest
         run: echo "status=$(cat status-ubuntu-latest.txt)" >> $GITHUB_OUTPUT
-        continue-on-error: true
 
       - name: Read macOS build status
         id: macos_status
-        working-directory: build-status-macos-latest
-        run: echo "status=$(cat status-macos-latest.txt)" >> $GITHUB_OUTPUT
-        continue-on-error: true
+        working-directory: build-status-macos-13
+        run: echo "status=$(cat status-macos-13.txt)" >> $GITHUB_OUTPUT
 
       - name: Find comment
         id: find_comment

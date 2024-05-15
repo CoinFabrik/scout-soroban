@@ -14,11 +14,11 @@ Scout is an extensible open-source tool intended to assist Stellar's Soroban sma
 
 - A list of vulnerabilities, best practices and enhancements, together with associated detectors to identify these issues in your code
 - Command Line Interface (CLI)
-- VSCode Extension
+- VS Code Extension
 
 ### What you'll need
 
-Make sure that [Cargo](https://doc.rust-lang.org/cargo/getting-started/installation.html) is installed on your computer. For using the VSCode Extension you must be using [VSCode](https://code.visualstudio.com/).
+Make sure that [Cargo](https://doc.rust-lang.org/cargo/getting-started/installation.html) is installed on your computer. For using the VSCode Extension you must be using [VS Code](https://code.visualstudio.com/).
 
 You should be able to install and run Scout without issues on Mac or Linux. You can also use it in Windows through WSL.
 
@@ -28,13 +28,33 @@ The command line interface is designed to allow you to run Scout on an entire pr
 
 ### Installation
 
-FIn order to install the Command Line Interface, first install Scout dependencies by running the following command:
+Install Scout in 5 simple steps:
+
+**1. Install Rust Nightly Toolchain:**
 
 ```bash
-cargo install cargo-dylint dylint-link
+rustup toolchain install nightly-2023-12-16
 ```
 
-Afterwards, install Scout with the following command:
+**2. Set Default Nightly Toolchain:**
+
+```bash
+rustup default nightly-2023-12-16
+```
+
+**3. Add rust-src Component:**
+
+```bash
+rustup component add rust-src --toolchain nightly-2023-12-16
+```
+
+**4. Install additional tools required by Scout:**
+
+```bash
+cargo install cargo-dylint dylint-link mdbook
+```
+
+**5. Install Scout Audit:**
 
 ```bash
 cargo install cargo-scout-audit
@@ -42,7 +62,7 @@ cargo install cargo-scout-audit
 
 ### Usage
 
-To run Scout on your project, navigate to its root directory and execute the following command:
+To run Scout on your project, navigate to the root directory of your smart contract (where the `Cargo.toml` file is) and execute the following command:
 
 ```bash
 cargo scout-audit

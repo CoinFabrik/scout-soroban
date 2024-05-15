@@ -2,7 +2,7 @@
 sidebar_position: 9
 ---
 
-# Soroban Smart Contracts Examples
+# Scout Soroban Smart Contracts Examples
 
 In the context of Scout's development, we engaged developers without Soroban experience to create a series of smart contracts within tight time constraints, encouraging them to introduce errors.
 

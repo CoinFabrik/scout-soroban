@@ -32,7 +32,7 @@ dylint_linting::impl_late_lint! {
         name: "Unprotected Update Current Contract Wasm",
         long_message: "If users are allowed to call update_current_contract_wasm, they can intentionally modify the contract behaviour, leading to the loss of all associated data/tokens and functionalities given by this contract or by others that depend on it. To prevent this, the function should be restricted to administrators or authorized users only.    ",
         severity: "Critical",
-        help: "https://github.com/CoinFabrik/scout-soroban/tree/main/detectors/unprotected-update-current-contract-wasm",
+        help: "https://coinfabrik.github.io/scout-soroban/docs/detectors/unprotected-update-current-contract-wasm",
         vulnerability_class: "Authorization",
     }
 }

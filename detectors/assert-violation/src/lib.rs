@@ -29,7 +29,7 @@ dylint_linting::impl_pre_expansion_lint! {
         name: "Assert Violation",
         long_message: "Assert causes panic. Instead, return a proper error.",
         severity: "Medium",
-        help: "https://github.com/CoinFabrik/scout-soroban/tree/main/detectors/assert-violation",
+        help: "https://coinfabrik.github.io/scout-soroban/docs/detectors/assert-violation",
         vulnerability_class: "Panic",
     }
 }

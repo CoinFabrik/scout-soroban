@@ -32,7 +32,7 @@ dylint_linting::declare_late_lint! {
         name: "Zero Address",
         long_message: "In the elliptic curve used by Soroban (Ed25519), the zero address has a known private key. Using this address as a null value (for example, for a contract's administrative account) is a common mistake, and can lead to losing control of the contract, instead of the contract being locked.",
         severity: "Minor",
-        help: "https://github.com/CoinFabrik/scout-soroban/tree/main/detectors/zero-address",
+        help: "https://coinfabrik.github.io/scout-soroban/docs/detectors/zero-address",
         vulnerability_class: "Validations and error handling",
     }
 }

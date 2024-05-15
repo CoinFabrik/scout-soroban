@@ -24,7 +24,7 @@ dylint_linting::declare_late_lint! {
         name: "Incorrect Exponentiation",
         long_message: LINT_MESSAGE,
         severity: "Critical",
-        help: "https://coinfabrik.github.io/scout/docs/vulnerabilities/incorrect-exponentiation",
+        help: "https://coinfabrik.github.io/scout-soroban/docs/detectors/incorrect-exponentiation",
         vulnerability_class: "Arithmetic",
     }
 

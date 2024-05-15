@@ -32,7 +32,7 @@ dylint_linting::impl_late_lint! {
         name: "Unprotected Mapping Operation",
         long_message: "This mapping operation is called without access control on a different key than the caller's address",
         severity: "Critical",
-        help: "https://github.com/CoinFabrik/scout-soroban/tree/main/detectors/unprotected-mapping-operation",
+        help: "https://coinfabrik.github.io/scout-soroban/docs/detectors/unprotected-mapping-operation",
         vulnerability_class: "Access Control",
     }
 }

@@ -53,7 +53,7 @@ dylint_linting::impl_late_lint! {
         name: "Set Contract Storage",
         long_message: "Functions using keys as variables without proper access control or input sanitation can allow users to perform changes in arbitrary memory locations.",
         severity: "Critical",
-        help: "https://coinfabrik.github.io/scout/docs/vulnerabilities/set-contract-storage",
+        help: "https://coinfabrik.github.io/scout-soroban/docs/detectors/set-contract-storage",
         vulnerability_class: "Authorization",
     }
 }

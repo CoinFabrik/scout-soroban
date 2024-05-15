@@ -24,7 +24,7 @@ dylint_linting::declare_late_lint!(
         name: "Denial of Service: Unbounded Operation",
         long_message: "In order to prevent a single transaction from consuming all the gas in a block, unbounded operations must be avoided. This includes loops that do not have a bounded number of iterations, and recursive calls.    ",
         severity: "Medium",
-        help: "https://github.com/CoinFabrik/scout-soroban/tree/main/detectors/dos-unbounded-operation",
+        help: "https://coinfabrik.github.io/scout-soroban/docs/detectors/dos-unbounded-operation",
         vulnerability_class: "Denial of Service",
     }
 );

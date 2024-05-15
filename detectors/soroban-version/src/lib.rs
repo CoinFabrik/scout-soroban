@@ -27,7 +27,7 @@ dylint_linting::declare_early_lint! {
         name: "Check Soroban version",
         long_message: "Using a older version of Soroban can be dangerous, as it may have bugs or security issues. Use the latest version available.",
         severity: "Enhancement",
-        help: "https://github.com/CoinFabrik/scout-soroban/tree/main/detectors/soroban-version",
+        help: "https://coinfabrik.github.io/scout-soroban/docs/detectors/soroban-version",
         vulnerability_class: "Best practices",
     }
 }

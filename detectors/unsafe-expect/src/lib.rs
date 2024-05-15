@@ -58,7 +58,7 @@ dylint_linting::declare_late_lint! {
         name: "Unsafe Expect",
         long_message: "In Rust, the expect method is commonly used for error handling. It retrieves the value from a Result or Option and panics with a specified error message if an error occurs. However, using expect can lead to unexpected program crashes.    ",
         severity: "Medium",
-        help: "https://github.com/CoinFabrik/scout-soroban/tree/main/detectors/unsafe-expect",
+        help: "https://coinfabrik.github.io/scout-soroban/docs/detectors/unsafe-expect",
         vulnerability_class: "Validations and error handling",
     }
 }

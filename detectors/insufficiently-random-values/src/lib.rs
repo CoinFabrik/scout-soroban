@@ -30,7 +30,7 @@ dylint_linting::declare_late_lint! {
         name: "Insufficiently Random Values",
         long_message: "Use env.prng() to generate random numbers, and remember that all random numbers are under the control of validators.",
         severity: "Critical",
-        help: "https://github.com/CoinFabrik/scout-soroban/tree/main/detectors/insufficiently-random-values",
+        help: "https://coinfabrik.github.io/scout-soroban/docs/detectors/insufficiently-random-values",
         vulnerability_class: "Block attributes",
     }
 }

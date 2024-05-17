@@ -83,7 +83,7 @@ impl<'tcx> LateLintPass<'tcx> for VecCouldBeMapping {
                     span.clone(),
                     LINT_MESSAGE,
                     None,
-                    "Change this to a `Key(...)`",
+                    "Change this to a parametrized enum as storage key",
                 );
             });
     }

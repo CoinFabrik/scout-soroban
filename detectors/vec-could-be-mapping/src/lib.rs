@@ -13,26 +13,30 @@ use rustc_hir::{
         FnKind,
         Visitor,
     },
-    def::Res,
     Body,
     Expr,
     Stmt,
-    ExprKind,
-    StmtKind,
     FnDecl,
     GenericArg,
-    PathSegment,
     QPath,
-    Ty,
     TyKind,
     HirId,
-    Path,
-    Local,
 };
 use rustc_lint::{LateContext, LateLintPass};
-use rustc_middle::ty::{Interner, TyCtxt, GenericArgKind};
+use rustc_middle::ty::GenericArgKind;
 use rustc_span::{def_id::LocalDefId, Span};
 use scout_audit_clippy_utils::diagnostics::span_lint_and_help;
+use utils::{
+    expr_to_path,
+    path_to_resolved,
+    resolution_to_local,
+    expr_to_method_call,
+    get_type_string,
+    type_to_adt,
+    get_node_type,
+    definition_to_string,
+    stmt_to_local,
+};
 
 const LINT_MESSAGE: &str =
     "You are iterating over a vector of tuples using `find`. Consider using a mapping instead.";
@@ -217,24 +221,6 @@ impl<'tcx, 'a, 'b, 'c> Visitor<'tcx> for FindIterations<'a, 'b, 'c> {
     }
 }
 
-fn get_node_type<'a>(cx: &LateContext<'a>, hir_id: &HirId) -> rustc_middle::ty::Ty<'a> {
-    cx.typeck_results().node_type(*hir_id)
-}
-
-fn definition_to_string<'a>(cx: &LateContext<'a>, did: rustc_hir::def_id::DefId) -> String{
-    cx
-        .get_def_path(did)
-        .iter()
-        .map(|x| x.to_string())
-        .collect::<Vec<_>>()
-        .join("::")
-}
-
-fn get_type_string<'a, 'hir>(cx: &LateContext<'a>, hir_id: &HirId) -> Result<String, ()>{
-    let (def, _generic_args) = type_to_adt(get_node_type(cx, hir_id).kind())?;
-    Ok(definition_to_string(cx, def.did()))
-}
-
 fn is_storage<'a>(cx: &LateContext<'a>, hir_id: &HirId) -> bool{
     let receiver_type = get_type_string(cx, hir_id);
     if let Ok(receiver_type) = receiver_type{
@@ -313,79 +299,6 @@ impl<'a, 'b> FindGetStorageExpression<'a, 'b> {
         self.result = is_tuple;
 
         Ok(())
-    }
-}
-
-fn resolution_to_local(resolution: &Res) -> Result<&HirId, ()> {
-    if let Res::Local(a) = resolution {
-        Ok(a)
-    } else {
-        Err(())
-    }
-}
-
-fn path_to_resolved<'hir>(
-    path: &'hir QPath<'hir>,
-) -> Result<(&'hir Option<&'hir Ty<'hir>>, &'hir Path<'hir>), ()> {
-    if let QPath::Resolved(a, b) = path {
-        Ok((a, b))
-    } else {
-        Err(())
-    }
-}
-
-fn expr_to_path<'hir>(kind: &'hir ExprKind<'hir>) -> Result<QPath<'hir>, ()> {
-    if let ExprKind::Path(a) = kind {
-        Ok(*a)
-    } else {
-        Err(())
-    }
-}
-
-fn expr_to_method_call<'hir>(
-    kind: &'hir ExprKind<'hir>,
-) -> Result<
-    (
-        &'hir PathSegment<'hir>,
-        &'hir Expr<'hir>,
-        &'hir [Expr<'hir>],
-        Span,
-    ),
-    (),
-> {
-    if let ExprKind::MethodCall(a, b, c, d) = kind {
-        Ok((a, b, c, *d))
-    } else {
-        Err(())
-    }
-}
-
-fn stmt_to_local<'hir>(
-    kind: &'hir StmtKind<'hir>,
-) -> Result<
-    &'hir Local<'hir>,
-    (),
-> {
-    if let StmtKind::Local(a) = kind {
-        Ok(a)
-    } else {
-        Err(())
-    }
-}
-
-fn type_to_adt<'hir>(
-    kind: &'hir rustc_type_ir::TyKind<TyCtxt<'hir>>,
-) -> Result<
-    (
-        &'hir <TyCtxt<'hir> as Interner>::AdtDef,
-        &'hir <TyCtxt<'hir> as Interner>::GenericArgs,
-    ),
-    (),
-> {
-    if let rustc_type_ir::TyKind::Adt(a, b) = kind {
-        Ok((&a, &b))
-    } else {
-        Err(())
     }
 }
 

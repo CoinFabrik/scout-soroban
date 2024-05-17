@@ -118,6 +118,19 @@ Integrate Scout into your CI/CD pipeline! Automatically run the tool against the
 
 :point_right: Find Scout GitHub Action in [GitHub Marketplace](https://github.com/marketplace/actions/run-scout-action).
 
+## Learning to Scout
+
+Join us for an exciting series of video tutorials where you'll learn how to install and run Scout. Discover how to identify and resolve specific issues detected by the tool, and enhance your skills with our expert guidance.
+
+- [Introduction to Scout](https://www.youtube.com/watch?v=L4kGwPDuWgA)
+- [Installing Scout](https://www.youtube.com/watch?v=lStQxKQ_l2Q&t=1s)
+- [How to run Scout](https://www.youtube.com/watch?v=_6F24AwscKc)
+- [Detecting and fixing issues: Divide before multiply](https://www.youtube.com/watch?v=aLtXyYvw27o)
+- [Detecting and fixing issues: Incorrect exponentiation](https://www.youtube.com/watch?v=qjnHwKCD_hM)
+
+:clapper: More videos comming soon!
+
+
 ## Tests
 
 To validate our tool, we provide a set of code examples located in the [test-cases](https://github.com/CoinFabrik/scout-soroban/tree/main/test-cases) folder.
@@ -140,6 +153,10 @@ Follow our documentation links below and learn more about the vulnerabilities de
 - [Contribute](https://coinfabrik.github.io/scout-soroban/docs/contribute)
 - [Architecture](https://coinfabrik.github.io/scout-soroban/docs/architecture)
 - [Blog](https://blog.coinfabrik.com/)
+- [Precision and recall](https://coinfabrik.github.io/scout-soroban/docs/precision-and-recall/first-iteration)
+- [Scout GitHub Action](https://coinfabrik.github.io/scout-soroban/docs/github-action)
+- [Scout VS Code Extension](https://coinfabrik.github.io/scout-soroban/docs/vscode-extension)
+- [Scout Soroban Examples](https://coinfabrik.github.io/scout-soroban/docs/soroban-examples)
 
 ## Acknowledgements
 

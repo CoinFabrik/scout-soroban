@@ -14,23 +14,15 @@ use rustc_hir::def_id::LocalDefId;
 use rustc_hir::{
     def::Res,
     intravisit::{walk_expr, FnKind, Visitor},
-    BinOpKind, Body, Expr, ExprKind, FnDecl, HirId, Param, PatKind,
-    QPath,
+    BinOpKind, Body, Expr, ExprKind, FnDecl, HirId, Param, PatKind, QPath,
 };
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::middle::privacy::Level;
 use rustc_span::Span;
 use scout_audit_clippy_utils::diagnostics::span_lint_and_help;
 use utils::{
-    expr_to_call,
-    expr_to_path,
-    path_to_type_relative,
-    type_to_path,
-    path_to_resolved,
-    expr_to_address_of,
-    resolution_to_local,
-    get_node_type,
-    expr_to_lit,
+    expr_to_address_of, expr_to_call, expr_to_lit, expr_to_path, get_node_type, path_to_resolved,
+    path_to_type_relative, resolution_to_local, type_to_path,
 };
 
 const LINT_MESSAGE: &str = "Not checking for a zero-address could lead to an insecure contract";

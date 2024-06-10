@@ -17,15 +17,8 @@ use rustc_middle::ty::GenericArgKind;
 use rustc_span::{def_id::LocalDefId, Span};
 use scout_audit_clippy_utils::diagnostics::span_lint_and_help;
 use utils::{
-    expr_to_path,
-    path_to_resolved,
-    resolution_to_local,
-    expr_to_method_call,
-    get_type_string,
-    type_to_adt,
-    get_node_type,
-    definition_to_string,
-    stmt_to_local,
+    definition_to_string, expr_to_method_call, expr_to_path, get_node_type, get_type_string,
+    path_to_resolved, resolution_to_local, stmt_to_local, type_to_adt,
 };
 
 const LINT_MESSAGE: &str =

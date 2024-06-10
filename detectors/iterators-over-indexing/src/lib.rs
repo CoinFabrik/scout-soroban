@@ -16,24 +16,10 @@ use rustc_lint::{LateContext, LateLintPass};
 use rustc_span::Span;
 use scout_audit_clippy_utils::diagnostics::span_lint_and_help;
 use utils::{
-    expr_to_method_call,
-    resolution_to_local,
-    expr_to_path,
-    expr_to_drop_temps,
-    expr_to_call,
-    expr_to_match,
-    path_to_resolved,
-    path_to_lang_item,
-    expr_to_struct,
-    is_range,
-    expr_to_lit,
-    lit_to_int,
-    expr_to_loop,
-    stmt_to_expr,
-    type_to_adt,
-    pattern_to_struct,
-    pattern_to_binding,
-    get_node_type,
+    expr_to_call, expr_to_drop_temps, expr_to_lit, expr_to_loop, expr_to_match,
+    expr_to_method_call, expr_to_path, expr_to_struct, get_node_type, is_range, lit_to_int,
+    path_to_lang_item, path_to_resolved, pattern_to_binding, pattern_to_struct,
+    resolution_to_local, stmt_to_expr, type_to_adt,
 };
 
 const LINT_MESSAGE: &str =

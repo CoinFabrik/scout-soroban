@@ -20,22 +20,23 @@ pub struct NonPayableTransferredValueContract;
 pub enum Error {
     Ununitialized = 1,
     NoData = 2,
-    NotFound  = 3,
+    NotFound = 3,
 }
 
 #[contractimpl]
 impl NonPayableTransferredValueContract {
-    pub fn add_data(e: Env, key: Address, value: i64) -> Result<(), Error>{
+    pub fn add_data(e: Env, key: Address, value: i64) -> Result<(), Error> {
         e.storage().persistent().set(&DataKey::Data(key), &value);
         Ok(())
     }
 
-    pub fn get(e: Env, key: Address) -> Result<i64, Error>{
-        Ok(e.storage().persistent().get::<DataKey, i64>(&DataKey::Data(key)).ok_or(Error::NotFound)?)
+    pub fn get(e: Env, key: Address) -> Result<i64, Error> {
+        Ok(e.storage()
+            .persistent()
+            .get::<DataKey, i64>(&DataKey::Data(key))
+            .ok_or(Error::NotFound)?)
     }
 }
 
 #[test]
-fn simple_test() {
-    
-}
+fn simple_test() {}

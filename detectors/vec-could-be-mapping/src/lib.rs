@@ -60,7 +60,7 @@ impl<'tcx> LateLintPass<'tcx> for VecCouldBeMapping {
             span_lint_and_help(
                 cx,
                 VEC_COULD_BE_MAPPING,
-                span.clone(),
+                *span,
                 LINT_MESSAGE,
                 None,
                 "Change this to a parametrized enum as storage key",
@@ -85,9 +85,9 @@ impl<'a, 'b, 'c> FindIterations<'a, 'b, 'c> {
             let (_, object_path) = path_to_resolved(&path)?;
             let object_decl_hir_id = resolution_to_local(&object_path.res)?;
             let mut fst = FindStorageLocal {
-                cx: &self.cx,
+                cx: self.cx,
                 result: false,
-                id: &object_decl_hir_id,
+                id: object_decl_hir_id,
             };
             walk_expr(&mut fst, self.function_body.value);
 
@@ -98,14 +98,14 @@ impl<'a, 'b, 'c> FindIterations<'a, 'b, 'c> {
 
     fn vector_comes_directly_from_storage<'hir>(&mut self, receiver: &'hir Expr<'hir>) -> bool {
         let mut fgse = FindGetStorageExpression {
-            cx: &self.cx,
+            cx: self.cx,
             result: false,
         };
         walk_expr(&mut fgse, receiver);
         fgse.result
     }
 
-    fn visit_expr_internal<'d>(&mut self, expr: &'d Expr<'_>) -> Result<(), ()> {
+    fn visit_expr_internal(&mut self, expr: &Expr<'_>) -> Result<(), ()> {
         let (function_name, receiver, _, _) = expr_to_method_call(&expr.kind)?;
         if function_name.ident.as_str() != "find" {
             return Ok(());
@@ -165,16 +165,16 @@ struct FindStorageLocal<'a, 'b> {
 }
 
 impl<'a, 'b> FindStorageLocal<'a, 'b> {
-    fn visit_stmt_internal<'d>(&mut self, stmt: &'d Stmt<'_>) -> Result<bool, ()> {
+    fn visit_stmt_internal(&mut self, stmt: &Stmt<'_>) -> Result<bool, ()> {
         let let_struct = stmt_to_local(&stmt.kind)?;
-        if let_struct.pat.hir_id != *self.id || !let_struct.init.is_some() {
+        if let_struct.pat.hir_id != *self.id || let_struct.init.is_none() {
             return Ok(false);
         }
 
         let init = let_struct.init.unwrap();
 
         let mut fgse = FindGetStorageExpression {
-            cx: &self.cx,
+            cx: self.cx,
             result: false,
         };
         walk_expr(&mut fgse, init);
@@ -211,7 +211,7 @@ fn get_node_type<'a>(cx: &LateContext<'a>, hir_id: &HirId) -> rustc_middle::ty::
     cx.typeck_results().node_type(*hir_id)
 }
 
-fn definition_to_string<'a>(cx: &LateContext<'a>, did: rustc_hir::def_id::DefId) -> String {
+fn definition_to_string(cx: &LateContext<'_>, did: rustc_hir::def_id::DefId) -> String {
     cx.get_def_path(did)
         .iter()
         .map(|x| x.to_string())
@@ -219,12 +219,12 @@ fn definition_to_string<'a>(cx: &LateContext<'a>, did: rustc_hir::def_id::DefId)
         .join("::")
 }
 
-fn get_type_string<'a, 'hir>(cx: &LateContext<'a>, hir_id: &HirId) -> Result<String, ()> {
+fn get_type_string(cx: &LateContext<'_>, hir_id: &HirId) -> Result<String, ()> {
     let (def, _generic_args) = type_to_adt(get_node_type(cx, hir_id).kind())?;
     Ok(definition_to_string(cx, def.did()))
 }
 
-fn is_storage<'a>(cx: &LateContext<'a>, hir_id: &HirId) -> bool {
+fn is_storage(cx: &LateContext<'_>, hir_id: &HirId) -> bool {
     let receiver_type = get_type_string(cx, hir_id);
     if let Ok(receiver_type) = receiver_type {
         receiver_type == "soroban_sdk::storage::Persistent"
@@ -236,7 +236,7 @@ fn is_storage<'a>(cx: &LateContext<'a>, hir_id: &HirId) -> bool {
 }
 
 impl<'a, 'b> FindGetStorageExpression<'a, 'b> {
-    fn visit_expr_internal<'c>(&mut self, expr: &'c Expr<'_>) -> Result<(), ()> {
+    fn visit_expr_internal(&mut self, expr: &Expr<'_>) -> Result<(), ()> {
         let (function_name, receiver, _, _) = expr_to_method_call(&expr.kind)?;
         if function_name.ident.as_str() != "get" {
             return Ok(());
@@ -296,15 +296,7 @@ impl<'a, 'b> FindGetStorageExpression<'a, 'b> {
             }
         }?;
 
-        let is_tuple = {
-            if let TyKind::Tup(_) = argument.kind {
-                true
-            } else {
-                false
-            }
-        };
-
-        self.result = is_tuple;
+        self.result = matches!(argument.kind, TyKind::Tup(_));
 
         Ok(())
     }

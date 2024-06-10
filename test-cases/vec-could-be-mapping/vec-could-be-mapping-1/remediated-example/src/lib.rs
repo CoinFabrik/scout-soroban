@@ -31,10 +31,10 @@ impl NonPayableTransferredValueContract {
     }
 
     pub fn get(e: Env, key: Address) -> Result<i64, Error> {
-        Ok(e.storage()
+        e.storage()
             .persistent()
             .get::<DataKey, i64>(&DataKey::Data(key))
-            .ok_or(Error::NotFound)?)
+            .ok_or(Error::NotFound)
     }
 }
 

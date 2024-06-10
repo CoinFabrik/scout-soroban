@@ -48,23 +48,23 @@ impl NonPayableTransferredValueContract {
             .persistent()
             .get::<DataKey, soroban_sdk::Vec<(Address, i64)>>(&DataKey::Data)
             .ok_or(Error::Ununitialized)?;
-        Ok(data
+        data
             .iter()
             .find(|(a, _)| *a == key)
             .map(|(_, b)| b)
-            .ok_or(Error::NotFound)?)
+            .ok_or(Error::NotFound)
     }
 
     //Second sub-optimal example.
     pub fn get2(e: Env, key: Address) -> Result<i64, Error> {
-        Ok(e.storage()
+        e.storage()
             .persistent()
             .get::<DataKey, soroban_sdk::Vec<(Address, i64)>>(&DataKey::Data)
             .ok_or(Error::Ununitialized)?
             .iter()
             .find(|(a, _)| *a == key)
             .map(|(_, b)| b)
-            .ok_or(Error::NotFound)?)
+            .ok_or(Error::NotFound)
     }
 }
 

@@ -48,8 +48,7 @@ impl NonPayableTransferredValueContract {
             .persistent()
             .get::<DataKey, soroban_sdk::Vec<(Address, i64)>>(&DataKey::Data)
             .ok_or(Error::Ununitialized)?;
-        data
-            .iter()
+        data.iter()
             .find(|(a, _)| *a == key)
             .map(|(_, b)| b)
             .ok_or(Error::NotFound)

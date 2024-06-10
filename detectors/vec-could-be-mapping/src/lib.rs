@@ -9,8 +9,7 @@ extern crate rustc_type_ir;
 
 use rustc_hir::{
     intravisit::{walk_expr, FnKind, Visitor},
-    Body, Expr, ExprKind, FnDecl, GenericArg, HirId, Local, Path, PathSegment, QPath, Stmt,
-    StmtKind, Ty, TyKind,
+    Body, Expr, FnDecl, GenericArg, HirId, QPath, Stmt, TyKind,
 };
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::ty::GenericArgKind;

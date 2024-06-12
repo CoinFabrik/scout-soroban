@@ -47,6 +47,14 @@ impl<'tcx> LateLintPass<'tcx> for IncorrectExponentiation {
 
         impl<'tcx> Visitor<'tcx> for IncorrectExponentiationStorage {
             fn visit_expr(&mut self, expr: &'tcx Expr<'_>) {
+            
+            	if let ExprKind::AssignOp(binop, _, _) = &expr.kind {
+                    if binop.node == rustc_hir::BinOpKind::BitXor{
+                        self.incorrect_exponentiation = true;
+                        self.span.push(expr.span);
+                    }
+                }
+                
                 if let ExprKind::Binary(op, _, _) = &expr.kind {
                     if op.node == rustc_hir::BinOpKind::BitXor {
                         self.incorrect_exponentiation = true;

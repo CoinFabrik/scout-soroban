@@ -62,11 +62,29 @@ cargo install cargo-scout-audit
 
 ### Usage
 
-To run Scout on your project, navigate to the root directory of your smart contract (where the `Cargo.toml` file is) and execute the following command:
+To run Scout on your project, navigate to the directory of your smart contract and execute the following command:
 
 ```bash
 cargo scout-audit
 ```
+
+:warning: Currently Scout doesn't offer full support for workspaces. If you have a workspace, run Scout in each member instead of running it in the workspace `Cargo.toml`.
+
+
+```
+├── your-soroban-project
+│   ├── your-smart-contract
+│   │   ├── // Run Scout here.
+│   │   ├── src
+│   │   |   ├── contract.rs 
+│   ├── Cargo.lock
+│   ├── Cargo.toml
+│   ├── README.md
+
+```
+
+
+:warning: Make sure that your smart contracts compile properly. Scout won't run if any compilation errors exist.
 
 In the table below, we specify all the option available for the CLI.
 

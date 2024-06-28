@@ -1,0 +1,16 @@
+[package]
+edition = "2021"
+name = "verify-transfer"
+version = "0.1.0"
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+dylint_linting = { workspace = true }
+if_chain = { workspace = true }
+scout-audit-clippy-utils = { workspace = true }
+utils = { path = "../../utils" }
+
+[package.metadata.rust-analyzer]
+rustc_private = true

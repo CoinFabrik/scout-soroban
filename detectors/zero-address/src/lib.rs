@@ -14,13 +14,16 @@ use rustc_hir::def_id::LocalDefId;
 use rustc_hir::{
     def::Res,
     intravisit::{walk_expr, FnKind, Visitor},
-    BinOpKind, Body, BorrowKind, Expr, ExprKind, FnDecl, HirId, Mutability, Param, PatKind, Path,
-    PathSegment, QPath, Ty, TyKind,
+    BinOpKind, Body, Expr, ExprKind, FnDecl, HirId, Param, PatKind, QPath,
 };
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::middle::privacy::Level;
 use rustc_span::Span;
 use scout_audit_clippy_utils::diagnostics::span_lint_and_help;
+use utils::{
+    expr_to_address_of, expr_to_call, expr_to_lit, expr_to_path, get_node_type, path_to_resolved,
+    path_to_type_relative, resolution_to_local, type_to_path,
+};
 
 const LINT_MESSAGE: &str = "Not checking for a zero-address could lead to an insecure contract";
 
@@ -35,92 +38,6 @@ dylint_linting::declare_late_lint! {
         help: "https://coinfabrik.github.io/scout-soroban/docs/detectors/zero-or-test-address",
         vulnerability_class: "Validations and error handling",
     }
-}
-
-//---------------------------------------------------------------------
-
-fn type_to_path<'hir>(kind: &'hir TyKind<'hir>) -> Result<&'hir QPath<'hir>, ()> {
-    if let TyKind::Path(a) = kind {
-        Ok(a)
-    } else {
-        Err(())
-    }
-}
-
-//---------------------------------------------------------------------
-
-fn expr_to_call<'hir>(
-    kind: &'hir ExprKind<'hir>,
-) -> Result<(&'hir Expr<'hir>, &'hir [Expr<'hir>]), ()> {
-    if let ExprKind::Call(a, b) = kind {
-        Ok((a, b))
-    } else {
-        Err(())
-    }
-}
-
-fn expr_to_path<'hir>(kind: &'hir ExprKind<'hir>) -> Result<QPath<'hir>, ()> {
-    if let ExprKind::Path(a) = kind {
-        Ok(*a)
-    } else {
-        Err(())
-    }
-}
-
-fn expr_to_lit<'hir>(kind: &'hir ExprKind<'hir>) -> Result<&'hir rustc_hir::Lit, ()> {
-    if let ExprKind::Lit(a) = kind {
-        Ok(a)
-    } else {
-        Err(())
-    }
-}
-
-fn expr_to_address_of<'hir>(
-    kind: &'hir ExprKind<'hir>,
-) -> Result<(&BorrowKind, &Mutability, &'hir Expr<'hir>), ()> {
-    if let ExprKind::AddrOf(a, b, c) = kind {
-        Ok((a, b, c))
-    } else {
-        Err(())
-    }
-}
-
-//---------------------------------------------------------------------
-
-fn path_to_resolved<'hir>(
-    path: &'hir QPath<'hir>,
-) -> Result<(&'hir Option<&'hir Ty<'hir>>, &'hir Path<'hir>), ()> {
-    if let QPath::Resolved(a, b) = path {
-        Ok((a, b))
-    } else {
-        Err(())
-    }
-}
-
-fn path_to_type_relative<'hir>(
-    path: &'hir QPath<'hir>,
-) -> Result<(&'hir Ty<'hir>, &'hir PathSegment<'hir>), ()> {
-    if let QPath::TypeRelative(a, b) = path {
-        Ok((a, b))
-    } else {
-        Err(())
-    }
-}
-
-//---------------------------------------------------------------------
-
-fn resolution_to_local(resolution: &Res) -> Result<&HirId, ()> {
-    if let Res::Local(a) = resolution {
-        Ok(a)
-    } else {
-        Err(())
-    }
-}
-
-//---------------------------------------------------------------------
-
-fn get_node_type<'a>(cx: &rustc_lint::LateContext<'a>, hir_id: &HirId) -> rustc_middle::ty::Ty<'a> {
-    cx.typeck_results().node_type(*hir_id)
 }
 
 fn match_expr_as_function_call<'hir>(

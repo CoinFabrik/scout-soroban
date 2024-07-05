@@ -28,7 +28,6 @@ pub struct State {
     most_voted_candidate: Address,
     candidate_votes: u64,
     vote_timestamp_end: u64,
-    admin: Address,
 }
 
 const STATE: Symbol = symbol_short!("STATE");
@@ -38,7 +37,7 @@ pub struct UnexpectedRevert;
 
 #[contractimpl]
 impl UnexpectedRevert {
-    pub fn init(env: Env, end_timestamp: u64, admin: Address) -> Result<State, URError> {
+    pub fn init(env: Env, end_timestamp: u64) -> Result<State, URError> {
         if end_timestamp <= env.ledger().timestamp() {
             return Err(URError::TimestampBeforeCurrentBlock);
         }
@@ -53,7 +52,6 @@ impl UnexpectedRevert {
             already_voted: Map::new(&env),
             votes: Map::new(&env),
             vote_timestamp_end: end_timestamp,
-            admin: admin,
         };
 
         env.storage().instance().set(&STATE, &state);
@@ -62,7 +60,6 @@ impl UnexpectedRevert {
 
     pub fn add_candidate(env: Env, candidate: Address, caller: Address) -> Result<(), URError> {
         let mut state = Self::get_state(env.clone());
-        state.admin.require_auth();
         if Self::vote_ended(env.clone()) {
             return Err(URError::VoteEnded);
         }

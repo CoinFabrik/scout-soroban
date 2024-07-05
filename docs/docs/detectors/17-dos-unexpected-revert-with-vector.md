@@ -35,8 +35,8 @@ Use instead:
 ```rust
 pub fn add_candidate(env: Env, candidate: Address, caller: Address) -> Result<(), URError> {
     let mut state = Self::get_state(env.clone());
-     // Require authorization from an admin set at contract initalization.
-      state.admin.require_auth(); 
+    // Require authorization from an admin set at contract initalization.
+    state.admin.require_auth(); 
     if Self::vote_ended(env.clone()) {
         return Err(URError::VoteEnded);
     }

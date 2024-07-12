@@ -53,7 +53,7 @@ impl UnexpectedRevert {
             already_voted: Map::new(&env),
             votes: Map::new(&env),
             vote_timestamp_end: end_timestamp,
-            admin: admin,
+            admin,
         };
 
         env.storage().instance().set(&STATE, &state);

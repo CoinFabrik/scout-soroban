@@ -54,7 +54,7 @@ mod tests {
         let client = AvoidPanicErrorClient::new(&env, &contract_id);
 
         // When
-        client.add(&u32::max_value());
+        client.add(&u32::MAX);
         client.add(&1);
 
         // Then

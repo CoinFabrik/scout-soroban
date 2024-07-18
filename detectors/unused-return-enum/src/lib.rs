@@ -10,11 +10,11 @@ use rustc_hir::{
 };
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_span::{def_id::LocalDefId, sym, Span};
-use scout_audit_clippy_utils::diagnostics::span_lint_and_help;
+use clippy_utils::diagnostics::span_lint_and_help;
 
 const LINT_MESSAGE : &str = "If any of the variants (Ok/Err) is not used, the code could be simplified or it could imply a bug";
 
-dylint_linting::declare_late_lint! {
+scout_audit_dylint_linting::declare_late_lint! {
     pub UNUSED_RETURN_ENUM,
     Warn,
     LINT_MESSAGE,

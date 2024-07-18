@@ -7,11 +7,11 @@ use if_chain::if_chain;
 use rustc_ast::{Expr, ExprKind, Item, NodeId};
 use rustc_lint::{EarlyContext, EarlyLintPass};
 use rustc_span::sym;
-use scout_audit_clippy_utils::diagnostics::span_lint_and_help;
+use clippy_utils::diagnostics::span_lint_and_help;
 
 const LINT_MESSAGE: &str = "Use the `let _ = ...` pattern or `.drop()` method to forget the value";
 
-dylint_linting::impl_pre_expansion_lint! {
+scout_audit_dylint_linting::impl_pre_expansion_lint! {
     /// ### What it does
     /// Checks for `core::mem::forget` usage.
     /// ### Why is this bad?

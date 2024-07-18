@@ -7,11 +7,11 @@ use if_chain::if_chain;
 use rustc_hir::{BinOpKind, Expr, ExprKind};
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_span::Symbol;
-use scout_audit_clippy_utils::diagnostics::span_lint_and_help;
+use clippy_utils::diagnostics::span_lint_and_help;
 
 const LINT_MESSAGE: &str = "Use env.prng() to generate random numbers, and remember that all random numbers are under the control of validators";
 
-dylint_linting::declare_late_lint! {
+scout_audit_dylint_linting::declare_late_lint! {
     /// ### What it does
     /// This detector prevents the usage of timestamp/sequence number and modulo operator as a random number source.
     ///
@@ -50,7 +50,7 @@ impl<'tcx> LateLintPass<'tcx> for InsufficientlyRandomValues {
                     expr.span,
                     LINT_MESSAGE,
                     None,
-                    &format!("This expression seems to use ledger().{}() as a pseudo random number",path.ident.as_str()),
+                    format!("This expression seems to use ledger().{}() as a pseudo random number",path.ident.as_str()),
                 );
             }
         }

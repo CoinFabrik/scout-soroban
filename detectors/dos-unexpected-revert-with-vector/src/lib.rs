@@ -6,6 +6,7 @@ extern crate rustc_hir;
 extern crate rustc_middle;
 extern crate rustc_span;
 
+use clippy_utils::diagnostics::span_lint;
 use rustc_hir::intravisit::walk_expr;
 use rustc_hir::intravisit::Visitor;
 use rustc_hir::{Expr, ExprKind};
@@ -13,11 +14,10 @@ use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::ty::Ty;
 use rustc_span::def_id::DefId;
 use rustc_span::Span;
-use scout_audit_clippy_utils::diagnostics::span_lint;
 
 const LINT_MESSAGE: &str = "This vector operation is called without access control";
 
-dylint_linting::impl_late_lint! {
+scout_audit_dylint_linting::impl_late_lint! {
     pub UNEXPECTED_REVERT_WARN,
     Warn,
     "",

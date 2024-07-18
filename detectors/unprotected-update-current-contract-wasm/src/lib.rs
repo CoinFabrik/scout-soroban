@@ -18,12 +18,12 @@ use rustc_span::{
     def_id::{DefId, LocalDefId},
     Span, Symbol,
 };
-use scout_audit_clippy_utils::diagnostics::span_lint_and_help;
+use clippy_utils::diagnostics::span_lint_and_help;
 use utils::{is_soroban_address, is_soroban_env, is_soroban_function, FunctionCallVisitor};
 
 const LINT_MESSAGE: &str = "This update_current_contract_wasm is called without access control";
 
-dylint_linting::impl_late_lint! {
+scout_audit_dylint_linting::impl_late_lint! {
     pub UNPROTECTED_UPDATE_CURRENT_CONTRACT_WASM,
     Warn,
     LINT_MESSAGE,

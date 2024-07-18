@@ -18,12 +18,12 @@ use rustc_span::{
     def_id::{DefId, LocalDefId},
     Span, Symbol,
 };
-use scout_audit_clippy_utils::diagnostics::span_lint_and_help;
+use clippy_utils::diagnostics::span_lint_and_help;
 use utils::FunctionCallVisitor;
 
 const LINT_MESSAGE: &str = "This mapping operation is called without access control on a different key than the caller's address";
 
-dylint_linting::impl_late_lint! {
+scout_audit_dylint_linting::impl_late_lint! {
     pub UNPROTECTED_MAPPING_OPERATION,
     Warn,
     LINT_MESSAGE,

@@ -13,12 +13,12 @@ use std::{
 use rustc_ast::Crate;
 use rustc_lint::{EarlyContext, EarlyLintPass, LintContext};
 use rustc_span::DUMMY_SP;
-use scout_audit_clippy_utils::diagnostics::span_lint_and_help;
+use clippy_utils::diagnostics::span_lint_and_help;
 use toml::Value;
 
 const LINT_MESSAGE: &str = "Use `overflow-checks = true` in Cargo.toml profile";
 
-dylint_linting::declare_early_lint! {
+scout_audit_dylint_linting::declare_early_lint! {
     /// ### What it does
     /// Checks that overflow-checks is enabled in Cargo.toml.
     ///
@@ -76,6 +76,7 @@ impl EarlyLintPass for OverflowCheck {
             Ok(dir) => dir,
             Err(err) => {
                 cx.sess()
+                    .dcx()
                     .struct_warn(format!("Failed to locate workspace directory: {}", err))
                     .emit();
                 return;
@@ -88,6 +89,7 @@ impl EarlyLintPass for OverflowCheck {
             Ok(content) => content,
             Err(e) => {
                 cx.sess()
+                    .dcx()
                     .struct_warn(format!(
                         "Failed to read Cargo.toml from {:?}: {}",
                         cargo_toml_path, e
@@ -102,6 +104,7 @@ impl EarlyLintPass for OverflowCheck {
             Ok(parsed) => parsed,
             Err(e) => {
                 cx.sess()
+                    .dcx()
                     .struct_warn(format!("Failed to parse Cargo.toml: {}", e))
                     .emit();
                 return;

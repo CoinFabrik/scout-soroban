@@ -14,7 +14,7 @@ use rustc_hir::{
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::ty::GenericArgKind;
 use rustc_span::{def_id::LocalDefId, Span};
-use scout_audit_clippy_utils::diagnostics::span_lint_and_help;
+use clippy_utils::diagnostics::span_lint_and_help;
 use utils::{
     definition_to_string, expr_to_method_call, expr_to_path, get_node_type, get_type_string,
     path_to_resolved, resolution_to_local, stmt_to_local, type_to_adt,
@@ -23,7 +23,7 @@ use utils::{
 const LINT_MESSAGE: &str =
     "You are iterating over a vector of tuples using `find`. Consider using a mapping instead.";
 
-dylint_linting::impl_late_lint! {
+scout_audit_dylint_linting::impl_late_lint! {
     pub VEC_COULD_BE_MAPPING,
     Warn,
     LINT_MESSAGE,

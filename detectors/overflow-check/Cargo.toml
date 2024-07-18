@@ -7,9 +7,9 @@ version = "0.1.0"
 crate-type = ["cdylib"]
 
 [dependencies]
-dylint_linting = { workspace = true }
+clippy_utils = { workspace = true }
 if_chain = { workspace = true }
-scout-audit-clippy-utils = { workspace = true }
+scout-audit-dylint-linting = { workspace = true }
 toml = "0.8.8"
 
 [package.metadata.rust-analyzer]

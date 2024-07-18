@@ -17,12 +17,12 @@ use rustc_span::{
     def_id::{DefId, LocalDefId},
     Span, Symbol,
 };
-use scout_audit_clippy_utils::diagnostics::span_lint_and_help;
+use clippy_utils::diagnostics::span_lint_and_help;
 use utils::FunctionCallVisitor;
 
 const LINT_MESSAGE: &str = "Abitrary users should not have control over keys because it implies writing any value of left mapping, lazy variable, or the main struct of the contract located in position 0 of the storage";
 
-dylint_linting::impl_late_lint! {
+scout_audit_dylint_linting::impl_late_lint! {
     /// ### What it does
     /// Checks for calls to env.storage() without a prior call to env.require_auth()
     ///

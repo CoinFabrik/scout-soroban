@@ -7,6 +7,7 @@ extern crate rustc_middle;
 extern crate rustc_span;
 extern crate rustc_type_ir;
 
+use clippy_utils::diagnostics::span_lint_and_help;
 use rustc_hir::{
     intravisit::{walk_expr, FnKind, Visitor},
     Body, Expr, FnDecl, GenericArg, HirId, QPath, Stmt, TyKind,
@@ -14,7 +15,6 @@ use rustc_hir::{
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::ty::GenericArgKind;
 use rustc_span::{def_id::LocalDefId, Span};
-use scout_audit_clippy_utils::diagnostics::span_lint_and_help;
 use utils::{
     definition_to_string, expr_to_method_call, expr_to_path, get_node_type, get_type_string,
     path_to_resolved, resolution_to_local, stmt_to_local, type_to_adt,

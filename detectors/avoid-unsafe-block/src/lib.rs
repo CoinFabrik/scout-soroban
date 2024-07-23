@@ -3,6 +3,7 @@
 extern crate rustc_hir;
 extern crate rustc_span;
 
+use clippy_utils::diagnostics::span_lint;
 use rustc_hir::{
     def_id::LocalDefId,
     intravisit::{walk_expr, FnKind, Visitor},
@@ -10,7 +11,6 @@ use rustc_hir::{
 };
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_span::Span;
-use scout_audit_clippy_utils::diagnostics::span_lint;
 
 const LINT_MESSAGE: &str = "Avoid using unsafe blocks as it may lead to undefined behavior";
 

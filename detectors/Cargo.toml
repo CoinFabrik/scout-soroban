@@ -4,9 +4,9 @@ members = ["*"]
 resolver = "2"
 
 [workspace.dependencies]
-dylint_linting = { package = "scout-audit-dylint-linting", version = "3.0.1" }
-if_chain = "1.0.2"
-scout-audit-clippy-utils = { version = "=0.2.3" }
-utils = { path = "../utils" }
-itertools = { version = "0.12" }
+clippy_utils = { git = "https://github.com/rust-lang/rust-clippy", rev = "51a1cf0" }
 common = { path = "common" }
+dylint_linting = { package = "scout-audit-dylint-linting", git = "https://github.com/CoinFabrik/scout-audit/", rev = "6d6819a" }
+if_chain = "=1.0.2"
+itertools = { version = "=0.13" }
+utils = { path = "../utils" }

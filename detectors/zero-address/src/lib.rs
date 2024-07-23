@@ -8,6 +8,7 @@ extern crate rustc_type_ir;
 
 use std::collections::HashSet;
 
+use clippy_utils::diagnostics::span_lint_and_help;
 use if_chain::if_chain;
 use rustc_ast::LitKind;
 use rustc_hir::def_id::LocalDefId;
@@ -19,7 +20,6 @@ use rustc_hir::{
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::middle::privacy::Level;
 use rustc_span::Span;
-use scout_audit_clippy_utils::diagnostics::span_lint_and_help;
 use utils::{
     expr_to_address_of, expr_to_call, expr_to_lit, expr_to_path, get_node_type, path_to_resolved,
     path_to_type_relative, resolution_to_local, type_to_path,

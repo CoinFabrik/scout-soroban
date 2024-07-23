@@ -3,6 +3,7 @@
 extern crate rustc_ast;
 extern crate rustc_span;
 
+use clippy_utils::{diagnostics::span_lint_and_help, sym};
 use if_chain::if_chain;
 use rustc_ast::{
     ptr::P,
@@ -12,7 +13,6 @@ use rustc_ast::{
 };
 use rustc_lint::{EarlyContext, EarlyLintPass};
 use rustc_span::{sym, Span};
-use scout_audit_clippy_utils::{diagnostics::span_lint_and_help, sym};
 
 const LINT_MESSAGE: &str = "The panic! macro is used to stop execution when a condition is not met. Even when this does not break the execution of the contract, it is recommended to use Result instead of panic! because it will stop the execution of the caller contract";
 
@@ -131,7 +131,7 @@ fn check_macro_call(cx: &EarlyContext, span: Span, mac: &P<MacCall>) {
                 span,
                 LINT_MESSAGE,
                 None,
-                &format!("You could use instead an Error enum and then 'return Err(Error::{})'", capitalize_err_msg(lit.symbol.as_str()).replace(' ', ""))
+                format!("You could use instead an Error enum and then 'return Err(Error::{})'", capitalize_err_msg(lit.symbol.as_str()).replace(' ', ""))
             )
         }
     }

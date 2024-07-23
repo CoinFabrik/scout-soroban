@@ -4,6 +4,7 @@
 extern crate rustc_hir;
 extern crate rustc_span;
 
+use clippy_utils::diagnostics::span_lint_and_help;
 use if_chain::if_chain;
 use rustc_hir::{
     def::{DefKind, Res},
@@ -12,7 +13,6 @@ use rustc_hir::{
 };
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_span::{def_id::LocalDefId, Span};
-use scout_audit_clippy_utils::diagnostics::span_lint_and_help;
 
 const LINT_MESSAGE: &str = "In order to prevent a single transaction from consuming all the gas in a block, unbounded operations must be avoided";
 
@@ -84,7 +84,7 @@ impl<'tcx> Visitor<'tcx> for ForLoopVisitor {
         // Constant detection
         if let ExprKind::Block(a, _) = expr.kind {
             a.stmts.iter().for_each(|func| {
-                if let StmtKind::Local(sd) = func.kind {
+                if let StmtKind::Let(sd) = func.kind {
                     if sd.init.is_some() && self.is_expr_constant(sd.init.as_ref().unwrap()) {
                         self.constants.push(sd.pat.hir_id);
                     }

@@ -15,7 +15,7 @@ use rustc_span::{sym, Span};
 
 const LINT_MESSAGE: &str = "Assert causes panic. Instead, return a proper error.";
 
-scout_audit_dylint_linting::impl_pre_expansion_lint! {
+dylint_linting::impl_pre_expansion_lint! {
     /// ### What it does
     /// Checks for `assert!` usage.
     /// ### Why is this bad?

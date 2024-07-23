@@ -14,7 +14,7 @@ use serde_json::Value;
 
 const LINT_MESSAGE: &str = "Use the latest version of Soroban";
 
-scout_audit_dylint_linting::declare_early_lint! {
+dylint_linting::declare_early_lint! {
     /// ### What it does
     /// Checks the soroban version of the contract
     ///

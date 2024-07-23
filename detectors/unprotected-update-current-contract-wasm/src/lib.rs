@@ -23,7 +23,7 @@ use utils::{is_soroban_address, is_soroban_env, is_soroban_function, FunctionCal
 
 const LINT_MESSAGE: &str = "This update_current_contract_wasm is called without access control";
 
-scout_audit_dylint_linting::impl_late_lint! {
+dylint_linting::impl_late_lint! {
     pub UNPROTECTED_UPDATE_CURRENT_CONTRACT_WASM,
     Warn,
     LINT_MESSAGE,

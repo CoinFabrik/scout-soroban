@@ -11,7 +11,7 @@ use clippy_utils::diagnostics::span_lint_and_help;
 
 const LINT_MESSAGE: &str = "Use the `let _ = ...` pattern or `.drop()` method to forget the value";
 
-scout_audit_dylint_linting::impl_pre_expansion_lint! {
+dylint_linting::impl_pre_expansion_lint! {
     /// ### What it does
     /// Checks for `core::mem::forget` usage.
     /// ### Why is this bad?

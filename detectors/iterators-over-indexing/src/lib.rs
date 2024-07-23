@@ -25,7 +25,7 @@ use utils::get_node_type;
 const LINT_MESSAGE: &str =
     "Hardcoding an index could lead to panic if the top bound is out of bounds.";
 
-scout_audit_dylint_linting::declare_late_lint! {
+dylint_linting::declare_late_lint! {
     pub ITERATOR_OVER_INDEXING,
     Warn,
     LINT_MESSAGE,

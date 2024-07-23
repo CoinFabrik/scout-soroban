@@ -16,7 +16,7 @@ use clippy_utils::diagnostics::span_lint_and_help;
 const LINT_MESSAGE: &str = "'^' It is not an exponential operator. It is a bitwise XOR.";
 const LINT_HELP: &str = "If you want to use XOR, use bitxor(). If you want to raise a number use .checked_pow() or .pow() ";
 
-scout_audit_dylint_linting::declare_late_lint! {
+dylint_linting::declare_late_lint! {
     pub INCORRECT_EXPONENTIATION,
     Warn,
     LINT_MESSAGE,

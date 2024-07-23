@@ -7,6 +7,7 @@ extern crate rustc_span;
 
 use std::collections::{HashMap, HashSet};
 
+use clippy_utils::diagnostics::span_lint_and_help;
 use if_chain::if_chain;
 use rustc_hir::{
     intravisit::{walk_expr, FnKind, Visitor},
@@ -18,12 +19,11 @@ use rustc_span::{
     def_id::{DefId, LocalDefId},
     Span, Symbol,
 };
-use clippy_utils::diagnostics::span_lint_and_help;
 use utils::FunctionCallVisitor;
 
 const LINT_MESSAGE: &str = "This mapping operation is called without access control on a different key than the caller's address";
 
-scout_audit_dylint_linting::impl_late_lint! {
+dylint_linting::impl_late_lint! {
     pub UNPROTECTED_MAPPING_OPERATION,
     Warn,
     LINT_MESSAGE,

@@ -28,7 +28,7 @@ use clippy_utils::diagnostics::span_lint_and_help;
 
 const LINT_MESSAGE: &str = "Division before multiplication might result in a loss of precision";
 
-scout_audit_dylint_linting::declare_late_lint! {
+dylint_linting::declare_late_lint! {
     /// ### What it does
     /// Checks the existence of a division before a multiplication.
     ///

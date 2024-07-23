@@ -17,7 +17,7 @@ use rustc_span::Span;
 
 const LINT_MESSAGE: &str = "This vector operation is called without access control";
 
-scout_audit_dylint_linting::impl_late_lint! {
+dylint_linting::impl_late_lint! {
     pub UNEXPECTED_REVERT_WARN,
     Warn,
     "",

@@ -14,7 +14,7 @@ use clippy_utils::diagnostics::span_lint_and_help;
 
 const LINT_MESSAGE : &str = "If any of the variants (Ok/Err) is not used, the code could be simplified or it could imply a bug";
 
-scout_audit_dylint_linting::declare_late_lint! {
+dylint_linting::declare_late_lint! {
     pub UNUSED_RETURN_ENUM,
     Warn,
     LINT_MESSAGE,

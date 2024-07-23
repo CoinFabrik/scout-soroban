@@ -17,7 +17,7 @@ use rustc_span::Span;
 
 const LINT_MESSAGE: &str = "This argument comes from a user-supplied argument";
 
-scout_audit_dylint_linting::impl_late_lint! {
+dylint_linting::impl_late_lint! {
     pub UNRESTRICTED_TRANSFER_FROM,
     Warn,
     LINT_MESSAGE,

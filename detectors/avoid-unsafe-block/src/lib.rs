@@ -14,7 +14,7 @@ use clippy_utils::diagnostics::span_lint;
 
 const LINT_MESSAGE: &str = "Avoid using unsafe blocks as it may lead to undefined behavior";
 
-scout_audit_dylint_linting::declare_late_lint! {
+dylint_linting::declare_late_lint! {
     /// ### What it does
     /// Checks for usage of `unsafe` blocks.
     ///

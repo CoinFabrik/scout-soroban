@@ -16,7 +16,7 @@ use rustc_span::{sym, Span};
 
 const LINT_MESSAGE: &str = "The panic! macro is used to stop execution when a condition is not met. Even when this does not break the execution of the contract, it is recommended to use Result instead of panic! because it will stop the execution of the caller contract";
 
-scout_audit_dylint_linting::impl_pre_expansion_lint! {
+dylint_linting::impl_pre_expansion_lint! {
     /// ### What it does
     /// The panic! macro is used to stop execution when a condition is not met.
     /// This is useful for testing and prototyping, but should be avoided in production code

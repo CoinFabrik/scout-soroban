@@ -11,7 +11,7 @@ use clippy_utils::diagnostics::span_lint_and_help;
 
 const LINT_MESSAGE: &str = "Use env.prng() to generate random numbers, and remember that all random numbers are under the control of validators";
 
-scout_audit_dylint_linting::declare_late_lint! {
+dylint_linting::declare_late_lint! {
     /// ### What it does
     /// This detector prevents the usage of timestamp/sequence number and modulo operator as a random number source.
     ///

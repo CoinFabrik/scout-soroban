@@ -16,7 +16,7 @@ use rustc_span::{def_id::LocalDefId, Span};
 
 const LINT_MESSAGE: &str = "In order to prevent a single transaction from consuming all the gas in a block, unbounded operations must be avoided";
 
-scout_audit_dylint_linting::declare_late_lint!(
+dylint_linting::declare_late_lint!(
     pub DOS_UNBOUNDED_OPERATION,
     Warn,
     LINT_MESSAGE,

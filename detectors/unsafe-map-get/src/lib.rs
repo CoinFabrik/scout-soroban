@@ -18,7 +18,7 @@ use utils::{get_receiver_ident_name, is_soroban_map};
 const LINT_MESSAGE: &str = "Unsafe access on Map, method could panic.";
 const UNSAFE_GET_METHODS: [&str; 3] = ["get", "get_unchecked", "try_get_unchecked"];
 
-scout_audit_dylint_linting::declare_late_lint! {
+dylint_linting::declare_late_lint! {
     pub UNSAFE_MAP_GET,
     Warn,
     LINT_MESSAGE,

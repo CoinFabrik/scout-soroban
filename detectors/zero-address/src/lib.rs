@@ -27,7 +27,7 @@ use utils::{
 
 const LINT_MESSAGE: &str = "Not checking for a zero-address could lead to an insecure contract";
 
-scout_audit_dylint_linting::declare_late_lint! {
+dylint_linting::declare_late_lint! {
     pub ZERO_ADDRESS,
     Warn,
     LINT_MESSAGE,

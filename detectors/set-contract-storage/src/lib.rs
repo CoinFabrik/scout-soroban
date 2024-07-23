@@ -22,7 +22,7 @@ use utils::FunctionCallVisitor;
 
 const LINT_MESSAGE: &str = "Abitrary users should not have control over keys because it implies writing any value of left mapping, lazy variable, or the main struct of the contract located in position 0 of the storage";
 
-scout_audit_dylint_linting::impl_late_lint! {
+dylint_linting::impl_late_lint! {
     /// ### What it does
     /// Checks for calls to env.storage() without a prior call to env.require_auth()
     ///

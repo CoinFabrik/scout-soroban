@@ -20,7 +20,7 @@ use rustc_span::{sym, Span, Symbol};
 const LINT_MESSAGE: &str = "Unsafe usage of `expect`";
 const PANIC_INDUCING_FUNCTIONS: [&str; 2] = ["panic", "bail"];
 
-scout_audit_dylint_linting::declare_late_lint! {
+dylint_linting::declare_late_lint! {
     /// ### What it does
     /// Checks for usage of `expect`
     ///

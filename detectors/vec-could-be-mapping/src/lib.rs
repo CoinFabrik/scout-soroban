@@ -23,7 +23,7 @@ use utils::{
 const LINT_MESSAGE: &str =
     "You are iterating over a vector of tuples using `find`. Consider using a mapping instead.";
 
-scout_audit_dylint_linting::impl_late_lint! {
+dylint_linting::impl_late_lint! {
     pub VEC_COULD_BE_MAPPING,
     Warn,
     LINT_MESSAGE,

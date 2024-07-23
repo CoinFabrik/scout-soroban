@@ -18,7 +18,7 @@ use toml::Value;
 
 const LINT_MESSAGE: &str = "Use `overflow-checks = true` in Cargo.toml profile";
 
-scout_audit_dylint_linting::declare_early_lint! {
+dylint_linting::declare_early_lint! {
     /// ### What it does
     /// Checks that overflow-checks is enabled in Cargo.toml.
     ///

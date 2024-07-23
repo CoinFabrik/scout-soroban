@@ -7,6 +7,7 @@ extern crate rustc_span;
 
 use std::collections::HashSet;
 
+use clippy_utils::diagnostics::span_lint_and_help;
 use if_chain::if_chain;
 use rustc_hir::{
     intravisit::{walk_expr, FnKind, Visitor},
@@ -24,7 +25,6 @@ use rustc_span::{
     def_id::{DefId, LocalDefId},
     Span,
 };
-use clippy_utils::diagnostics::span_lint_and_help;
 
 const LINT_MESSAGE: &str = "Division before multiplication might result in a loss of precision";
 

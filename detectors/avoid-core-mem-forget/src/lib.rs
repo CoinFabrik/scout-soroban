@@ -3,11 +3,11 @@
 extern crate rustc_ast;
 extern crate rustc_span;
 
+use clippy_utils::diagnostics::span_lint_and_help;
 use if_chain::if_chain;
 use rustc_ast::{Expr, ExprKind, Item, NodeId};
 use rustc_lint::{EarlyContext, EarlyLintPass};
 use rustc_span::sym;
-use clippy_utils::diagnostics::span_lint_and_help;
 
 const LINT_MESSAGE: &str = "Use the `let _ = ...` pattern or `.drop()` method to forget the value";
 

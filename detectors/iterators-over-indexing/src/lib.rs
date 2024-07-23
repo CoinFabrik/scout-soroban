@@ -7,6 +7,7 @@ extern crate rustc_middle;
 extern crate rustc_span;
 extern crate rustc_type_ir;
 
+use clippy_utils::diagnostics::span_lint_and_help;
 use rustc_ast::{Label, LitIntType, LitKind};
 use rustc_hir::{
     def::Res,
@@ -19,7 +20,6 @@ use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::ty::{TyCtxt, TyKind};
 use rustc_span::{symbol::Ident, Span};
 use rustc_type_ir::Interner;
-use clippy_utils::diagnostics::span_lint_and_help;
 use utils::get_node_type;
 
 const LINT_MESSAGE: &str =

@@ -7,6 +7,7 @@ extern crate rustc_span;
 
 use std::collections::{HashMap, HashSet};
 
+use clippy_utils::diagnostics::span_lint_and_help;
 use if_chain::if_chain;
 use rustc_hir::{
     intravisit::{walk_expr, FnKind, Visitor},
@@ -18,7 +19,6 @@ use rustc_span::{
     def_id::{DefId, LocalDefId},
     Span, Symbol,
 };
-use clippy_utils::diagnostics::span_lint_and_help;
 use utils::{is_soroban_address, is_soroban_env, is_soroban_function, FunctionCallVisitor};
 
 const LINT_MESSAGE: &str = "This update_current_contract_wasm is called without access control";

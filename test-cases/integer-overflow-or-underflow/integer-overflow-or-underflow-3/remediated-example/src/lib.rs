@@ -1,8 +1,16 @@
 #![no_std]
-use soroban_sdk::{contract, contractimpl, symbol_short, Env, Symbol};
+use soroban_sdk::{contract, contracterror, contractimpl, symbol_short, Env, Symbol};
 
 #[contract]
 pub struct IntegerOverflowUnderflow;
+
+#[contracterror]
+#[derive(Copy, Clone, Debug, Eq, PartialEq, PartialOrd, Ord)]
+#[repr(u32)]
+pub enum Error {
+    OverflowError = 1,
+    UnderflowError = 2,
+}
 
 #[contractimpl]
 impl IntegerOverflowUnderflow {
@@ -12,10 +20,14 @@ impl IntegerOverflowUnderflow {
         env.storage().temporary().set(&Self::VALUE, &value);
     }
 
-    pub fn add(env: Env, value: u32) {
+    pub fn mul(env: Env, value: u32) -> Result<(), Error> {
         let current: u32 = env.storage().temporary().get(&Self::VALUE).unwrap_or(0);
-        let new_value = current + value;
+        let new_value = match current.checked_mul(value) {
+            Some(value) => value,
+            None => return Err(Error::OverflowError),
+        };
         env.storage().temporary().set(&Self::VALUE, &new_value);
+        Ok(())
     }
 
     pub fn get(env: Env) -> u32 {
@@ -29,8 +41,7 @@ mod test {
     use soroban_sdk::Env;
 
     #[test]
-    #[should_panic(expected = "attempt to add with overflow")]
-    fn test_add_overflow() {
+    fn test_mul_overflow() {
         // Given
         let env = Env::default();
         let contract_id = env.register_contract(None, IntegerOverflowUnderflow);
@@ -38,9 +49,9 @@ mod test {
 
         // When
         client.initialize(&u32::MAX);
-        client.add(&1);
+        let result = client.try_mul(&2);
 
         // Then
-        // Panic
+        assert_eq!(result, Err(Ok(Error::OverflowError)));
     }
 }

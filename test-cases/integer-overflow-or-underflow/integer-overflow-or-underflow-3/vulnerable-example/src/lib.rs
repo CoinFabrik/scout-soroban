@@ -1,4 +1,5 @@
 #![no_std]
+
 use soroban_sdk::{contract, contractimpl, symbol_short, Env, Symbol};
 
 #[contract]
@@ -12,9 +13,9 @@ impl IntegerOverflowUnderflow {
         env.storage().temporary().set(&Self::VALUE, &value);
     }
 
-    pub fn add(env: Env, value: u32) {
+    pub fn mul(env: Env, value: u32) {
         let current: u32 = env.storage().temporary().get(&Self::VALUE).unwrap_or(0);
-        let new_value = current + value;
+        let new_value = current * value;
         env.storage().temporary().set(&Self::VALUE, &new_value);
     }
 
@@ -29,8 +30,8 @@ mod test {
     use soroban_sdk::Env;
 
     #[test]
-    #[should_panic(expected = "attempt to add with overflow")]
-    fn test_add_overflow() {
+    #[should_panic(expected = "attempt to multiply with overflow")]
+    fn test_mul_overflow() {
         // Given
         let env = Env::default();
         let contract_id = env.register_contract(None, IntegerOverflowUnderflow);
@@ -38,7 +39,7 @@ mod test {
 
         // When
         client.initialize(&u32::MAX);
-        client.add(&1);
+        client.mul(&2);
 
         // Then
         // Panic

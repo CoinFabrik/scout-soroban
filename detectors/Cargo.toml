@@ -1,5 +1,5 @@
 [workspace]
-exclude = [".cargo", "target"]
+exclude = [".cargo", "target", ".vscode"]
 members = ["*"]
 resolver = "2"
 

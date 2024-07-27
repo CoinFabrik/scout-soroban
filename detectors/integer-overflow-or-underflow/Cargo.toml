@@ -10,6 +10,7 @@ crate-type = ["cdylib"]
 clippy_utils = { workspace = true }
 dylint_linting = { workspace = true }
 if_chain = { workspace = true }
+utils = { workspace = true }
 
 [package.metadata.rust-analyzer]
 rustc_private = true

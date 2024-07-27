@@ -1,17 +1,17 @@
 #![feature(rustc_private)]
 
-extern crate rustc_errors;
 extern crate rustc_hir;
 extern crate rustc_span;
 
-use clippy_utils::{consts::constant_simple, diagnostics::span_lint_and_sugg};
-use rustc_errors::Applicability;
+use clippy_utils::{consts::constant, diagnostics::span_lint_and_help};
 use rustc_hir::{
     intravisit::{walk_expr, FnKind, Visitor},
     BinOpKind, Body, Expr, ExprKind, FnDecl, UnOp,
 };
-use rustc_lint::{LateContext, LateLintPass, LintContext};
-use rustc_span::{def_id::LocalDefId, Span};
+use rustc_lint::{LateContext, LateLintPass};
+use rustc_span::{def_id::LocalDefId, Span, Symbol};
+use std::collections::HashSet;
+use utils::ConstantAnalyzer;
 
 pub const LINT_MESSAGE: &str = "Potential for integer arithmetic overflow/underflow. Consider checked, wrapping or saturating arithmetic.";
 
@@ -30,6 +30,7 @@ dylint_linting::declare_late_lint! {
 enum Type {
     Overflow,
     Underflow,
+    OverflowUnderflow,
 }
 
 impl Type {
@@ -37,6 +38,7 @@ impl Type {
         match self {
             Type::Overflow => "overflow",
             Type::Underflow => "underflow",
+            Type::OverflowUnderflow => "overflow or underflow",
         }
     }
 }
@@ -47,16 +49,18 @@ enum Cause {
     Mul,
     Pow,
     Negate,
+    Multiple,
 }
 
 impl Cause {
     fn message(&self) -> &'static str {
         match self {
-            Cause::Add => "addition",
-            Cause::Sub => "subtraction",
-            Cause::Mul => "multiplication",
-            Cause::Pow => "exponentiation",
-            Cause::Negate => "negation",
+            Cause::Add => "addition operation",
+            Cause::Sub => "subtraction operation",
+            Cause::Mul => "multiplication operation",
+            Cause::Pow => "exponentiation operation",
+            Cause::Negate => "negation operation",
+            Cause::Multiple => "operation",
         }
     }
 }
@@ -65,35 +69,16 @@ pub struct Finding {
     span: Span,
     type_: Type,
     cause: Cause,
-    left: String,
-    right: String,
 }
 
 impl Finding {
-    fn new(span: Span, type_: Type, cause: Cause, left: String, right: String) -> Self {
-        Finding {
-            span,
-            type_,
-            cause,
-            left,
-            right,
-        }
-    }
-
-    fn get_suggestion(&self) -> String {
-        match self.cause {
-            Cause::Add => format!("{}.checked_add({})", self.left, self.right),
-            Cause::Sub => format!("{}.checked_sub({})", self.left, self.right),
-            Cause::Mul => format!("{}.checked_mul({})", self.left, self.right),
-            Cause::Pow => format!("{}.checked_pow({})", self.left, self.right),
-            Cause::Negate => format!("{}.checked_neg()", self.left),
-        }
-        .to_string()
+    fn new(span: Span, type_: Type, cause: Cause) -> Self {
+        Finding { span, type_, cause }
     }
 
     fn generate_message(&self) -> String {
         format!(
-            "This {} operation could {}.",
+            "This {} could {}.",
             self.cause.message(),
             self.type_.message()
         )
@@ -102,89 +87,74 @@ impl Finding {
 pub struct IntegerOverflowUnderflowVisitor<'a, 'tcx> {
     cx: &'a LateContext<'tcx>,
     findings: Vec<Finding>,
+    is_complex_operation: bool,
+    constant_detector: ConstantAnalyzer<'a, 'tcx>,
 }
 
-impl IntegerOverflowUnderflowVisitor<'_, '_> {
-    pub fn check_pow<'tcx>(
-        &mut self,
-        expr: &'tcx Expr<'_>,
-        receiver: &'tcx Expr<'tcx>,
-        exponent: &'tcx Expr<'tcx>,
-    ) {
-        let base_ty = self.cx.typeck_results().expr_ty(receiver);
-        if base_ty.is_integral() {
-            self.findings.push(Finding::new(
-                expr.span,
-                Type::Overflow,
-                Cause::Pow,
-                self.get_snippet(receiver),
-                self.get_snippet(exponent),
-            ));
+impl<'tcx> IntegerOverflowUnderflowVisitor<'_, 'tcx> {
+    pub fn check_pow(&mut self, expr: &Expr<'tcx>, base: &Expr<'tcx>, exponent: &Expr<'tcx>) {
+        let is_base_known = self.constant_detector.is_compile_time_known(base);
+        let is_exponent_known = self.constant_detector.is_compile_time_known(exponent);
+        if is_base_known && is_exponent_known {
+            return;
+        }
+
+        let base_type = self.cx.typeck_results().expr_ty(base);
+        if base_type.is_integral() {
+            self.findings
+                .push(Finding::new(expr.span, Type::Overflow, Cause::Pow));
         }
     }
 
-    pub fn check_negate<'tcx>(&mut self, expr: &'tcx Expr<'_>, arg: &'tcx Expr<'_>) {
-        let ty = self.cx.typeck_results().expr_ty(arg);
-        if ty.is_integral() && ty.is_signed() {
-            // We only care about non-constant values
-            if constant_simple(self.cx, self.cx.typeck_results(), arg).is_none() {
-                self.findings.push(Finding::new(
-                    expr.span,
-                    Type::Overflow,
-                    Cause::Negate,
-                    self.get_snippet(arg),
-                    "".to_string(),
-                ));
+    pub fn check_negate(&mut self, expr: &Expr<'tcx>, operand: &Expr<'tcx>) {
+        let is_operand_known = self.constant_detector.is_compile_time_known(operand);
+        if is_operand_known {
+            return;
+        }
+
+        let operand_type = self.cx.typeck_results().expr_ty(operand);
+        if operand_type.is_integral() && operand_type.is_signed() {
+            if constant(self.cx, self.cx.typeck_results(), operand).is_none() {
+                self.findings
+                    .push(Finding::new(expr.span, Type::Overflow, Cause::Negate));
             }
         }
     }
 
-    pub fn check_binary<'tcx>(
+    pub fn check_binary(
         &mut self,
-        expr: &'tcx Expr<'_>,
+        expr: &Expr<'tcx>,
         op: BinOpKind,
-        l: &'tcx Expr<'_>,
-        r: &'tcx Expr<'_>,
+        left: &Expr<'tcx>,
+        right: &Expr<'tcx>,
     ) {
-        // Check if either operand is non-constant
-        let l_const = constant_simple(self.cx, self.cx.typeck_results(), l);
-        let r_const = constant_simple(self.cx, self.cx.typeck_results(), r);
-        if l_const.is_some() && r_const.is_some() {
+        let is_left_known = self.constant_detector.is_compile_time_known(left);
+        let is_right_known = self.constant_detector.is_compile_time_known(right);
+        if is_left_known && is_right_known {
             return;
         }
 
-        // Check if any of the operands is not an integer
-        let (l_ty, r_ty) = (
-            self.cx.typeck_results().expr_ty(l),
-            self.cx.typeck_results().expr_ty(r),
+        let (left_type, right_type) = (
+            self.cx.typeck_results().expr_ty(left),
+            self.cx.typeck_results().expr_ty(right),
         );
-        if !l_ty.peel_refs().is_integral() || !r_ty.peel_refs().is_integral() {
+        if !left_type.peel_refs().is_integral() || !right_type.peel_refs().is_integral() {
             return;
         }
 
-        // Check if the operation is an addition, subtraction or multiplication
-        let (finding_type, cause) = match op {
-            BinOpKind::Add => (Type::Overflow, Cause::Add),
-            BinOpKind::Sub => (Type::Underflow, Cause::Sub),
-            BinOpKind::Mul => (Type::Overflow, Cause::Mul),
-            _ => return, // We're not interested in other operations
+        let (finding_type, cause) = if self.is_complex_operation {
+            (Type::OverflowUnderflow, Cause::Multiple)
+        } else {
+            match op {
+                BinOpKind::Add => (Type::Overflow, Cause::Add),
+                BinOpKind::Sub => (Type::Underflow, Cause::Sub),
+                BinOpKind::Mul => (Type::Overflow, Cause::Mul),
+                _ => return,
+            }
         };
 
-        self.findings.push(Finding::new(
-            expr.span,
-            finding_type,
-            cause,
-            self.get_snippet(l),
-            self.get_snippet(r),
-        ));
-    }
-
-    fn get_snippet(&self, expr: &Expr<'_>) -> String {
-        self.cx
-            .sess()
-            .source_map()
-            .span_to_snippet(expr.span)
-            .unwrap()
+        self.findings
+            .push(Finding::new(expr.span, finding_type, cause));
     }
 }
 
@@ -192,18 +162,24 @@ impl<'a, 'tcx> Visitor<'tcx> for IntegerOverflowUnderflowVisitor<'a, 'tcx> {
     fn visit_expr(&mut self, expr: &'tcx Expr<'tcx>) {
         match expr.kind {
             ExprKind::Binary(op, lhs, rhs) | ExprKind::AssignOp(op, lhs, rhs) => {
+                self.is_complex_operation = matches!(lhs.kind, ExprKind::Binary(..))
+                    || matches!(rhs.kind, ExprKind::Binary(..));
                 self.check_binary(expr, op.node, lhs, rhs);
+                if self.is_complex_operation {
+                    return;
+                }
             }
             ExprKind::Unary(UnOp::Neg, arg) => {
                 self.check_negate(expr, arg);
             }
             ExprKind::MethodCall(method_name, receiver, args, ..) => {
-                if method_name.ident.as_str() == "pow" {
+                if method_name.ident.name == Symbol::intern("pow") {
                     self.check_pow(expr, receiver, &args[0]);
                 }
             }
             _ => (),
         }
+
         walk_expr(self, expr);
     }
 }
@@ -218,26 +194,37 @@ impl<'tcx> LateLintPass<'tcx> for IntegerOverflowUnderflow {
         span: Span,
         _: LocalDefId,
     ) {
+        // If the function comes from a macro expansion, we ignore it
         if span.from_expansion() {
             return;
         }
 
+        // Gather all compile-time variables in the function
+        let mut constant_detector = ConstantAnalyzer {
+            cx,
+            constants: HashSet::new(),
+        };
+        constant_detector.visit_body(body);
+
+        // Analyze the function for integer overflow/underflow
         let mut visitor = IntegerOverflowUnderflowVisitor {
             cx,
             findings: Vec::new(),
+            is_complex_operation: false,
+            constant_detector,
         };
         visitor.visit_body(body);
 
+        // Report any findings
         for finding in visitor.findings {
-            span_lint_and_sugg(
+            span_lint_and_help(
                 cx,
                 INTEGER_OVERFLOW_UNDERFLOW,
                 finding.span,
                 finding.generate_message(),
-                "Consider using the checked version of this operation",
-                finding.get_suggestion(),
-                Applicability::MaybeIncorrect,
-            );
+                None,
+                "Consider using the checked version of this operation/s",
+            )
         }
     }
 }

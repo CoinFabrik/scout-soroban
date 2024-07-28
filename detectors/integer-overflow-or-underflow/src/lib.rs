@@ -93,8 +93,8 @@ pub struct IntegerOverflowUnderflowVisitor<'a, 'tcx> {
 
 impl<'tcx> IntegerOverflowUnderflowVisitor<'_, 'tcx> {
     pub fn check_pow(&mut self, expr: &Expr<'tcx>, base: &Expr<'tcx>, exponent: &Expr<'tcx>) {
-        let is_base_known = self.constant_detector.is_compile_time_known(base);
-        let is_exponent_known = self.constant_detector.is_compile_time_known(exponent);
+        let is_base_known = self.constant_detector.is_constant(base);
+        let is_exponent_known = self.constant_detector.is_constant(exponent);
         if is_base_known && is_exponent_known {
             return;
         }
@@ -107,7 +107,7 @@ impl<'tcx> IntegerOverflowUnderflowVisitor<'_, 'tcx> {
     }
 
     pub fn check_negate(&mut self, expr: &Expr<'tcx>, operand: &Expr<'tcx>) {
-        let is_operand_known = self.constant_detector.is_compile_time_known(operand);
+        let is_operand_known = self.constant_detector.is_constant(operand);
         if is_operand_known {
             return;
         }
@@ -128,8 +128,8 @@ impl<'tcx> IntegerOverflowUnderflowVisitor<'_, 'tcx> {
         left: &Expr<'tcx>,
         right: &Expr<'tcx>,
     ) {
-        let is_left_known = self.constant_detector.is_compile_time_known(left);
-        let is_right_known = self.constant_detector.is_compile_time_known(right);
+        let is_left_known = self.constant_detector.is_constant(left);
+        let is_right_known = self.constant_detector.is_constant(right);
         if is_left_known && is_right_known {
             return;
         }

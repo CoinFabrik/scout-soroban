@@ -3,7 +3,7 @@
 extern crate rustc_hir;
 extern crate rustc_span;
 
-use clippy_utils::{consts::constant, diagnostics::span_lint_and_help};
+use clippy_utils::diagnostics::span_lint_and_help;
 use rustc_hir::{
     intravisit::{walk_expr, FnKind, Visitor},
     BinOpKind, Body, Expr, ExprKind, FnDecl, UnOp,
@@ -88,14 +88,13 @@ pub struct IntegerOverflowUnderflowVisitor<'a, 'tcx> {
     cx: &'a LateContext<'tcx>,
     findings: Vec<Finding>,
     is_complex_operation: bool,
-    constant_detector: ConstantAnalyzer<'a, 'tcx>,
+    constant_analyzer: ConstantAnalyzer<'a, 'tcx>,
 }
 
 impl<'tcx> IntegerOverflowUnderflowVisitor<'_, 'tcx> {
     pub fn check_pow(&mut self, expr: &Expr<'tcx>, base: &Expr<'tcx>, exponent: &Expr<'tcx>) {
-        let is_base_known = self.constant_detector.is_constant(base);
-        let is_exponent_known = self.constant_detector.is_constant(exponent);
-        if is_base_known && is_exponent_known {
+        if self.constant_analyzer.is_constant(base) && self.constant_analyzer.is_constant(exponent)
+        {
             return;
         }
 
@@ -107,17 +106,14 @@ impl<'tcx> IntegerOverflowUnderflowVisitor<'_, 'tcx> {
     }
 
     pub fn check_negate(&mut self, expr: &Expr<'tcx>, operand: &Expr<'tcx>) {
-        let is_operand_known = self.constant_detector.is_constant(operand);
-        if is_operand_known {
+        if self.constant_analyzer.is_constant(operand) {
             return;
         }
 
         let operand_type = self.cx.typeck_results().expr_ty(operand);
         if operand_type.is_integral() && operand_type.is_signed() {
-            if constant(self.cx, self.cx.typeck_results(), operand).is_none() {
-                self.findings
-                    .push(Finding::new(expr.span, Type::Overflow, Cause::Negate));
-            }
+            self.findings
+                .push(Finding::new(expr.span, Type::Overflow, Cause::Negate));
         }
     }
 
@@ -128,17 +124,15 @@ impl<'tcx> IntegerOverflowUnderflowVisitor<'_, 'tcx> {
         left: &Expr<'tcx>,
         right: &Expr<'tcx>,
     ) {
-        let is_left_known = self.constant_detector.is_constant(left);
-        let is_right_known = self.constant_detector.is_constant(right);
-        if is_left_known && is_right_known {
+        if self.constant_analyzer.is_constant(left) && self.constant_analyzer.is_constant(right) {
             return;
         }
 
         let (left_type, right_type) = (
-            self.cx.typeck_results().expr_ty(left),
-            self.cx.typeck_results().expr_ty(right),
+            self.cx.typeck_results().expr_ty(left).peel_refs(),
+            self.cx.typeck_results().expr_ty(right).peel_refs(),
         );
-        if !left_type.peel_refs().is_integral() || !right_type.peel_refs().is_integral() {
+        if !left_type.is_integral() || !right_type.is_integral() {
             return;
         }
 
@@ -200,18 +194,18 @@ impl<'tcx> LateLintPass<'tcx> for IntegerOverflowUnderflow {
         }
 
         // Gather all compile-time variables in the function
-        let mut constant_detector = ConstantAnalyzer {
+        let mut constant_analyzer = ConstantAnalyzer {
             cx,
             constants: HashSet::new(),
         };
-        constant_detector.visit_body(body);
+        constant_analyzer.visit_body(body);
 
         // Analyze the function for integer overflow/underflow
         let mut visitor = IntegerOverflowUnderflowVisitor {
             cx,
             findings: Vec::new(),
             is_complex_operation: false,
-            constant_detector,
+            constant_analyzer,
         };
         visitor.visit_body(body);
 

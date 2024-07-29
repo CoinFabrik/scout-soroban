@@ -177,8 +177,9 @@ fn navigate_trough_basicblocks<'tcx>(
                     if BinOp::Div == *op {
                         tainted_places.push(assign.0);
                     } else if BinOp::Mul == *op
-                        && (check_operand(&operands.0, tainted_places, &assign.0)
-                            || check_operand(&operands.1, tainted_places, &assign.0))
+                        || BinOp::MulWithOverflow == *op
+                            && (check_operand(&operands.0, tainted_places, &assign.0)
+                                || check_operand(&operands.1, tainted_places, &assign.0))
                     {
                         spans.push(statement.source_info.span);
                     };

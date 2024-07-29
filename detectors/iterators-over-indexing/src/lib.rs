@@ -7,20 +7,20 @@ extern crate rustc_middle;
 extern crate rustc_span;
 extern crate rustc_type_ir;
 
+use clippy_utils::diagnostics::span_lint_and_help;
+use rustc_ast::{Label, LitIntType, LitKind};
 use rustc_hir::{
+    def::Res,
     def_id::LocalDefId,
     intravisit::{walk_expr, FnKind, Visitor},
-    Expr, HirId, LangItem, LoopSource, MatchSource,
+    BindingMode, Block, Expr, ExprField, ExprKind, HirId, LangItem, LoopSource, MatchSource, Pat,
+    PatField, PatKind, Path, PathSegment, QPath, StmtKind, Ty,
 };
 use rustc_lint::{LateContext, LateLintPass};
-use rustc_span::Span;
-use scout_audit_clippy_utils::diagnostics::span_lint_and_help;
-use utils::{
-    expr_to_call, expr_to_drop_temps, expr_to_lit, expr_to_loop, expr_to_match,
-    expr_to_method_call, expr_to_path, expr_to_struct, get_node_type, is_range, lit_to_int,
-    path_to_lang_item, path_to_resolved, pattern_to_binding, pattern_to_struct,
-    resolution_to_local, stmt_to_expr, type_to_adt,
-};
+use rustc_middle::ty::{TyCtxt, TyKind};
+use rustc_span::{symbol::Ident, Span};
+use rustc_type_ir::Interner;
+use utils::get_node_type;
 
 const LINT_MESSAGE: &str =
     "Hardcoding an index could lead to panic if the top bound is out of bounds.";
@@ -89,6 +89,198 @@ impl<'a, 'b> Visitor<'a> for VectorAccessVisitor<'a, 'b> {
         walk_expr(self, expr);
     }
 }
+
+//---------------------------------------------------------------------
+
+fn type_to_adt<'hir>(
+    kind: &'hir rustc_type_ir::TyKind<TyCtxt<'hir>>,
+) -> Result<
+    (
+        &'hir <TyCtxt<'hir> as Interner>::AdtDef,
+        &'hir <TyCtxt<'hir> as Interner>::GenericArgs,
+    ),
+    (),
+> {
+    if let TyKind::Adt(a, b) = kind {
+        Ok((a, b))
+    } else {
+        Err(())
+    }
+}
+
+//---------------------------------------------------------------------
+
+fn stmt_to_expr<'hir>(kind: &'hir StmtKind<'hir>) -> Result<&'hir Expr<'hir>, ()> {
+    if let StmtKind::Expr(a) = kind {
+        Ok(a)
+    } else {
+        Err(())
+    }
+}
+
+//---------------------------------------------------------------------
+
+fn expr_to_drop_temps<'hir>(kind: &'hir ExprKind<'hir>) -> Result<&'hir Expr<'hir>, ()> {
+    if let ExprKind::DropTemps(a) = kind {
+        Ok(a)
+    } else {
+        Err(())
+    }
+}
+
+fn expr_to_match<'hir>(
+    kind: &'hir ExprKind<'hir>,
+) -> Result<(&'hir Expr<'hir>, &'hir [rustc_hir::Arm<'hir>], MatchSource), ()> {
+    if let ExprKind::Match(a, b, c) = kind {
+        Ok((a, b, *c))
+    } else {
+        Err(())
+    }
+}
+
+fn expr_to_call<'hir>(
+    kind: &'hir ExprKind<'hir>,
+) -> Result<(&'hir Expr<'hir>, &'hir [Expr<'hir>]), ()> {
+    if let ExprKind::Call(a, b) = kind {
+        Ok((a, b))
+    } else {
+        Err(())
+    }
+}
+
+fn expr_to_path<'hir>(kind: &'hir ExprKind<'hir>) -> Result<QPath<'hir>, ()> {
+    if let ExprKind::Path(a) = kind {
+        Ok(*a)
+    } else {
+        Err(())
+    }
+}
+
+fn expr_to_struct<'hir>(
+    kind: &'hir ExprKind<'hir>,
+) -> Result<
+    (
+        &'hir QPath<'hir>,
+        &'hir [ExprField<'hir>],
+        Option<&'hir Expr<'hir>>,
+    ),
+    (),
+> {
+    if let ExprKind::Struct(a, b, c) = kind {
+        Ok((a, b, *c))
+    } else {
+        Err(())
+    }
+}
+
+fn expr_to_lit<'hir>(kind: &'hir ExprKind<'hir>) -> Result<&'hir rustc_hir::Lit, ()> {
+    if let ExprKind::Lit(a) = kind {
+        Ok(a)
+    } else {
+        Err(())
+    }
+}
+
+fn expr_to_loop<'hir>(
+    kind: &'hir ExprKind<'hir>,
+) -> Result<(&'hir Block<'hir>, &Option<Label>, LoopSource, &Span), ()> {
+    if let ExprKind::Loop(a, b, c, d) = kind {
+        Ok((a, b, *c, d))
+    } else {
+        Err(())
+    }
+}
+
+fn expr_to_method_call<'hir>(
+    kind: &'hir ExprKind<'hir>,
+) -> Result<
+    (
+        &'hir PathSegment<'hir>,
+        &'hir Expr<'hir>,
+        &'hir [Expr<'hir>],
+        Span,
+    ),
+    (),
+> {
+    if let ExprKind::MethodCall(a, b, c, d) = kind {
+        Ok((a, b, c, *d))
+    } else {
+        Err(())
+    }
+}
+
+//---------------------------------------------------------------------
+
+fn path_to_lang_item(path: &QPath) -> Result<(LangItem, Span), ()> {
+    if let QPath::LangItem(a, b) = path {
+        Ok((*a, *b))
+    } else {
+        Err(())
+    }
+}
+
+fn path_to_resolved<'hir>(
+    path: &'hir QPath<'hir>,
+) -> Result<(&'hir Option<&'hir Ty<'hir>>, &'hir Path<'hir>), ()> {
+    if let QPath::Resolved(a, b) = path {
+        Ok((a, b))
+    } else {
+        Err(())
+    }
+}
+
+//---------------------------------------------------------------------
+
+fn resolution_to_local(resolution: &Res) -> Result<&HirId, ()> {
+    if let Res::Local(a) = resolution {
+        Ok(a)
+    } else {
+        Err(())
+    }
+}
+
+//---------------------------------------------------------------------
+
+fn lit_to_int(kind: &LitKind) -> Result<(u128, LitIntType), ()> {
+    if let LitKind::Int(a, b) = kind {
+        Ok((a.get(), *b))
+    } else {
+        Err(())
+    }
+}
+
+//---------------------------------------------------------------------
+
+fn pattern_to_struct<'hir>(
+    pat: &'hir PatKind<'hir>,
+) -> Result<(&QPath<'hir>, &'hir [PatField<'hir>], bool), ()> {
+    if let PatKind::Struct(a, b, c) = pat {
+        Ok((a, b, *c))
+    } else {
+        Err(())
+    }
+}
+
+fn pattern_to_binding<'hir>(
+    pat: &'hir PatKind<'hir>,
+) -> Result<(&BindingMode, &HirId, &Ident, &Option<&'hir Pat<'hir>>), ()> {
+    if let PatKind::Binding(a, b, c, d) = pat {
+        Ok((a, b, c, d))
+    } else {
+        Err(())
+    }
+}
+
+//---------------------------------------------------------------------
+
+fn is_range(item: LangItem) -> bool {
+    matches!(
+        item,
+        LangItem::Range | LangItem::RangeInclusiveStruct | LangItem::RangeInclusiveNew
+    )
+}
+
+//---------------------------------------------------------------------
 
 fn handle_expr<'a>(me: &mut ForLoopVisitor<'a, '_>, expr: &'a Expr<'a>) -> Result<(), ()> {
     //Ignore DropTemps()

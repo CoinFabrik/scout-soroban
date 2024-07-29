@@ -115,7 +115,7 @@ impl<'tcx> LateLintPass<'tcx> for UnrestrictedTransferFrom {
         walk_expr(&mut utf_storage, body.value);
 
         if utf_storage.from_ref {
-            scout_audit_clippy_utils::diagnostics::span_lint(
+            clippy_utils::diagnostics::span_lint(
                 cx,
                 UNRESTRICTED_TRANSFER_FROM,
                 utf_storage.span.unwrap(),
@@ -155,7 +155,7 @@ impl<'tcx> LateLintPass<'tcx> for UnrestrictedTransferFrom {
                                     tainted_locals.push(assign.0.local);
                                 }
                             }
-                            _ => {}
+                            Operand::Constant(_) => todo!(),
                         },
                         _ => {}
                     }

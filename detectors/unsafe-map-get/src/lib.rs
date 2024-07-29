@@ -4,6 +4,7 @@ extern crate rustc_errors;
 extern crate rustc_hir;
 extern crate rustc_span;
 
+use clippy_utils::diagnostics::span_lint_and_sugg;
 use if_chain::if_chain;
 use rustc_errors::Applicability;
 use rustc_hir::{
@@ -12,7 +13,6 @@ use rustc_hir::{
 };
 use rustc_lint::{LateContext, LateLintPass, LintContext};
 use rustc_span::{def_id::LocalDefId, Span};
-use scout_audit_clippy_utils::diagnostics::span_lint_and_sugg;
 use utils::{get_receiver_ident_name, is_soroban_map};
 
 const LINT_MESSAGE: &str = "Unsafe access on Map, method could panic.";
@@ -56,7 +56,7 @@ impl<'a, 'tcx> Visitor<'tcx> for UnsafeMapGetVisitor<'a, 'tcx> {
                     UNSAFE_MAP_GET,
                     expr.span,
                     LINT_MESSAGE,
-                    &format!("Using `{}` on a Map is unsafe as it could panic, please use", path_segment.ident),
+                    format!("Using `{}` on a Map is unsafe as it could panic, please use", path_segment.ident),
                     format!("{}.try_get({})", receiver_ident_name, first_arg_str),
                     Applicability::MaybeIncorrect,
                 );

@@ -14,61 +14,23 @@ Our interest in this project comes from our experience in manual auditing and vu
 
 ## Quick Start
 
-Make sure that [Cargo](https://doc.rust-lang.org/cargo/getting-started/installation.html) is installed on your computer. Then, follow these 5 simple steps:
+**Install Scout Audit:**
 
-**1. Install Rust Nightly Toolchain:**
-
-```bash
-rustup toolchain install nightly-2023-12-16
-```
-
-**2. Set Default Nightly Toolchain:**
-
-```bash
-rustup default nightly-2023-12-16
-```
-
-**3. Add rust-src Component:**
-
-```bash
-rustup component add rust-src --toolchain nightly-2023-12-16
-```
-
-**4. Install additional tools required by Scout:**
-
-```bash
-cargo install cargo-dylint dylint-link mdbook
-```
-
-**5. Install Scout Audit:**
+Make sure that [Cargo](https://doc.rust-lang.org/cargo/getting-started/installation.html) is installed on your computer. Then, install Scout with the following command:
 
 ```bash
 cargo install cargo-scout-audit
 ```
 
-**6. Run Scout Audit:**
+**Run Scout Audit:**
 
-Finally, to run Scout on your project, navigate to the directory of your smart contract and execute the following command:
+To run Scout on your project execute the following command:
 
 ```bash
 cargo scout-audit
 ```
 
-:warning: Currently Scout doesn't offer full support for workspaces. If you have a workspace, run Scout in each member instead of running it in the workspace `Cargo.toml`.
-
-
-```
-├── your-soroban-project
-│   ├── your-smart-contract
-│   │   ├── // Run Scout here.
-│   │   ├── src
-│   │   |   ├── contract.rs 
-│   ├── Cargo.lock
-│   ├── Cargo.toml
-│   ├── README.md
-
-```
-
+:bulb: Scout supports [Cargo Workspaces](https://doc.rust-lang.org/book/ch14-03-cargo-workspaces.html). When run on a workspace, Scout will be executed on all packages specified as members of the workspace.
 
 :warning: Make sure that your smart contracts compile properly. Scout won't run if any compilation errors exist.
 
@@ -104,23 +66,21 @@ Currently Scout includes the following detectors.
 
 ## Output formats
 
-You can choose the output format that best suit your needs (html or markdown). To specify the desired output run the following command:
+You can choose the output format that best suit your needs. Scout offers html, markdown, json, pdf and sarif reports. To specify the desired output run the following command:
 
 ```
-cargo scout-audit --output-format [html|md]
+cargo scout-audit --output-format [html|md|pdf|json|sarif]
 ```
 
-**Example HTML report**
+**HTML report**
 
-![Scout HTML report.](/docs/static/img/scout-soroban-html.jpg)
+![Scout HTML report.](/docs/static/img/html-report.png)
 
 ## Scout VS Code extension
 
 Add Scout to your development workspace with Scout's VS Code extension to run Scout automatically upon saving your file.
 
 ![Scout VS Code extension.](/assets/vscode-extension.png)
-
-:warning: To ensure the extension runs properly, make sure that you open the directory containing your smart contract, rather than the entire project. For example, if your smart contracts are located in `myproject/contracts`, and you want to work on the `token` contract while using the Scout VS Code Extension, open `myproject/contracts/token`.
 
 :bulb: Tip: To see the errors highlighted in your code, we recommend installing the [Error Lens Extension](https://marketplace.visualstudio.com/items?itemName=usernamehw.errorlens).
 
@@ -145,9 +105,13 @@ Join us for an exciting series of video tutorials where you'll learn how to inst
 - [How to run Scout](https://www.youtube.com/watch?v=_6F24AwscKc)
 - [Detecting and fixing issues: Divide before multiply](https://www.youtube.com/watch?v=aLtXyYvw27o)
 - [Detecting and fixing issues: Incorrect exponentiation](https://www.youtube.com/watch?v=qjnHwKCD_hM)
+- [Detecting and fixing issues: Overflow check](https://www.youtube.com/watch?v=Mi7AcJRPgvU)
+- [Detecting and fixing issues: Insufficiently random values](https://www.youtube.com/watch?v=LPBMDPXmczQ)
+- [Detecting and fixing issues: DoS - Unexpected revert with vector](https://www.youtube.com/watch?v=H79mMnnWyvA)
+- [Detecting and fixing issues: DoS - Unbounded operation](https://www.youtube.com/watch?v=DFM0yNNDiyw)
+- [Detecting and fixing issues: Set contract storage](https://www.youtube.com/watch?v=z6RNfhQt6EI)
 
 :clapper: More videos comming soon!
-
 
 ## Tests
 
@@ -191,4 +155,3 @@ Our team has an academic background in computer science and mathematics, with wo
 ## License
 
 Scout is licensed and distributed under a MIT license. [Contact us](https://www.coinfabrik.com/) if you're looking for an exception to the terms.
-

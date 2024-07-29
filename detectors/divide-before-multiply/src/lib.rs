@@ -7,6 +7,7 @@ extern crate rustc_span;
 
 use std::collections::HashSet;
 
+use clippy_utils::diagnostics::span_lint_and_help;
 use if_chain::if_chain;
 use rustc_hir::{
     intravisit::{walk_expr, FnKind, Visitor},
@@ -24,7 +25,6 @@ use rustc_span::{
     def_id::{DefId, LocalDefId},
     Span,
 };
-use scout_audit_clippy_utils::diagnostics::span_lint_and_help;
 
 const LINT_MESSAGE: &str = "Division before multiplication might result in a loss of precision";
 
@@ -173,7 +173,7 @@ fn navigate_trough_basicblocks<'tcx>(
                 Rvalue::Use(operand) => {
                     check_operand(operand, tainted_places, &assign.0);
                 }
-                Rvalue::BinaryOp(op, operands) | Rvalue::CheckedBinaryOp(op, operands) => {
+                Rvalue::BinaryOp(op, operands) => {
                     if BinOp::Div == *op {
                         tainted_places.push(assign.0);
                     } else if BinOp::Mul == *op
@@ -208,9 +208,9 @@ fn navigate_trough_basicblocks<'tcx>(
                         tainted_places.push(*destination);
                     } else {
                         for arg in args {
-                            match arg {
+                            match arg.node {
                                 Operand::Copy(place) | Operand::Move(place) => {
-                                    if tainted_places.contains(place) {
+                                    if tainted_places.contains(&place) {
                                         tainted_places.push(*destination);
 
                                         if def_ids.checked_mul.is_some_and(|f| f == *id)
@@ -311,18 +311,17 @@ fn navigate_trough_basicblocks<'tcx>(
                     spans,
                 );
             }
-            TerminatorKind::InlineAsm {
-                destination: Some(dest),
-                ..
-            } => {
-                navigate_trough_basicblocks(
-                    *dest,
-                    bbs,
-                    def_ids,
-                    tainted_places,
-                    visited_bbs,
-                    spans,
-                );
+            TerminatorKind::InlineAsm { targets, .. } => {
+                targets.iter().for_each(|target| {
+                    navigate_trough_basicblocks(
+                        *target,
+                        bbs,
+                        def_ids,
+                        tainted_places,
+                        visited_bbs,
+                        spans,
+                    );
+                });
             }
 
             _ => {}

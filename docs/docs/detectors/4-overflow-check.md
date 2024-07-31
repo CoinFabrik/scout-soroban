@@ -10,7 +10,6 @@ Integer overflow will trigger a panic in debug builds or will wrap in
 release mode. Division by zero will cause a panic in either mode. In some applications one
 wants explicitly checked, wrapping or saturating arithmetic.
 
-
 ### Example
 
 ```toml
@@ -26,7 +25,7 @@ crate-type = ["cdylib"]
 [dependencies]
 soroban-sdk = "20.0.0-rc2"
 
-[dev_dependencies]
+[dev-dependencies]
 soroban-sdk = { version = "=20.0.0", features = ["testutils"] }
 
 [features]
@@ -62,7 +61,7 @@ crate-type = ["cdylib"]
 [dependencies]
 soroban-sdk = "20.0.0-rc2"
 
-[dev_dependencies]
+[dev-dependencies]
 soroban-sdk = { version = "=20.0.0", features = ["testutils"] }
 
 [features]

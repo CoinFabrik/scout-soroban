@@ -58,10 +58,3 @@ The remediated code example can be found [here](https://github.com/CoinFabrik/sc
 ## How is it detected?
 
 Checks if there’s any numerical overflow or underflow.
-
-## Implementation
-
-The detector's implementation can be found at [this link](https://github.com/CoinFabrik/scout-soroban/tree/main/detectors/integer-overflow-or-underflow).
-
-
-    

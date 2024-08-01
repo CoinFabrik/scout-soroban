@@ -15,7 +15,7 @@ In Rust, arithmetic operations can result in a value that falls outside the allo
 
 ## Why is this bad? 
 
-If the error is not detected, the operation will continue to produce an incorrect result.
+If there are arithmetic operations with overflow or underflow problems and errors are not handled correctly, incorrect results will be generated, bringing potential problems for the contract. Additionally, these types of errors can allow attackers to drain a contract’s funds or manipulate its logic.
 
 ## Issue example 
 

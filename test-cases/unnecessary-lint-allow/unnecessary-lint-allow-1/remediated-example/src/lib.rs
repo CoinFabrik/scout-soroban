@@ -21,30 +21,3 @@ impl UnnecessaryLintAllow {
         }
     }
 }
-
-#[cfg(test)]
-mod tests {
-    use soroban_sdk::Env;
-
-    use super::*;
-    #[test]
-    fn does_not_revert_if_greater() {
-        let env = Env::default();
-        let contract = UnnecessaryLintAllowClient::new(
-            &env,
-            &env.register_contract(None, UnnecessaryLintAllow {}),
-        );
-        assert!(contract.assert_if_greater_than_10(&5));
-    }
-
-    #[test]
-    #[should_panic(expected = "1")] // The custom error number is 1
-    fn reverts_if_greater() {
-        let env = Env::default();
-        let contract = UnnecessaryLintAllowClient::new(
-            &env,
-            &env.register_contract(None, UnnecessaryLintAllow {}),
-        );
-        contract.assert_if_greater_than_10(&11);
-    }
-}

@@ -11,7 +11,6 @@ clippy_utils = { workspace = true }
 dylint_linting = { workspace = true }
 if_chain = { workspace = true }
 serde = { version = "1", features = ["derive"] }
-utils = { workspace = true }
 
 [package.metadata.rust-analyzer]
 rustc_private = true

@@ -14,7 +14,7 @@ Using an old version of Soroban can be dangerous, as it may have bugs or securit
 [dependencies]
 soroban-sdk = { version = "=20.0.0" }
 
-[dev_dependencies]
+[dev-dependencies]
 soroban-sdk = { version = "=20.0.0", features = ["testutils"] }
 ```
 

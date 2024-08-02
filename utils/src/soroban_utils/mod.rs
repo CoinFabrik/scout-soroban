@@ -12,6 +12,9 @@ use rustc_span::def_id::DefId;
 const SOROBAN_ENV: &str = "soroban_sdk::Env";
 const SOROBAN_ADDRESS: &str = "soroban_sdk::Address";
 const SOROBAN_MAP: &str = "soroban_sdk::Map";
+const SOROBAN_INSTANCE_STORAGE: &str = "soroban_sdk::storage::Instance";
+const SOROBAN_TEMPORARY_STORAGE: &str = "soroban_sdk::storage::Temporary";
+const SOROBAN_PERSISTENT_STORAGE: &str = "soroban_sdk::storage::Persistent";
 
 /// Determines whether a function defined by its `DefId` is part of a Soroban contract implementation.
 ///
@@ -77,4 +80,31 @@ pub fn is_soroban_address(cx: &LateContext<'_>, expr_type: Ty<'_>) -> bool {
 /// Checks if the provided type is a Soroban Map (`soroban_sdk::Map`).
 pub fn is_soroban_map(cx: &LateContext<'_>, expr_type: Ty<'_>) -> bool {
     is_soroban_type(cx, expr_type, SOROBAN_MAP)
+}
+
+pub enum SorobanStorageType {
+    Any,
+    Instance,
+    Temporary,
+    Persistent,
+}
+
+/// Checks if the provided type is a Soroban storage type (Instance, Temporary, or Persistent).
+pub fn is_soroban_storage(
+    cx: &LateContext<'_>,
+    expr_type: Ty<'_>,
+    storage_type: SorobanStorageType,
+) -> bool {
+    match storage_type {
+        SorobanStorageType::Any => {
+            is_soroban_type(cx, expr_type, SOROBAN_INSTANCE_STORAGE)
+                || is_soroban_type(cx, expr_type, SOROBAN_TEMPORARY_STORAGE)
+                || is_soroban_type(cx, expr_type, SOROBAN_PERSISTENT_STORAGE)
+        }
+        SorobanStorageType::Instance => is_soroban_type(cx, expr_type, SOROBAN_INSTANCE_STORAGE),
+        SorobanStorageType::Temporary => is_soroban_type(cx, expr_type, SOROBAN_TEMPORARY_STORAGE),
+        SorobanStorageType::Persistent => {
+            is_soroban_type(cx, expr_type, SOROBAN_PERSISTENT_STORAGE)
+        }
+    }
 }

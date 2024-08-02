@@ -11,11 +11,7 @@ pub struct AllowInfo {
 #[derive(Debug, Clone, Copy, Hash, Eq, PartialEq)]
 pub enum Scope {
     Crate,
-    Enum,
-    Function,
-    Impl,
-    Line,
-    Struct,
+    Other,
 }
 
 #[derive(Eq, PartialEq, Hash, Debug, Clone)]

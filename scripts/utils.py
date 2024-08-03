@@ -37,7 +37,7 @@ def parse_json_from_string(console_output):
         except json.JSONDecodeError:
             return "Extracted string is not valid JSON"
     else:
-        return "No JSON found in the console output"
+        return console_output
 
 
 def run_subprocess(command: list, cwd: str):

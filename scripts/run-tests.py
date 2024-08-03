@@ -70,7 +70,7 @@ def run_integration_tests(detector, root):
     detector_metadata = parse_json_from_string(stdout)
 
     if not isinstance(detector_metadata, dict):
-        print("Failed to extract JSON:", detector_metadata)
+        print("Failed to extract JSON:\n", detector_metadata)
         return True
 
     detector_key = detector.replace("-", "_")

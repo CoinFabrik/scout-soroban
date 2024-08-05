@@ -12,7 +12,7 @@ Using an old version of Soroban can be dangerous, as it may have bugs or securit
 
 ```toml
 [dependencies]
-soroban-sdk = { version = "=20.0.0" }
+soroban-sdk = { version = "=21.4.0" }
 
 [dev-dependencies]
 soroban-sdk = { version = "=20.0.0", features = ["testutils"] }

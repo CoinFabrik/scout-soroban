@@ -48,6 +48,18 @@ def run_unit_tests(root):
 def run_integration_tests(detector, root):
     start_time = time.time()
 
+    detectors_path = os.path.join(os.getcwd(), "detectors")
+    if not os.path.exists(detectors_path):
+        print(
+            f"{RED}Failed to run integration tests in {root} - Detectors directory not found.{ENDC}"
+        )
+        return True
+    else:
+        # Print the contents of the detectors directory (like ls command)
+        print(f"\n{GREEN}Detectors directory contents:{ENDC}")
+        for file in os.listdir(detectors_path):
+            print
+
     returncode, stdout, _ = run_subprocess(
         [
             "cargo",
@@ -56,7 +68,7 @@ def run_integration_tests(detector, root):
             detector,
             "--metadata",
             "--local-detectors",
-            os.path.join(os.getcwd(), "detectors"),
+            detectors_path,
         ],
         root,
     )

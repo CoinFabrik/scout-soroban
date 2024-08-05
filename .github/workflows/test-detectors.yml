@@ -61,6 +61,9 @@ jobs:
       - name: Install cargo-scout-audit
         run: cargo install cargo-scout-audit
 
+      - name: Add rust-src component
+        run: rustup +nightly-2024-07-11 component add rust-src llvm-tools rustc-dev
+
       - name: Determine build status and write to file
         run: echo "${{ job.status }}" > status-${{ matrix.os }}.txt
 
@@ -117,10 +120,6 @@ jobs:
             ~/.rustup
           key: ${{ runner.os }}-tests-${{ hashFiles('**/Cargo.lock') }}
           restore-keys: ${{ runner.os }}-tests-
-
-      - name: Add rust-src component
-        run: |
-          rustup +nightly-2024-07-11 component add rust-src
 
       - name: Run unit and integration tests
         run: python scripts/run-tests.py --detector=${{ matrix.detector }}

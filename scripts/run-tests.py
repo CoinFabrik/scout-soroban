@@ -58,7 +58,7 @@ def run_integration_tests(detector, root):
         # Print the contents of the detectors directory (like ls command)
         print(f"\n{GREEN}Detectors directory contents:{ENDC}")
         for file in os.listdir(detectors_path):
-            print
+            print(file)
 
     returncode, stdout, _ = run_subprocess(
         [

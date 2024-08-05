@@ -118,10 +118,9 @@ jobs:
           key: ${{ runner.os }}-tests-${{ hashFiles('**/Cargo.lock') }}
           restore-keys: ${{ runner.os }}-tests-
 
-      - name: Default nightly-2024-07-11
+      - name: Add rust-src component
         run: |
-          rustup default nightly-2024-07-11
-          rustup +nightly-2024-07-11 component list
+          rustup +nightly-2024-07-11 component add rust-src
 
       - name: Run unit and integration tests
         run: python scripts/run-tests.py --detector=${{ matrix.detector }}

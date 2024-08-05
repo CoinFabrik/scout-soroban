@@ -17,7 +17,7 @@ Consider the following `Cargo.toml`:
     [dependencies]
     soroban-sdk = { version = "=19.0.0" }
 
-    [dev_dependencies]
+    [dev-dependencies]
     soroban-sdk = { version = "=19.0.0", features = ["testutils"] }
 ```
 
@@ -32,7 +32,7 @@ The vulnerable code example can be found [`here`](https://github.com/CoinFabrik/
     // Use the latest version available.
     soroban-sdk = { workspace = true }
 
-    [dev_dependencies]
+    [dev-dependencies]
     soroban-sdk = { workspace = true, features = ["testutils"] }
 ```
 

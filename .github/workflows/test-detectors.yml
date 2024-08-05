@@ -62,7 +62,7 @@ jobs:
         run: cargo install cargo-scout-audit
 
       - name: Add rust-src component
-        run: rustup +nightly-2024-07-11 component add rust-src llvm-tools rustc-dev
+        run: rustup +nightly-2024-07-11 component add llvm-tools rustc-dev
 
       - name: Determine build status and write to file
         run: echo "${{ job.status }}" > status-${{ matrix.os }}.txt

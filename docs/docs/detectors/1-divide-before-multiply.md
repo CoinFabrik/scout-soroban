@@ -1,43 +1,55 @@
 # Divide before multiply
 
-### What it does
+## Description 
 
-Checks the existence of a division before a multiplication.
+- Category: `Arithmetic`
+- Severity: `Medium`
+- Detectors: [`divide-before-multiply`](https://github.com/CoinFabrik/scout-soroban/tree/main/detectors/divide-before-multiply)
+- Test Cases: [`divide-before-multiply-1`](https://github.com/CoinFabrik/scout-soroban/tree/main/test-cases/divide-before-multiply/divide-before-multiply-1) [`divide-before-multiply-2`](https://github.com/CoinFabrik/scout-soroban/tree/main/test-cases/divide-before-multiply/divide-before-multiply-2) [`divide-before-multiply-3`](https://github.com/CoinFabrik/scout-soroban/tree/main/test-cases/divide-before-multiply/divide-before-multiply-3)
 
-### Why is this bad?
+In Rust, the order of operations can influence the precision of the result, especially in integer arithmetic. Performing a division operation before a multiplication can lead to a loss of precision as division between integers might return zero. 
+
+## Why is this bad? 
 
 Performing a division operation before multiplication can lead to a loss of precision. It might even result in an unintended zero value.
 
-### Example
+## Issue example 
+
+Consider the following `Soroban` contract:
 
 ```rust
-// Example 1 - Vulnerable
-let x = 10;
-let y = 6;
-let z = x / y * 3; // z evaluates to 3
 
-// Example 2 - Vulnerable
-let a = 1;
-let b = 2;
-let c = a / b * 3; // c evaluates to 0
+ pub fn split_profit(percentage: u64, total_profit: u64) -> u64 {
+    (percentage / 100) * total_profit
+}
+
 ```
 
-Use instead:
+In this contract, the `split_profit` function divides the `percentage` by `100` before multiplying it with `total_profit`. This could lead to a loss of precision if `percentage` is less than `100` as the division would return `0`. This could lead to incorrect calculations and potential financial loss in a real-world smart contract.
+
+
+The code example can be found [here](https://github.com/CoinFabrik/scout-soroban/tree/main/test-cases/divide-before-multiply/divide-before-multiply-1/vulnerable-example).
+
+
+## Remediated example
+
+Reverse the order of operations to ensure multiplication occurs before division.
 
 ```rust
-// Example 1 - Remediated
-let x = 10;
-let y = 6;
-let z = x * 3 / y; // z evaluates to 5
 
-// Example 2 - Remediated
-let a = 1;
-let b = 2;
-let c = a * 3 / b; // c evaluates to 1
+ pub fn split_profit(&self, percentage: u64, total_profit: u64) -> u64 {
+            (percentage * total_profit) / 100
+        }
+        
 ```
 
-### Implementation
+The remediated code example can be found [here](https://github.com/CoinFabrik/scout-soroban/tree/main/test-cases/divide-before-multiply/divide-before-multiply-1/remediated-example).
 
-The detector's implementation can be found at [this link](https://github.com/CoinFabrik/scout-soroban/tree/main/detectors/divide-before-multiply).
+## How is it detected?
 
+Checks the existence of a division before a multiplication.
 
+## References
+
+[Rust documentation: `Integer Division`](https://doc.rust-lang.org/stable/reference/expressions/operator-expr.html#arithmetic-and-logical-binary-operators)
+    

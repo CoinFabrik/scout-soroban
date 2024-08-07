@@ -1,90 +1,46 @@
-# Overflow-check
+# Overflow check
 
-### What it does
+## Description 
+
+- Category: `Arithmetic`
+- Severity: `Critical`
+- Detector: [`overflow-check`](https://github.com/CoinFabrik/scout-soroban/tree/main/detectors/overflow-check)
+- Test Cases: [`overflow-check-1`](https://github.com/CoinFabrik/scout-soroban/tree/main/test-cases/overflow-check-1) 
+
+In Rust, if the 'overflow-check' dependency is disabled in the Cargo.toml file, operations with integer overflow issues cannot be adjusted, leading to potential problems with the results obtained
+
+## Why is this bad? 
+
+Using arithmetic operations with integer overflow without regulation leads to wrong results, which can cause issues with other operations.
+
+## Issue example 
+
+Consider the following Cargo.toml, in a Soroban contract:
+
+```rust
+[profile.release]
+overflow-checks = false
+```
+Problems can arise if `overflow-checks` is disabled.
+
+The code example can be found [here](https://github.com/CoinFabrik/scout-soroban/tree/main/test-cases/overflow-check/overflow-check-1/vulnerable-example).
+
+
+## Remediated example
+
+```rust
+
+ [profile.release]
+  overflow-checks = true
+        
+```
+
+The remediated code example can be found [here](https://github.com/CoinFabrik/scout-soroban/tree/main/test-cases/overflow-check/overflow-check-1/remediated-example).
+
+## How is it detected?
 
 Checks that `overflow-checks` is enabled in the `[profile.release]` section of the `Cargo.toml`.
 
-### Why is this bad?
-
-Integer overflow will trigger a panic in debug builds or will wrap in
-release mode. Division by zero will cause a panic in either mode. In some applications one
-wants explicitly checked, wrapping or saturating arithmetic.
 
 
-### Example
-
-```toml
-
-[package]
-name = "overflow-check-vulnerable-1"
-version = "0.1.0"
-edition = "2021"
-
-[lib]
-crate-type = ["cdylib"]
-
-[dependencies]
-soroban-sdk = "20.0.0-rc2"
-
-[dev_dependencies]
-soroban-sdk = { version = "=20.0.0", features = ["testutils"] }
-
-[features]
-testutils = ["soroban-sdk/testutils"]
-
-[profile.release]
-opt-level = "z"
-overflow-checks = false
-debug = 0
-strip = "symbols"
-debug-assertions = false
-panic = "abort"
-codegen-units = 1
-lto = true
-
-[profile.release-with-logs]
-inherits = "release"
-debug-assertions = true
-```
-
-Use instead:
-
-```toml
-
-[package]
-name = "overflow-check-remediated-1"
-version = "0.1.0"
-edition = "2021"
-
-[lib]
-crate-type = ["cdylib"]
-
-[dependencies]
-soroban-sdk = "20.0.0-rc2"
-
-[dev_dependencies]
-soroban-sdk = { version = "=20.0.0", features = ["testutils"] }
-
-[features]
-testutils = ["soroban-sdk/testutils"]
-
-[profile.release]
-opt-level = "z"
-overflow-checks = true
-debug = 0
-strip = "symbols"
-debug-assertions = false
-panic = "abort"
-codegen-units = 1
-lto = true
-
-[profile.release-with-logs]
-overflow-checks = true
-inherits = "release"
-debug-assertions = true
-
-```
-
-### Implementation
-
-The detector's implementation can be found at [this link](https://github.com/CoinFabrik/scout-soroban/tree/main/detectors/overflow-check).
+    

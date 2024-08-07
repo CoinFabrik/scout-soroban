@@ -11,7 +11,7 @@ In Rust, the order of operations can influence the precision of the result, espe
 
 ## Why is this bad? 
 
-Performing a division operation before a multiplication can lead to a loss of precision as division between integers might return zero. It might even result in an unintended zero value.
+Performing a division operation before a multiplication can lead to a loss of precision as division between integers might return zero. 
 
 ## Issue example 
 

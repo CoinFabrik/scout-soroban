@@ -1,6 +1,6 @@
 [workspace]
 exclude = [".cargo", "target"]
-members = ["incorrect-exponentiation-*/*"]
+members = ["dynamic-instance-storage-*/*"]
 resolver = "2"
 
 [workspace.dependencies]

@@ -6,7 +6,7 @@ extern crate rustc_hir;
 extern crate rustc_middle;
 extern crate rustc_span;
 
-use clippy_utils::diagnostics::span_lint;
+use clippy_wrappers::span_lint;
 use rustc_hir::intravisit::walk_expr;
 use rustc_hir::intravisit::Visitor;
 use rustc_hir::{Expr, ExprKind};

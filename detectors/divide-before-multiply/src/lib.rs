@@ -7,7 +7,7 @@ extern crate rustc_span;
 
 use std::collections::HashSet;
 
-use clippy_utils::diagnostics::span_lint_and_help;
+use clippy_wrappers::span_lint_and_help;
 use if_chain::if_chain;
 use rustc_hir::{
     intravisit::{walk_expr, FnKind, Visitor},

@@ -7,7 +7,7 @@ version = "0.1.0"
 [dependencies]
 soroban-sdk = { version = "=21.4.0" }
 
-[dev_dependencies]
+[dev-dependencies]
 soroban-sdk = { version = "=21.4.0", features = ["testutils"] }
 
 [features]

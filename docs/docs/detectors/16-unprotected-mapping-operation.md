@@ -1,12 +1,15 @@
-# Unprotected Mapping Operation
+# Unprotected mapping operation
 
-### What it does
+## Description 
 
-It warns you if a mapping operation (`insert`, `take`, `remove`) function is called with a user-given `key` field of the type `AccountId`.
+- Category: `Authorization`
+- Severity: `Critical`
+- Detector: [`unprotected-mapping-operation`](https://github.com/CoinFabrik/scout-soroban/tree/main/detectors/unprotected-mapping-operation)
+- Test Cases: [`unprotected-mapping-operation-1`](https://github.com/CoinFabrik/scout-soroban/tree/main/test-cases/unprotected-mapping-operation/unprotected-mapping-operation-1) [`unprotected-mapping-operation-2`](https://github.com/CoinFabrik/scout-soroban/tree/main/test-cases/unprotected-mapping-operation/unprotected-mapping-operation-2)  
 
-### Why is this bad?
+In Rust, Modifying mappings with an arbitrary key given by the user could lead to several issues. Ideally, only users who have been previously verified should be able to do it.
 
-Modifying mappings with an arbitrary key given by users can be a significant vulnerability for several reasons:
+## Why is this bad? 
 
 - Unintended Modifications: Allowing users to provide arbitrary keys can lead to unintended modifications of critical data within the smart contract. If the input validation and sanitation are not done properly, users may be able to manipulate the data in ways that were not intended by the contract's author.
 
@@ -14,12 +17,12 @@ Modifying mappings with an arbitrary key given by users can be a significant vul
 
 - Denial-of-Service (DoS) Attacks: If users can set arbitrary keys, they may be able to create mappings with a large number of entries, potentially causing the contract to exceed its gas limit. This could lead to denial-of-service attacks, making the contract unusable for other users.
 
-### Known problems
+## Issue example 
 
-### Example
+Consider the following `Soroban` contract:
 
 ```rust
-    pub fn set_balance(env: Env, address: Address, balance: i128) -> State {
+   pub fn set_balance(env: Env, address: Address, balance: i128) -> State {
         // Get the current state.
         let mut state = Self::get_state(env.clone());
 
@@ -33,8 +36,14 @@ Modifying mappings with an arbitrary key given by users can be a significant vul
         state
     }
 ```
+The `set_balance()` function allows anyone to call it and modify the account balances in the state. It lacks authorization checks and allows modifying the mutable state directly.
 
-Use instead:
+The code example can be found [here](https://github.com/CoinFabrik/scout-soroban/tree/main/test-cases/unprotected-mapping-operation/unprotected-mapping-operation-1/vulnerable-example).
+
+
+## Remediated example
+
+The fix adds an `address.require_auth()` step, likely checking user permissions to update balances. This ensures only authorized users can modify account data.
 
 ```rust
     pub fn set_balance(env: Env, address: Address, balance: i128) -> State {
@@ -55,6 +64,8 @@ Use instead:
     }
 ```
 
-### Implementation
+The remediated code example can be found [`here`](https://github.com/CoinFabrik/scout-soroban/tree/main/test-cases/unprotected-mapping-operation/unprotected-mapping-operation-1/remediated-example).
 
-The detector's implementation can be found at [this link](https://github.com/CoinFabrik/scout-soroban/tree/main/detectors/unprotected-mapping-operation).
+## How is it detected?
+
+It warns you if a mapping operation (`insert`, `take`, `remove`) function is called with a user-given `key` field of the type `AccountId`.

@@ -1,33 +1,54 @@
-# Assert  violation
+# Assert violation
 
-### What it does​
+## Description 
 
-Checks for `assert!` macro usage.
+- Category: `Validations and error handling`
+- Severity: `Enhancement`
+- Detector: [`assert-violation`](https://github.com/CoinFabrik/scout-soroban/tree/main/detectors/assert-violation)
+- Test Cases: [`assert-violation-1`](https://github.com/CoinFabrik/scout-soroban/tree/main/test-cases/assert-violation/assert-violation-1) 
 
-### Why is this bad?​
+The `assert!` macro is used in Rust to ensure that a certain condition holds true at a certain point in your code. 
+
+## Why is it bad?
 
 The `assert!` macro can cause the contract to panic.
 
-### Example​
+
+## Issue example
+
+Consider the following `Soroban` contract:
 
 ```rust
-pub fn assert_if_greater_than_10(_env: Env, value: u128) -> bool {
-       assert!(value <= 10, "value should be less than 10");
-       true
-   }
-
+    pub fn assert_if_greater_than_10(_env: Env, value: u128) -> bool {
+        assert!(value <= 10, "value should be less than 10");
+        true
+    }
 ```
-Use instead:
+
+The problem arises from the use of the `assert!` macro, if the condition is not met, the contract panics.
+
+The code example can be found [here](https://github.com/CoinFabrik/scout-soroban/tree/main/test-cases/assert-violation/assert-violation-1/vulnerable-example).
+
+## Remediated example
+
+Avoid the use of `assert!` macro. Instead, use a proper error and return it.
 
 ```rust
-pub fn assert_if_greater_than_10(_env: Env, value: u128) -> Result<bool, AVError> {
-       if value <= 10 {
-           Ok(true)
-       } else {
-           Err(AVError::GreaterThan10)
-       }
-   }
+    pub fn assert_if_greater_than_10(_env: Env, value: u128) -> Result<bool, AVError> {
+        if value <= 10 {
+            Ok(true)
+        } else {
+            Err(AVError::GreaterThan10)
+        }
+    }
 ```
-### Implementation
 
-The detector's implementation can be found at [this link](https://github.com/CoinFabrik/scout-soroban/tree/main/detectors/assert-violation).
+The remediated code example can be found [here](https://github.com/CoinFabrik/scout-soroban/tree/main/test-cases/assert-violation/assert-violation-1/remediated-example).
+
+## How is it detected?
+
+Checks for `assert!` macro usage.
+
+## References
+
+- [Assert violation](https://docs.alephzero.org/aleph-zero/security-course-by-kudelski-security/ink-developers-security-guideline#assert-violation)

@@ -10,7 +10,7 @@ crate-type = ["cdylib"]
 soroban-sdk = { version = "=21.4.0" }
 
 [dev-dependencies]
-soroban-sdk = { workspace = true, features = ["testutils"] }
+soroban-sdk = { version = "=21.4.0", features = ["testutils"] }
 
 [features]
 testutils = ["soroban-sdk/testutils"]

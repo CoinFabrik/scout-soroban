@@ -1,19 +1,24 @@
-# Iterators-over-indexing
+# Iterators over indexing
 
-### What it does
+## Description 
 
-It warns if the for loop uses indexing instead of iterator. If the indexing goes to length it will not raise a warning.
+- Category: `Best practices`
+- Severity: `Enhancement`
+- Detector: [`iterators-over-indexing`](https://github.com/CoinFabrik/scout-soroban/tree/main/detectors/iterators-over-indexing)
+- Test Cases: [`iterators-over-indexing-1`](https://github.com/CoinFabrik/scout-soroban/tree/main/test-cases/iterators-over-indexing/iterators-over-indexing-1)
 
-### Why is this bad?
+In Rust, sequences can be traversed using iterators or direct indexing. However, the least efficient way is through direct indexing.
 
+## Why is this bad? 
 
-Accessing a vector by index is slower than using an iterator. Also, if the index is out of bounds, it will panic.
+When you iterate over a data structure with fixed limits, you might exceed the limit, causing a panic in the contract and other potential errors.
 
+## Issue example 
 
-### Example​
+Consider the following `Soroban` contract:
 
 ```rust
-    pub fn sum(e: Env) -> Result<i32, Error> {
+   pub fn sum(e: Env) -> Result<i32, Error> {
         let mut ret = 0_i32;
         let vec = e
             .storage()
@@ -28,9 +33,14 @@ Accessing a vector by index is slower than using an iterator. Also, if the index
         Ok(ret)
     }
 ```
-Use instead:
+The problem arises in the for loop. If `vec` has less than 4 elements, the contract will panic.
+
+The code example can be found [here](https://github.com/CoinFabrik/scout-soroban/tree/main/test-cases/iterators-over-indexing/iterators-over-indexing-1/vulnerable-example).
+
+## Remediated example
+
 ```rust
-    pub fn sum(e: Env) -> Result<i32, Error> {
+     pub fn sum(e: Env) -> Result<i32, Error> {
         let mut ret = 0_i32;
         let vec = e
             .storage()
@@ -43,7 +53,11 @@ Use instead:
         Ok(ret)
     }
 ```
-### Implementation
 
-The detector's implementation can be found at [this link](https://github.com/CoinFabrik/scout-soroban/tree/main/detectors/iterators-over-indexing).
+Instead of using a fixed loop, iterate through the vector itself using `for i in vec`. This ensures the loop iterates only for valid elements present in the vector.
 
+The remediated code example can be found [here](https://github.com/CoinFabrik/scout-soroban/tree/main/test-cases/iterators-over-indexing/iterators-over-indexing-1/remediated-example).
+
+## How is it detected?
+
+It warns if the for loop uses indexing instead of iterator. If the indexing goes to length it will not raise a warning.

@@ -4,13 +4,14 @@ extern crate rustc_ast;
 extern crate rustc_hir;
 extern crate rustc_span;
 
+use clippy_wrappers::span_lint;
 use if_chain::if_chain;
 use rustc_ast::{
     token::{Delimiter, Token, TokenKind},
     tokenstream::{TokenStream, TokenTree},
     AttrArgs, AttrKind, Attribute,
 };
-use rustc_hir::{intravisit::FnKind, Body, FnDecl, HirId, Item, CRATE_HIR_ID};
+use rustc_hir::{intravisit::FnKind, Body, Expr, FnDecl, HirId, Item, Stmt, CRATE_HIR_ID};
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_span::{def_id::LocalDefId, sym, Span};
 use std::collections::{HashSet, VecDeque};
@@ -35,13 +36,6 @@ dylint_linting::impl_late_lint!(
 pub struct AllowInfo {
     pub lint_name: String,
     pub span: Span,
-    pub scope: Scope,
-}
-
-#[derive(Debug, Clone, Copy, Hash, Eq, PartialEq)]
-pub enum Scope {
-    Crate,
-    Other,
 }
 
 #[derive(Default, Debug, Clone)]
@@ -50,13 +44,7 @@ struct UnnecessaryLintAllow {
 }
 
 impl UnnecessaryLintAllow {
-    fn check_and_collect_attrs(
-        &mut self,
-        cx: &LateContext,
-        hir_id: HirId,
-        scope: Scope,
-        span: Span,
-    ) {
+    fn check_and_collect_attrs(&mut self, cx: &LateContext, hir_id: HirId, span: Span) {
         if span.from_expansion() {
             return;
         }
@@ -64,12 +52,12 @@ impl UnnecessaryLintAllow {
         let attrs = cx.tcx.hir().attrs(hir_id);
         if !attrs.is_empty() {
             for attr in attrs.iter() {
-                self.collect_attribute(attr, scope, span);
+                self.collect_attribute(attr, span);
             }
         }
     }
 
-    fn collect_attribute(&mut self, attr: &Attribute, scope: Scope, span: Span) {
+    fn collect_attribute(&mut self, attr: &Attribute, span: Span) {
         if_chain! {
             if !attr.span.from_expansion();
             if attr.has_name(sym::allow);
@@ -81,7 +69,6 @@ impl UnnecessaryLintAllow {
                     self.findings.insert(AllowInfo {
                         lint_name,
                         span,
-                        scope,
                     });
                 }
             }
@@ -119,40 +106,30 @@ impl UnnecessaryLintAllow {
 }
 
 impl<'tcx> LateLintPass<'tcx> for UnnecessaryLintAllow {
-    fn check_crate_post(&mut self, _: &LateContext<'tcx>) {
+    fn check_crate_post(&mut self, cx: &LateContext<'tcx>) {
         for finding in &self.findings {
-            dbg!(
-                "Found unnecessary `#[allow({})]` attribute at {:?}, type: {:?}",
-                finding.lint_name.clone(),
-                finding.span,
-                finding.scope
-            );
+            span_lint(cx, UNNECESSARY_LINT_ALLOW, finding.span, LINT_MESSAGE);
         }
     }
 
     fn check_crate(&mut self, cx: &LateContext<'tcx>) {
         // Collect crate-level attributes
-        self.check_and_collect_attrs(
-            cx,
-            CRATE_HIR_ID,
-            Scope::Crate,
-            cx.tcx.hir().span(CRATE_HIR_ID),
-        );
+        self.check_and_collect_attrs(cx, CRATE_HIR_ID, cx.tcx.hir().span(CRATE_HIR_ID));
     }
 
     fn check_item(&mut self, cx: &LateContext<'tcx>, item: &'tcx Item<'tcx>) {
         // Collect item-level attributes (struct, enum, impl)
-        self.check_and_collect_attrs(cx, item.hir_id(), Scope::Other, item.span);
+        self.check_and_collect_attrs(cx, item.hir_id(), item.span);
     }
 
-    fn check_stmt(&mut self, cx: &LateContext<'tcx>, stmt: &'tcx rustc_hir::Stmt<'tcx>) {
+    fn check_stmt(&mut self, cx: &LateContext<'tcx>, stmt: &'tcx Stmt<'tcx>) {
         // Collect statement-level attributes (let, return, etc.)
-        self.check_and_collect_attrs(cx, stmt.hir_id, Scope::Other, stmt.span);
+        self.check_and_collect_attrs(cx, stmt.hir_id, stmt.span);
     }
 
-    fn check_expr(&mut self, cx: &LateContext<'tcx>, expr: &'tcx rustc_hir::Expr<'tcx>) {
+    fn check_expr(&mut self, cx: &LateContext<'tcx>, expr: &'tcx Expr<'tcx>) {
         // Collect expression-level attributes (function call, etc.)
-        self.check_and_collect_attrs(cx, expr.hir_id, Scope::Other, expr.span);
+        self.check_and_collect_attrs(cx, expr.hir_id, expr.span);
     }
 
     fn check_fn(
@@ -166,6 +143,6 @@ impl<'tcx> LateLintPass<'tcx> for UnnecessaryLintAllow {
     ) {
         // Collect function level attributes (function)
         let hir_id = cx.tcx.local_def_id_to_hir_id(local_def_id);
-        self.check_and_collect_attrs(cx, hir_id, Scope::Other, span);
+        self.check_and_collect_attrs(cx, hir_id, span);
     }
 }

@@ -1,14 +1,21 @@
 # Unsafe map get
 
-### What it does
+## Description
 
-This detector identifies instances where unsafe methods like `get`, `get_unchecked`, and `try_get_unchecked` are used on `Map` objects in Soroban smart contracts.
+- Category: `Validations and error handling`
+- Severity: `Medium`
+- Detectors: [`unsafe-map-get`](https://github.com/CoinFabrik/scout-soroban/tree/main/detectors/unsafe-map-get)
+- Test Cases: [`unsafe-map-get-1`](https://github.com/CoinFabrik/scout-soroban/tree/main/test-cases/unsafe-map-get/unsafe-map-get-1)
 
-### Why is this bad?
+The use of certain methods (`get`, `get_unchecked`, `try_get_unchecked`) on a `Map` object in the Soroban environment without appropriate error handling can lead to potential runtime panics. This issue stems from accessing the map's values with keys that may not exist, without using safer alternatives that check the existence of the key. 
 
-These methods are risky because they can lead to panics if the key does not exist in the map. Using these methods without proper checks increases the risk of runtime errors that can disrupt the execution of the smart contract and potentially lead to unexpected behavior or denial of service.
+## Why is it bad?
 
-### Example
+These methods can lead to panics if the key does not exist in the map. Using these methods without proper checks increases the risk of runtime errors that can disrupt the execution of the smart contract and potentially lead to unexpected behavior or denial of service.
+
+## Issue example
+
+Consider the following `Soroban` contract:
 
 ```rust
 pub fn get_from_map(env: Env) -> Option<i32> {
@@ -18,8 +25,9 @@ pub fn get_from_map(env: Env) -> Option<i32> {
     map.get(1)
 }
 ```
+The code example can be found [here](https://github.com/CoinFabrik/scout-soroban/tree/main/test-cases/unsafe-map-get/unsafe-map-get-1/vulnerable-example).
 
-Use instead:
+## Remediated example
 
 ```rust
 pub fn get_map_with_different_values(env: Env, key: i32) -> Result<Option<i32>, Error> {
@@ -34,7 +42,8 @@ pub fn get_map_with_different_values(env: Env, key: i32) -> Result<Option<i32>, 
 }
 ```
 
-### Implementation
+The remediated code example can be found [here](https://github.com/CoinFabrik/scout-soroban/tree/main/test-cases/unsafe-map-get/unsafe-map-get-1/remediated-example).
 
-The detector's implementation can be found at [this link](https://github.com/CoinFabrik/scout-soroban/tree/main/detectors/unsafe-map-get).
+## How is it detected?
 
+Checks for array pushes without access control.

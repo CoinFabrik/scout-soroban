@@ -20,7 +20,9 @@ enum Result<T, E> {
 
 ## Why is this bad?
 
-If any of the variants (Ok/Err) is not used, the code could be simplified or it could imply a bug.
+If either variant (`Ok` or `Err`) is not used in the code, it could indicate that the `Result` type is unnecessary and that the code could be simplified. Alternatively, it might suggest a bug where a possible outcome is not being handled properly.
+
+
 
 ## Issue example
 

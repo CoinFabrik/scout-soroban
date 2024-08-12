@@ -13,7 +13,7 @@ use rustc_ast::{
 };
 use rustc_hir::{intravisit::FnKind, Body, Expr, FnDecl, HirId, Item, Stmt, CRATE_HIR_ID};
 use rustc_lint::{LateContext, LateLintPass};
-use rustc_span::{def_id::LocalDefId, sym, Span};
+use rustc_span::{def_id::LocalDefId, Span, Symbol};
 use std::collections::{HashSet, VecDeque};
 
 const LINT_MESSAGE: &str = "This `#[allow]` attribute may be unnecessary. Consider removing it if the lint is no longer triggered.";
@@ -60,7 +60,7 @@ impl UnnecessaryLintAllow {
     fn collect_attribute(&mut self, attr: &Attribute, span: Span) {
         if_chain! {
             if !attr.span.from_expansion();
-            if attr.has_name(sym::allow);
+            if attr.has_name(Symbol::intern("scout_allow"));
             if let AttrKind::Normal(item) = &attr.kind;
             if let AttrArgs::Delimited(delimited_args) = &item.item.args;
             then {

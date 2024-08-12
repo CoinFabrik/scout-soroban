@@ -3,7 +3,7 @@
 extern crate rustc_ast;
 extern crate rustc_span;
 
-use clippy_wrappers::span_lint;
+use clippy_wrappers::span_lint_and_help;
 use if_chain::if_chain;
 use rustc_ast::{
     token::{Delimiter, Token, TokenKind},
@@ -14,7 +14,7 @@ use rustc_lint::{EarlyContext, EarlyLintPass};
 use rustc_span::Symbol;
 use std::collections::VecDeque;
 
-const LINT_MESSAGE: &str = "This `#[allow]` attribute may be unnecessary. Consider removing it if the lint is no longer triggered.";
+const LINT_MESSAGE: &str = "This `#[scout_allow]` attribute may be unnecessary. Consider removing it if the lint is no longer triggered.";
 
 dylint_linting::declare_pre_expansion_lint! {
     pub UNNECESSARY_LINT_ALLOW,
@@ -22,7 +22,7 @@ dylint_linting::declare_pre_expansion_lint! {
     LINT_MESSAGE,
     {
         name: "Unnecessary Lint Allow",
-        long_message: "The `#[allow]` attribute is used to disable lints. It is recommended to fix the issues instead of disabling them.",
+        long_message: "The `#[scout_allow]` attribute may be unnecessary. Consider removing it if the lint is no longer triggered.",
         severity: "Enhancement",
         help: "https://coinfabrik.github.io/scout-soroban/docs/detectors/unnecessary-lint-allow",
         vulnerability_class: "Code Quality",
@@ -70,7 +70,14 @@ impl EarlyLintPass for UnnecessaryLintAllow {
             then {
                 let lint_names = self.extract_lint_names(&delimited_args.tokens);
                 for lint_name in lint_names {
-                    span_lint(cx, UNNECESSARY_LINT_ALLOW, attr.span, lint_name);
+                    span_lint_and_help(
+                        cx,
+                        UNNECESSARY_LINT_ALLOW,
+                        attr.span,
+                        LINT_MESSAGE,
+                        None,
+                        format!("The detector `{}` is no longer triggered. Consider removing the `#[scout_allow({lint_name})]` attribute if the lint is no longer triggered.", lint_name)
+                    );
                 }
             }
         }

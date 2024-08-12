@@ -9,7 +9,7 @@
 
 The panic! macro is used to stop execution when a condition is not met. This is useful for testing and prototyping, but should be avoided in production code.
 
-Using Result as return type for functions that can fail is the idiomatic way to handle errors in Rust. The Result type is an enum that can be either Ok or Err. The Err variant can contain an error message. The ? operator can be used to propagate the error message to the caller.
+Using `Result` as return type for functions that can fail is the idiomatic way to handle errors in Rust. The `Result` type is an enum that can be either `Ok` or `Err`. The `Err` variant can contain an error message. The `?` operator can be used to propagate the error message to the caller.
 
 This way, the caller can decide how to handle the error, although the state of the contract is always reverted on the callee.
 

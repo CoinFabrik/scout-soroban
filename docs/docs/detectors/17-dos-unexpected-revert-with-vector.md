@@ -11,7 +11,7 @@ This issue of DoS through unexpected revert arises when a smart contract does no
 
 ## Why it is bad?
 
-Arrays have a maximum size according to the storage cell. If the array is full, the push will revert. This issue can be exploited by an attacker to perform a DoS attack on the network and can result in lost funds, poor user experience, and even harm the network's overall security.
+In Soroban smart contracts, a Denial of Service (DoS) issue through unexpected reverts can occur if the contract does not properly manage storage limits or handle errors when the storage capacity is exceeded. If a user adds an excessive number of entries, it could trigger a revert, causing subsequent transactions by other users to fail unexpectedly, leading to a potential Denial of Service.
 
 
 ## Issue example 

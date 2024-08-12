@@ -26,7 +26,7 @@ const LINT_MESSAGE: &str =
 const CANONICAL_FUNCTIONS_AMOUNT: usize = 10;
 
 dylint_linting::impl_late_lint! {
-    pub VERIFY_TRANSFER,
+    pub TOKEN_INTERFACE_EVENTS,
     Warn,
     "",
     TokenInterfaceEvents::default(),
@@ -184,7 +184,7 @@ impl<'tcx> LateLintPass<'tcx> for TokenInterfaceEvents {
                 if !emits_event_in_flow && calls_unsafe_storage_setter {
                     span_lint_and_help(
                         cx,
-                        VERIFY_TRANSFER,
+                        TOKEN_INTERFACE_EVENTS,
                         cx.tcx.hir().span_if_local(*func).unwrap(),
                         LINT_MESSAGE,
                         /* cx.tcx.hir().span_if_local(r) */ None,
@@ -221,21 +221,23 @@ impl<'tcx> LateLintPass<'tcx> for TokenInterfaceEvents {
         if verify_token_interface_function(fn_name.clone(), fn_decl.inputs, fn_decl.output) {
             self.canonical_funcs_def_id.insert(def_id);
         }
-        let mut verify_transfer_visitor = TokenInterfaceEventsVisitor {
+        let mut token_interface_events_visitor = TokenInterfaceEventsVisitor {
             cx,
             is_storage_changer: false,
             emits_event: false,
         };
 
-        verify_transfer_visitor.visit_body(body);
+        token_interface_events_visitor.visit_body(body);
 
         // If the function modifies the storage and does not emit event, we keep record of its defid as an eventless storage changer.
-        if verify_transfer_visitor.is_storage_changer && !verify_transfer_visitor.emits_event {
+        if token_interface_events_visitor.is_storage_changer
+            && !token_interface_events_visitor.emits_event
+        {
             self.eventless_storage_changers.insert(def_id);
         }
 
         // If the function emits an event, we storage its defid.
-        if verify_transfer_visitor.emits_event {
+        if token_interface_events_visitor.emits_event {
             self.defids_with_events.insert(def_id);
         }
     }

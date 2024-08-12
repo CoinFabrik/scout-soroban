@@ -11,7 +11,7 @@ In Rust, sequences can be traversed using iterators or direct indexing. However,
 
 ## Why is this bad? 
 
-When you iterate over a data structure with fixed limits, you might exceed the limit, causing a panic in the contract and other potential errors.
+When you iterate over a data structure with fixed limits in a Soroban smart contract, exceeding those limits can cause the contract to panic, potentially leading to errors or unexpected behavior.
 
 ## Issue example 
 

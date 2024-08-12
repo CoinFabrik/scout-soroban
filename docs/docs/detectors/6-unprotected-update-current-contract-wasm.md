@@ -7,7 +7,7 @@
 - Detector: [`unprotected-update-current-contract-wasm`](https://github.com/CoinFabrik/scout-soroban/tree/main/detectors/unprotected-update-current-contract-wasm)
 - Test Cases: [`unprotected-update-current-contract-wasm-1`](https://github.com/CoinFabrik/scout-soroban/tree/main/test-cases/unprotected-update-current-contract-wasm/unprotected-update-current-contract-wasm-1) [`unprotected-update-current-contract-wasm-2`](https://github.com/CoinFabrik/scout-soroban/tree/main/test-cases/unprotected-update-current-contract-wasm/unprotected-update-current-contract-wasm-2) 
 
-It warns you if `update_current_contract_wasm()` function is called without a previous check of the address of the caller. If users are allowed to call `update_current_contract_wasm()`, they can intentionally modify the contract behaviour, leading to the loss of all associated data/tokens and functionalities given by this contract or by others that depend on it.
+It warns you if `update_current_contract_wasm()` function is called without a previous check of the address of the caller. 
 
 
 ## Why is this bad? 

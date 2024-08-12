@@ -1,4 +1,5 @@
 #![no_std]
+use scout_utils::scout_allow;
 use soroban_sdk::{contract, contracterror, contractimpl};
 
 #[contract]
@@ -11,7 +12,7 @@ pub enum AssertError {
 }
 
 #[contractimpl]
-#[allow(assert_violation)]
+#[scout_allow(assert_violation)]
 impl UnnecessaryLintAllow {
     pub fn assert_if_greater_than_10(value: u128) -> Result<bool, AssertError> {
         if value <= 10 {

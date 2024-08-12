@@ -11,7 +11,7 @@ Allowing unrestricted `transfer_from` operations poses a significant issue. When
 
 ## Why is this bad?
 
-The absence of proper authorization checks for sensitive operations, like transfer_form, can lead to the loss of funds or other undesired consequences. For example, if a user, Alice, approves a contract to spend her tokens, and the contract lacks proper authorization checks, another user, Bob, could invoke the contract and potentially transfer Alice's tokens to himself without her explicit consent.
+The absence of proper authorization checks for sensitive operations, like `transfer_form`, can lead to the loss of funds or other undesired consequences. For example, if a user, Alice, approves a contract to spend her tokens, and the contract lacks proper authorization checks, another user, Bob, could invoke the contract and potentially transfer Alice's tokens to himself without her explicit consent.
 
 ## Issue example
 

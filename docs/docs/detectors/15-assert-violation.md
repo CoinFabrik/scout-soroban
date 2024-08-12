@@ -11,7 +11,7 @@ The `assert!` macro is used in Rust to ensure that a certain condition holds tru
 
 ## Why is it bad?
 
-The `assert!` macro can cause the contract to panic.
+The `assert!` macro can cause the contract to panic. It is recommended to avoid this, because it stops its execution, which might lead the contract to an inconsistent state if the panic occurs in the middle of state changes. Additionally, the panic could cause a transaction to fail.
 
 
 ## Issue example

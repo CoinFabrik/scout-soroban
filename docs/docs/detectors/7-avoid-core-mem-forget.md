@@ -12,7 +12,7 @@ The `core::mem::forget` function is used to forget about a value without running
 
 ## Why is this bad? 
 
-Using this function is a bad practice because it can cause memory leaks and logical errors.
+Using this function is a bad practice because this can lead to memory leaks, resource leaks and logic errors.
 
 ## Issue example 
 

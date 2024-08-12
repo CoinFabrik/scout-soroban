@@ -6,7 +6,7 @@ use soroban_sdk::{
 
 use soroban_sdk::token::TokenInterface;
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 #[contracttype]
 pub struct TokenMetadata {
     pub decimals: u32,

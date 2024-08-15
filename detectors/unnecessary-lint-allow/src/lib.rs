@@ -4,17 +4,19 @@ extern crate rustc_ast;
 extern crate rustc_hir;
 extern crate rustc_span;
 
+mod processor;
+pub use processor::should_include_finding;
+
 use clippy_wrappers::span_lint_and_help;
 use if_chain::if_chain;
 use rustc_ast::{
     token::{Delimiter, Token, TokenKind},
     tokenstream::{TokenStream, TokenTree},
-    visit::FnKind,
-    AttrArgs, AttrKind, Attribute, Expr, HasAttrs, Item, NodeId,
+    AttrArgs, AttrKind, Attribute, Item, ItemKind,
 };
-use rustc_lint::{EarlyContext, EarlyLintPass, LateLintPass, LintContext};
+use rustc_lint::{EarlyContext, EarlyLintPass};
 use rustc_span::{Span, Symbol};
-use std::collections::{HashMap, VecDeque};
+use std::collections::VecDeque;
 
 const LINT_MESSAGE: &str = "This `#[scout_allow]` attribute may be unnecessary. Consider removing it if the lint is no longer triggered.";
 
@@ -34,10 +36,9 @@ dylint_linting::declare_pre_expansion_lint! {
 impl UnnecessaryLintAllow {
     fn extract_lint_names(&self, tokens: &TokenStream) -> Vec<String> {
         let mut lint_names = Vec::new();
-        let mut stack = VecDeque::new();
-        stack.push_back(tokens);
+        let mut stack = VecDeque::from([tokens]);
 
-        while let Some(current_stream) = stack.pop_back() {
+        while let Some(current_stream) = stack.pop_front() {
             for tree in current_stream.trees() {
                 match tree {
                     TokenTree::Token(
@@ -88,5 +89,11 @@ impl UnnecessaryLintAllow {
 impl EarlyLintPass for UnnecessaryLintAllow {
     fn check_item(&mut self, cx: &EarlyContext<'_>, item: &Item) {
         self.check_scout_allow_attrs(cx, &item.attrs, item.span);
+
+        if let ItemKind::Impl(impl_) = &item.kind {
+            for impl_item in &impl_.items {
+                self.check_scout_allow_attrs(cx, &impl_item.attrs, impl_item.span);
+            }
+        }
     }
 }

@@ -5,6 +5,7 @@ use soroban_sdk::{
 };
 
 use soroban_sdk::token::TokenInterface;
+use soroban_token_sdk::TokenUtils;
 
 #[derive(Clone, Debug)]
 #[contracttype]
@@ -95,6 +96,18 @@ impl TokenInterfaceEvents {
             .get(&DataKey::AllowanceFromSpender(from, spender))
             .unwrap_or_default()
     }
+
+    fn internal_emit_event(
+        env: Env,
+        from: Address,
+        spender: Address,
+        amount: i128,
+        expiration_ledger: u32,
+    ) {
+        TokenUtils::new(&env)
+            .events()
+            .approve(from, spender, amount, expiration_ledger);
+    }
 }
 
 #[contractimpl]
@@ -112,12 +125,14 @@ impl token::TokenInterface for TokenInterfaceEvents {
         from.require_auth();
         assert!(env.ledger().sequence() < expiration_ledger || amount == 0);
         env.storage().instance().set(
-            &DataKey::AllowanceFromSpender(from, spender),
+            &DataKey::AllowanceFromSpender(from.clone(), spender.clone()),
             &AllowanceFromSpender {
                 amount,
                 expiration_ledger,
             },
         );
+
+        Self::internal_emit_event(env, from, spender, amount, expiration_ledger);
     }
 
     fn balance(env: Env, id: Address) -> i128 {

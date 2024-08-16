@@ -1,5 +1,5 @@
 [package]
-name = "token-interface-events-vulnerable-2"
+name = "storage-change-events-remediated-1"
 version = "0.1.0"
 edition = "2021"
 

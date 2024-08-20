@@ -23,8 +23,6 @@ use rustc_span::def_id::DefId;
 
 const LINT_MESSAGE: &str = "This function belongs to the Token Interface and should emit an event";
 
-//const CANONICAL_FUNCTIONS_AMOUNT: usize = 10;
-
 dylint_linting::impl_late_lint! {
     pub TOKEN_INTERFACE_EVENTS,
     Warn,

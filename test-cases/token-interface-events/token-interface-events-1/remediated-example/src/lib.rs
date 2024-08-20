@@ -96,6 +96,25 @@ impl TokenInterfaceEvents {
             .get(&DataKey::AllowanceFromSpender(from, spender))
             .unwrap_or_default()
     }
+
+    fn set_allowance(
+        env: Env,
+        from: Address,
+        spender: Address,
+        amount: i128,
+        expiration_ledger: u32,
+    ) {
+        env.storage().instance().set(
+            &DataKey::AllowanceFromSpender(from.clone(), spender.clone()),
+            &AllowanceFromSpender {
+                amount: amount,
+                expiration_ledger: expiration_ledger.clone(),
+            },
+        );
+        TokenUtils::new(&env)
+            .events()
+            .approve(from, spender, amount, expiration_ledger);
+    }
 }
 
 #[contractimpl]
@@ -112,17 +131,9 @@ impl token::TokenInterface for TokenInterfaceEvents {
     fn approve(env: Env, from: Address, spender: Address, amount: i128, expiration_ledger: u32) {
         from.require_auth();
         assert!(env.ledger().sequence() < expiration_ledger || amount == 0);
-        env.storage().instance().set(
-            &DataKey::AllowanceFromSpender(from.clone(), spender.clone()),
-            &AllowanceFromSpender {
-                amount: amount,
-                expiration_ledger: expiration_ledger.clone(),
-            },
-        );
 
-        TokenUtils::new(&env)
-            .events()
-            .approve(from, spender, amount, expiration_ledger);
+        // This function emits the event, so the warning will not come up
+        Self::set_allowance(env, from, spender, amount, expiration_ledger);
     }
 
     fn balance(env: Env, id: Address) -> i128 {
@@ -199,12 +210,15 @@ impl token::TokenInterface for TokenInterfaceEvents {
         );
         TokenUtils::new(&env).events().burn(from, amount);
     }
+
     fn decimals(env: Env) -> u32 {
         Self::get_metadata(env).decimals
     }
+
     fn name(env: Env) -> String {
         Self::get_metadata(env).name
     }
+
     fn symbol(env: Env) -> String {
         Self::get_metadata(env).symbol
     }

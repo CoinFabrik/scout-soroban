@@ -21,8 +21,3 @@ strip = "symbols"
 debug-assertions = true
 inherits = "release"
 
-
-[workspace.metadata.dylint]
-libraries = [
-    { path="/home/sofia/Documentos/scout/scout-soroban/detectors/token-interface-events" },
-]

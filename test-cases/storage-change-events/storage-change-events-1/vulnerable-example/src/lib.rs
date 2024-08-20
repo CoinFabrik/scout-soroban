@@ -42,11 +42,23 @@ impl StorageChangeEvents {
 
     pub fn increase_counter(env: Env) -> Result<(), SCError> {
         let mut counter = Self::get_state(env.clone())?;
-
         counter.count += 1;
-
         env.storage().instance().set(&STATE, &counter);
+
         Ok(())
+    }
+
+    pub fn set_counter_indirectly(env: Env, number: u32) -> Result<(), SCError> {
+        let mut counter = Self::get_state(env.clone())?;
+        counter.admin.require_auth();
+        counter.count = number;
+        Self::set_counter(env, counter);
+
+        Ok(())
+    }
+
+    fn set_counter(env: Env, counter: CounterState) {
+        env.storage().instance().set(&STATE, &counter);
     }
 
     pub fn get_state(env: Env) -> Result<CounterState, SCError> {
@@ -57,6 +69,4 @@ impl StorageChangeEvents {
             Err(SCError::FailedToRetrieveState)
         }
     }
-
-    fn internal_fn(env: Env) {}
 }

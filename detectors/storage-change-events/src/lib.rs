@@ -191,7 +191,7 @@ impl<'a, 'tcx> Visitor<'tcx> for StorageChangeEventsVisitor<'a, 'tcx> {
             }
 
             // verify if it is a storage change
-            if (name == "set" || name == "update" || name == "remove")
+            if (name == "set" || name == "update" || name == "remove" || name == "try_update")
                 && (receiver_type.to_string() == "soroban_sdk::storage::Instance"
                     || receiver_type.to_string() == "soroban_sdk::storage::Persistent"
                     || receiver_type.to_string() == "soroban_sdk::storage::Temporary")

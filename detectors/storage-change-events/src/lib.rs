@@ -29,8 +29,8 @@ dylint_linting::impl_late_lint! {
     "",
     StorageChangeEvents::default(),
     {
-        name: "Storage Changed without Emiting an Event in Token Interface implementations",
-        long_message: " It can originate a problem when a canonical function does not emit an event expected by the contract's clients.",
+        name: "Storage Changed without Emiting an Event",
+        long_message: "",
         severity: "",
         help: "",
         vulnerability_class: "",

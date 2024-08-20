@@ -15,26 +15,26 @@ use rustc_middle::ty::{Ty, TyKind};
 use rustc_span::{def_id::LocalDefId, Span, Symbol};
 use utils::{get_node_type_opt, is_soroban_storage, SorobanStorageType};
 
-const LINT_MESSAGE: &str = "This function may lead to excessive instance storage growth, which could increase execution costs or potentially cause DoS";
+const LINT_MESSAGE: &str = "Using dynamic types in instance or persistent storage can lead to unnecessary growth or storage-related vulnerabilities.";
 
 dylint_linting::impl_late_lint! {
-    pub DYNAMIC_INSTANCE_STORAGE,
+    pub DYNAMIC_STORAGE,
     Warn,
     LINT_MESSAGE,
-    DynamicInstanceStorage,
+    DynamicStorage,
     {
-        name: "Dynamic Instance Storage Analyzer",
-        long_message: "Detects potential misuse of instance storage that could lead to unnecessary growth or storage-related vulnerabilities.",
+        name: "Dynamic Storage Analyzer",
+        long_message: "Using dynamic types in instance or persistent storage can lead to unnecessary growth or storage-related vulnerabilities.",
         severity: "Warning",
-        help: "https://coinfabrik.github.io/scout-soroban/docs/detectors/dynamic-instance-storage",
+        help: "https://coinfabrik.github.io/scout-soroban/docs/detectors/dynamic-storage",
         vulnerability_class: "Resource Management",
     }
 }
 
 #[derive(Default)]
-struct DynamicInstanceStorage;
+struct DynamicStorage;
 
-impl<'tcx> LateLintPass<'tcx> for DynamicInstanceStorage {
+impl<'tcx> LateLintPass<'tcx> for DynamicStorage {
     fn check_fn(
         &mut self,
         cx: &LateContext<'tcx>,
@@ -48,22 +48,22 @@ impl<'tcx> LateLintPass<'tcx> for DynamicInstanceStorage {
             return;
         }
 
-        let mut storage_warn_visitor = DynamicInstanceStorageVisitor { cx };
+        let mut storage_warn_visitor = DynamicStorageVisitor { cx };
         storage_warn_visitor.visit_body(body);
     }
 }
 
-struct DynamicInstanceStorageVisitor<'a, 'tcx> {
+struct DynamicStorageVisitor<'a, 'tcx> {
     cx: &'a LateContext<'tcx>,
 }
 
-impl<'a, 'tcx> Visitor<'tcx> for DynamicInstanceStorageVisitor<'a, 'tcx> {
+impl<'a, 'tcx> Visitor<'tcx> for DynamicStorageVisitor<'a, 'tcx> {
     fn visit_expr(&mut self, expr: &'tcx Expr<'tcx>) {
         if_chain! {
             // Detect calls to `set` method
             if let ExprKind::MethodCall(path, receiver, args, _) = &expr.kind;
             if path.ident.name == Symbol::intern("set");
-            // Get the type of the receiver and check if it is an instance storage
+            // Get the type of the receiver and check if it is an instance or persistent storage
             if let Some(receiver_ty) = get_node_type_opt(self.cx, &receiver.hir_id);
             if is_soroban_storage(self.cx, receiver_ty, SorobanStorageType::Instance)
                 || is_soroban_storage(self.cx, receiver_ty, SorobanStorageType::Persistent);
@@ -72,7 +72,7 @@ impl<'a, 'tcx> Visitor<'tcx> for DynamicInstanceStorageVisitor<'a, 'tcx> {
             if let Some(value_type) = get_node_type_opt(self.cx, &args[1].hir_id);
             if is_dynamic_type(self.cx, &value_type);
             then {
-                span_lint(self.cx, DYNAMIC_INSTANCE_STORAGE, expr.span, LINT_MESSAGE)
+                span_lint(self.cx, DYNAMIC_STORAGE, expr.span, LINT_MESSAGE)
             }
         }
 

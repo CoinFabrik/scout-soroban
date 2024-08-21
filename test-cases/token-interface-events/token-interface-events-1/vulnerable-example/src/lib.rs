@@ -5,7 +5,6 @@ use soroban_sdk::{
 };
 
 use soroban_sdk::token::TokenInterface;
-use soroban_token_sdk::TokenUtils;
 
 #[derive(Clone, Debug)]
 #[contracttype]

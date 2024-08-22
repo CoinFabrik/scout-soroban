@@ -34,10 +34,10 @@ def run_tests(detector):
 
 def run_unit_tests(root):
     start_time = time.time()
-    returncode, stdout, _ = run_subprocess(["cargo", "test", "--all-features"], root)
+    returncode, _, stderr = run_subprocess(["cargo", "test", "--all-features"], root)
     print_results(
         returncode,
-        stdout,
+        stderr,
         "unit-test",
         root,
         time.time() - start_time,
@@ -48,6 +48,8 @@ def run_unit_tests(root):
 def run_integration_tests(detector, root):
     start_time = time.time()
 
+    detectors_path = os.path.join(os.getcwd(), "detectors")
+
     returncode, stdout, _ = run_subprocess(
         [
             "cargo",
@@ -56,7 +58,7 @@ def run_integration_tests(detector, root):
             detector,
             "--metadata",
             "--local-detectors",
-            os.path.join(os.getcwd(), "detectors"),
+            detectors_path,
         ],
         root,
     )
@@ -70,7 +72,7 @@ def run_integration_tests(detector, root):
     detector_metadata = parse_json_from_string(stdout)
 
     if not isinstance(detector_metadata, dict):
-        print("Failed to extract JSON:", detector_metadata)
+        print("Failed to extract JSON:\n", detector_metadata)
         return True
 
     detector_key = detector.replace("-", "_")

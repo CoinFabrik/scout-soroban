@@ -4,14 +4,11 @@ edition = "2021"
 name = "overflow-check-remediated-1"
 version = "0.1.0"
 
-[lib]
-crate-type = ["cdylib"]
-
 [dependencies]
-soroban-sdk = { version = "=20.0.0" }
+soroban-sdk = { version = "=21.4.0" }
 
 [dev-dependencies]
-soroban-sdk = { version = "=20.0.0", features = ["testutils"] }
+soroban-sdk = { version = "=21.4.0", features = ["testutils"] }
 
 [features]
 testutils = ["soroban-sdk/testutils"]

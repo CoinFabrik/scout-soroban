@@ -16,7 +16,7 @@ use rustc_hir::{
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_span::{sym, Span, Symbol};
 use std::{collections::HashSet, hash::Hash};
-use utils::{get_node_type_opt, match_type_to_str, returns_result};
+use utils::{fn_returns, get_node_type_opt, match_type_to_str};
 
 const LINT_MESSAGE: &str = "Unsafe usage of `unwrap`";
 const PANIC_INDUCING_FUNCTIONS: [&str; 2] = ["panic", "bail"];
@@ -156,12 +156,12 @@ struct UnsafeUnwrapVisitor<'a, 'tcx> {
     cx: &'a LateContext<'tcx>,
     conditional_checker: HashSet<ConditionalChecker>,
     checked_exprs: HashSet<HirId>,
-    returns_result: bool,
+    returns_result_or_option: bool,
 }
 
 impl UnsafeUnwrapVisitor<'_, '_> {
     fn get_help_message(&self, unwrap_type: UnwrapType) -> &'static str {
-        match (self.returns_result, unwrap_type) {
+        match (self.returns_result_or_option, unwrap_type) {
             (true, UnwrapType::Option) => "Consider using `ok_or` to convert Option to Result",
             (true, UnwrapType::Result) => "Consider using the `?` operator for error propagation",
             (false, UnwrapType::Option) => {
@@ -394,7 +394,8 @@ impl<'tcx> LateLintPass<'tcx> for UnsafeUnwrap {
             cx,
             checked_exprs: HashSet::new(),
             conditional_checker: HashSet::new(),
-            returns_result: returns_result(fn_decl),
+            returns_result_or_option: fn_returns(fn_decl, sym::Result)
+                || fn_returns(fn_decl, sym::Option),
         };
 
         walk_expr(&mut visitor, body.value);

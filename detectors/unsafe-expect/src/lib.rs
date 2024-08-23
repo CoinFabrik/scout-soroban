@@ -4,7 +4,9 @@
 extern crate rustc_hir;
 extern crate rustc_span;
 
-use clippy_utils::higher::IfOrIfLet;
+use std::{collections::HashSet, hash::Hash};
+
+use clippy_utils::higher;
 use clippy_wrappers::span_lint_and_help;
 use if_chain::if_chain;
 use rustc_hir::{
@@ -15,8 +17,6 @@ use rustc_hir::{
 };
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_span::{sym, Span, Symbol};
-use std::{collections::HashSet, hash::Hash};
-use utils::fn_returns;
 
 const LINT_MESSAGE: &str = "Unsafe usage of `expect`";
 const PANIC_INDUCING_FUNCTIONS: [&str; 2] = ["panic", "bail"];
@@ -174,23 +174,21 @@ impl UnsafeExpectVisitor<'_, '_> {
         None
     }
 
-    fn update_conditional_checker(
-        &mut self,
-        conditional_checkers: &HashSet<ConditionalChecker>,
-        set: bool,
-    ) {
+    fn set_conditional_checker(&mut self, conditional_checkers: &HashSet<ConditionalChecker>) {
         for checker in conditional_checkers {
-            if set {
-                self.conditional_checker.insert(*checker);
-                if checker.check_type.is_safe_to_expect() {
-                    self.checked_exprs.insert(checker.checked_expr_hir_id);
-                }
-            } else {
-                if checker.check_type.is_safe_to_expect() {
-                    self.checked_exprs.remove(&checker.checked_expr_hir_id);
-                }
-                self.conditional_checker.remove(checker);
+            self.conditional_checker.insert(*checker);
+            if checker.check_type.is_safe_to_expect() {
+                self.checked_exprs.insert(checker.checked_expr_hir_id);
             }
+        }
+    }
+
+    fn reset_conditional_checker(&mut self, conditional_checkers: HashSet<ConditionalChecker>) {
+        for checker in conditional_checkers {
+            if checker.check_type.is_safe_to_expect() {
+                self.checked_exprs.remove(&checker.checked_expr_hir_id);
+            }
+            self.conditional_checker.remove(&checker);
         }
     }
 
@@ -301,17 +299,17 @@ impl<'a, 'tcx> Visitor<'tcx> for UnsafeExpectVisitor<'a, 'tcx> {
         }
 
         // Find `if` or `if let` expressions
-        if let Some(IfOrIfLet {
+        if let Some(higher::IfOrIfLet {
             cond,
             then: if_expr,
             r#else: _,
-        }) = IfOrIfLet::hir(expr)
+        }) = higher::IfOrIfLet::hir(expr)
         {
             // If we are interested in the condition (if it is a CheckType) we traverse the body.
             let conditional_checker = ConditionalChecker::from_expression(cond);
-            self.update_conditional_checker(&conditional_checker, true);
+            self.set_conditional_checker(&conditional_checker);
             walk_expr(self, if_expr);
-            self.update_conditional_checker(&conditional_checker, false);
+            self.reset_conditional_checker(conditional_checker);
             return;
         }
 
@@ -345,15 +343,13 @@ impl<'tcx> LateLintPass<'tcx> for UnsafeExpect {
         &mut self,
         cx: &LateContext<'tcx>,
         _: FnKind<'tcx>,
-        fn_decl: &'tcx FnDecl<'tcx>,
+        _: &'tcx FnDecl<'tcx>,
         body: &'tcx Body<'tcx>,
         span: Span,
         _: LocalDefId,
     ) {
-        // If the function comes from a macro expansion or does not return a Result<(), ()> or Option<()>, we don't want to analyze it.
-        if span.from_expansion()
-            || !fn_returns(fn_decl, sym::Result) && !fn_returns(fn_decl, sym::Option)
-        {
+        // If the function comes from a macro expansion, we don't want to analyze it.
+        if span.from_expansion() {
             return;
         }
 

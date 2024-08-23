@@ -16,7 +16,7 @@ use rustc_hir::{
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_span::{sym, Span, Symbol};
 use std::{collections::HashSet, hash::Hash};
-use utils::returns_result;
+use utils::fn_returns;
 
 const LINT_MESSAGE: &str = "Unsafe usage of `expect`";
 const PANIC_INDUCING_FUNCTIONS: [&str; 2] = ["panic", "bail"];
@@ -350,8 +350,10 @@ impl<'tcx> LateLintPass<'tcx> for UnsafeExpect {
         span: Span,
         _: LocalDefId,
     ) {
-        // If the function comes from a macro expansion or does not return a Result<(), ()>, we don't want to analyze it.
-        if span.from_expansion() || !returns_result(fn_decl) {
+        // If the function comes from a macro expansion or does not return a Result<(), ()> or Option<()>, we don't want to analyze it.
+        if span.from_expansion()
+            || !fn_returns(fn_decl, sym::Result) && !fn_returns(fn_decl, sym::Option)
+        {
             return;
         }
 

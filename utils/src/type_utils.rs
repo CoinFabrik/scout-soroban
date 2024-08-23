@@ -6,7 +6,7 @@ extern crate rustc_span;
 use rustc_hir::{FnDecl, FnRetTy, HirId, QPath};
 use rustc_lint::LateContext;
 use rustc_middle::ty::{Ty, TyKind};
-use rustc_span::sym;
+use rustc_span::Symbol;
 
 /// Get the type of a node, if it exists.
 pub fn get_node_type_opt<'tcx>(cx: &LateContext<'tcx>, hir_id: &HirId) -> Option<Ty<'tcx>> {
@@ -22,13 +22,13 @@ pub fn match_type_to_str(cx: &LateContext<'_>, expr_type: Ty<'_>, type_str: &str
     }
 }
 
-/// Check if a function returns a Result type.
-pub fn returns_result(decl: &FnDecl<'_>) -> bool {
+/// Check the return type of a function.
+pub fn fn_returns(decl: &FnDecl<'_>, type_symbol: Symbol) -> bool {
     if let FnRetTy::Return(ty) = decl.output {
         matches!(ty.kind, rustc_hir::TyKind::Path(QPath::Resolved(_, path)) if path
             .segments
             .last()
-            .map_or(false, |seg| seg.ident.name == sym::Result))
+            .map_or(false, |seg| seg.ident.name == type_symbol))
     } else {
         false
     }

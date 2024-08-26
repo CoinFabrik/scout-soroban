@@ -1,6 +1,6 @@
 [package]
 edition = "2021"
-name = "dynamic-instance-storage-remediated-3"
+name = "dynamic-storage-vulnerable-1"
 version = "0.1.0"
 
 [lib]

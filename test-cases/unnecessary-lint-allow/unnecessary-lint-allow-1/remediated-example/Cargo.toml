@@ -8,6 +8,7 @@ version = "0.1.0"
 crate-type = ["cdylib"]
 
 [dependencies]
+scout-utils = { version = "0.1.0" }
 soroban-sdk = { workspace = true }
 
 [dev-dependencies]

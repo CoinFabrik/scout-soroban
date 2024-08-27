@@ -33,7 +33,4 @@ lto = true
 inherits = "release"
 debug-assertions = true
 
-[workspace.metadata.dylint]
-libraries = [
-    { path="/home/sofia/Documentos/scout/scout-soroban/detectors/token-interface-inference" },
-]
+

@@ -67,7 +67,6 @@ fn parse_finding(finding: &Value) -> Option<Finding> {
         None
     };
 
-    // Check for potential integer overflow when converting from u64 to usize
     let start = usize::try_from(line_start).ok()?;
     let end = usize::try_from(line_end).ok()?;
 
@@ -193,7 +192,7 @@ unsafe fn parse_json(input: *const c_char) -> Result<Value, serde_json::Error> {
     serde_json::from_str(input_str)
 }
 
-// Add this function to free the memory allocated by process_findings
+// Free the string allocated by the `process_findings` function. Should be called after processing everything
 #[no_mangle]
 pub unsafe extern "C" fn free_string(ptr: *mut c_char) {
     if !ptr.is_null() {

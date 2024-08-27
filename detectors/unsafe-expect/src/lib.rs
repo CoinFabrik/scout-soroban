@@ -238,7 +238,6 @@ impl UnsafeExpectVisitor<'_, '_> {
                 .get_expect_info(receiver)
                 .map_or(true, |id| !self.checked_exprs.contains(&id));
         }
-
         args.iter().any(|arg| self.contains_unsafe_method_call(arg))
             || self.contains_unsafe_method_call(receiver)
     }
@@ -251,40 +250,54 @@ impl UnsafeExpectVisitor<'_, '_> {
             _ => false,
         }
     }
+
+    fn check_expr_for_unsafe_expect(&mut self, expr: &Expr) {
+        match &expr.kind {
+            ExprKind::MethodCall(path_segment, receiver, args, _) => {
+                if self.is_method_call_unsafe(path_segment, receiver, args) {
+                    span_lint_and_help(
+                        self.cx,
+                        UNSAFE_EXPECT,
+                        expr.span,
+                        LINT_MESSAGE,
+                        None,
+                        "Please, use a custom error instead of `expect`",
+                    );
+                }
+            }
+            ExprKind::Call(func, args) => {
+                if let ExprKind::Path(QPath::Resolved(_, path)) = &func.kind {
+                    let is_some_or_ok = path
+                        .segments
+                        .iter()
+                        .any(|segment| matches!(segment.ident.name, sym::Some | sym::Ok));
+                    let all_literals = args
+                        .iter()
+                        .all(|arg| self.is_literal_or_composed_of_literals(arg));
+                    if is_some_or_ok && all_literals {
+                        self.checked_exprs.insert(expr.hir_id);
+                        return;
+                    }
+                }
+                // Check arguments for unsafe expect
+                for arg in args.iter() {
+                    self.check_expr_for_unsafe_expect(arg);
+                }
+            }
+            ExprKind::Tup(exprs) | ExprKind::Array(exprs) => {
+                for expr in exprs.iter() {
+                    self.check_expr_for_unsafe_expect(expr);
+                }
+            }
+            _ => {}
+        }
+    }
 }
 
 impl<'a, 'tcx> Visitor<'tcx> for UnsafeExpectVisitor<'a, 'tcx> {
     fn visit_local(&mut self, local: &'tcx rustc_hir::LetStmt<'tcx>) -> Self::Result {
         if let Some(init) = local.init {
-            match init.kind {
-                ExprKind::MethodCall(path_segment, receiver, args, _) => {
-                    if self.is_method_call_unsafe(path_segment, receiver, args) {
-                        span_lint_and_help(
-                            self.cx,
-                            UNSAFE_EXPECT,
-                            local.span,
-                            LINT_MESSAGE,
-                            None,
-                            "Please, use a custom error instead of `expect`",
-                        );
-                    }
-                }
-                ExprKind::Call(func, args) => {
-                    if let ExprKind::Path(QPath::Resolved(_, path)) = func.kind {
-                        let is_some_or_ok = path
-                            .segments
-                            .iter()
-                            .any(|segment| matches!(segment.ident.name, sym::Some | sym::Ok));
-                        let all_literals = args
-                            .iter()
-                            .all(|arg| self.is_literal_or_composed_of_literals(arg));
-                        if is_some_or_ok && all_literals {
-                            self.checked_exprs.insert(local.pat.hir_id);
-                        }
-                    }
-                }
-                _ => {}
-            }
+            self.check_expr_for_unsafe_expect(init);
         }
     }
 
@@ -316,25 +329,7 @@ impl<'a, 'tcx> Visitor<'tcx> for UnsafeExpectVisitor<'a, 'tcx> {
         }
 
         // If we find an unsafe `expect`, we raise a warning
-        if_chain! {
-            if let ExprKind::MethodCall(path_segment, receiver, _, _) = &expr.kind;
-            if path_segment.ident.name == sym::expect;
-            then {
-                let receiver_hir_id = self.get_expect_info(receiver);
-                // If the receiver is `None`, then we asume that the `expect` is unsafe
-                let is_checked_safe = receiver_hir_id.map_or(false, |id| self.checked_exprs.contains(&id));
-                if !is_checked_safe {
-                    span_lint_and_help(
-                        self.cx,
-                        UNSAFE_EXPECT,
-                        expr.span,
-                        LINT_MESSAGE,
-                        None,
-                        "Please, use a custom error instead of `expect`",
-                    );
-                }
-             }
-        }
+        self.check_expr_for_unsafe_expect(expr);
 
         walk_expr(self, expr);
     }

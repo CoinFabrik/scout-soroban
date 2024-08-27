@@ -75,9 +75,9 @@ mod tests {
         client
             .mock_all_auths()
             .set_balance(&contract_id, &TOTAL_SUPPLY);
-        let balance = client.balance_of(&contract_id);
 
         // Then
+        let balance = client.balance_of(&contract_id);
         assert_eq!(TOTAL_SUPPLY, balance.0);
         assert_eq!(TOTAL_SUPPLY, balance.1);
     }
@@ -90,9 +90,9 @@ mod tests {
         let client = UnsafeExpectClient::new(&env, &contract_id);
 
         // When - Balance not set
-        let balance = client.balance_of(&contract_id);
 
         // Then
+        let balance = client.balance_of(&contract_id);
         assert_eq!(0, balance.0);
         assert_eq!(0, balance.1);
     }

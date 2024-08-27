@@ -1,10 +1,6 @@
 #![no_std]
 
-use soroban_sdk::{
-    contract, contracterror, contractimpl, contracttype, token, Address, Env, String,
-};
-
-use soroban_sdk::token::TokenInterface;
+use soroban_sdk::{contract, contracterror, contractimpl, contracttype, Address, Env, String};
 
 #[derive(Clone, Debug)]
 #[contracttype]
@@ -33,27 +29,27 @@ pub enum DataKey {
 #[contracterror]
 #[derive(Copy, Clone, Debug, Eq, PartialEq, PartialOrd, Ord)]
 #[repr(u32)]
-pub enum VTError {
+pub enum TIIError {
     AlreadyInitialized = 1,
     NotInitialized = 2,
 }
 
 #[contract]
-pub struct TokenInterfaceEvents;
+pub struct TokenInterfaceInference;
 
 #[contractimpl]
-impl TokenInterfaceEvents {
+impl TokenInterfaceInference {
     pub fn initialize(
         env: Env,
         admin: Address,
         decimals: u32,
         name: String,
         symbol: String,
-    ) -> Result<(), VTError> {
+    ) -> Result<(), TIIError> {
         let current_token_metadata: Option<TokenMetadata> =
             env.storage().instance().get(&DataKey::TokenMetadata);
         if current_token_metadata.is_some() {
-            return Err(VTError::AlreadyInitialized);
+            return Err(TIIError::AlreadyInitialized);
         } else {
             env.storage().instance().set(
                 &DataKey::TokenMetadata,
@@ -89,45 +85,7 @@ impl TokenInterfaceEvents {
             .set(&DataKey::Balance(to), &(previous_balance + amount));
     }
 
-    fn get_allowance(env: Env, from: Address, spender: Address) -> AllowanceFromSpender {
-        env.storage()
-            .instance()
-            .get(&DataKey::AllowanceFromSpender(from, spender))
-            .unwrap_or_default()
-    }
-}
-
-#[contractimpl]
-impl token::TokenInterface for TokenInterfaceEvents {
-    fn allowance(env: Env, from: Address, spender: Address) -> i128 {
-        let allowance = Self::get_allowance(env.clone(), from, spender);
-        if allowance.expiration_ledger < env.ledger().sequence() {
-            0
-        } else {
-            allowance.amount
-        }
-    }
-
-    fn approve(env: Env, from: Address, spender: Address, amount: i128, expiration_ledger: u32) {
-        from.require_auth();
-        assert!(env.ledger().sequence() < expiration_ledger || amount == 0);
-        env.storage().instance().set(
-            &DataKey::AllowanceFromSpender(from, spender),
-            &AllowanceFromSpender {
-                amount,
-                expiration_ledger,
-            },
-        );
-    }
-
-    fn balance(env: Env, id: Address) -> i128 {
-        env.storage()
-            .instance()
-            .get(&DataKey::Balance(id))
-            .unwrap_or(0)
-    }
-
-    fn transfer(env: Env, from: Address, to: Address, amount: i128) {
+    pub fn transfer(env: Env, from: Address, to: Address, amount: i128) {
         from.require_auth();
         let from_balance = Self::balance(env.clone(), from.clone());
         let to_balance = Self::balance(env.clone(), to.clone());
@@ -140,7 +98,41 @@ impl token::TokenInterface for TokenInterfaceEvents {
             .set(&DataKey::Balance(to), &(to_balance + amount));
     }
 
-    fn transfer_from(env: Env, spender: Address, from: Address, to: Address, amount: i128) {
+    pub fn balance(env: Env, id: Address) -> i128 {
+        env.storage()
+            .instance()
+            .get(&DataKey::Balance(id))
+            .unwrap_or(0)
+    }
+
+    pub fn burn(env: Env, from: Address, amount: i128) {
+        from.require_auth();
+        let from_balance = Self::balance(env.clone(), from.clone());
+        assert!(from_balance >= amount);
+        env.storage()
+            .instance()
+            .set(&DataKey::Balance(from), &(from_balance - amount));
+    }
+
+    pub fn approve(
+        env: Env,
+        from: Address,
+        spender: Address,
+        amount: i128,
+        expiration_ledger: u32,
+    ) {
+        from.require_auth();
+        assert!(env.ledger().sequence() < expiration_ledger || amount == 0);
+        env.storage().instance().set(
+            &DataKey::AllowanceFromSpender(from, spender),
+            &AllowanceFromSpender {
+                amount,
+                expiration_ledger,
+            },
+        );
+    }
+
+    pub fn transfer_from(env: Env, spender: Address, from: Address, to: Address, amount: i128) {
         let spender_allowance = Self::allowance(env.clone(), from.clone(), spender.clone());
         assert!(spender_allowance >= amount);
 
@@ -162,40 +154,23 @@ impl token::TokenInterface for TokenInterfaceEvents {
             .set(&DataKey::AllowanceFromSpender(from, spender), &allowance);
     }
 
-    fn burn(env: Env, from: Address, amount: i128) {
-        from.require_auth();
-        let from_balance = Self::balance(env.clone(), from.clone());
-        assert!(from_balance >= amount);
-        env.storage()
-            .instance()
-            .set(&DataKey::Balance(from), &(from_balance - amount));
+    pub fn allowance(env: Env, from: Address, spender: Address) -> i128 {
+        let allowance = Self::get_allowance(env.clone(), from, spender);
+        if allowance.expiration_ledger < env.ledger().sequence() {
+            0
+        } else {
+            allowance.amount
+        }
     }
 
-    fn burn_from(env: Env, spender: Address, from: Address, amount: i128) {
-        let spender_allowance = Self::allowance(env.clone(), from.clone(), spender.clone());
-        assert!(spender_allowance >= amount);
-        let from_balance = Self::balance(env.clone(), from.clone());
-        assert!(from_balance >= amount);
-        env.storage()
-            .instance()
-            .set(&DataKey::Balance(from.clone()), &(from_balance - amount));
-
-        let mut allowance = Self::get_allowance(env.clone(), from.clone(), spender.clone());
-        allowance.amount -= amount;
-        env.storage()
-            .instance()
-            .set(&DataKey::AllowanceFromSpender(from, spender), &allowance);
-    }
-    fn decimals(env: Env) -> u32 {
+    pub fn decimal(env: Env) -> u32 {
         Self::get_metadata(env).decimals
     }
-    fn name(env: Env) -> String {
-        Self::get_metadata(env).name
-    }
-    fn symbol(env: Env) -> String {
-        Self::get_metadata(env).symbol
+
+    fn get_allowance(env: Env, from: Address, spender: Address) -> AllowanceFromSpender {
+        env.storage()
+            .instance()
+            .get(&DataKey::AllowanceFromSpender(from, spender))
+            .unwrap_or_default()
     }
 }
-
-#[cfg(test)]
-mod test;

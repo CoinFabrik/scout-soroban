@@ -6,8 +6,8 @@ extern crate rustc_middle;
 extern crate rustc_span;
 
 use clippy_utils::diagnostics::span_lint_and_help;
-
-use rustc_hir::{intravisit::Visitor, ImplItem, ItemKind, Node};
+use edit_distance::edit_distance;
+use rustc_hir::{intravisit::Visitor, Node};
 use rustc_lint::{LateContext, LateLintPass};
 
 use rustc_errors::MultiSpan;
@@ -26,7 +26,7 @@ use rustc_span::def_id::DefId;
 const LINT_MESSAGE: &str =
     "This contract seems like a Token, consider implementing the Token Interface trait";
 const CANONICAL_FUNCTIONS_AMOUNT: u16 = 10;
-const INCLUDED_FUNCTIONS_THRESHOLD: u16 = 50;
+const INCLUDED_FUNCTIONS_THRESHOLD: u16 = 60;
 
 dylint_linting::impl_late_lint! {
     pub TOKEN_INTERFACE_INFERENCE,
@@ -134,16 +134,17 @@ impl<'tcx> LateLintPass<'tcx> for TokenInterfaceInference {
 
 fn verify_token_interface_function_similarity(fn_name: String) -> bool {
     let canonical_functions_formatted = [
-        String::from("allowance"),
-        String::from("approve"),
-        String::from("balance"),
-        String::from("transfer"),
-        String::from("transferfrom"),
-        String::from("burn"),
-        String::from("burnfrom"),
-        String::from("decimals"),
-        String::from("name"),
-        String::from("symbol"),
+        "allowance",
+        "approve",
+        "balance",
+        "transfer",
+        "transferfrom",
+        "burn",
+        "burnfrom",
+        "decimals",
+        "name",
+        "symbol",
+        "mint",
     ];
     let function_name = String::from(fn_name.split("::").last().unwrap());
     let formatted_name: String = function_name
@@ -152,5 +153,7 @@ fn verify_token_interface_function_similarity(fn_name: String) -> bool {
         .split_whitespace()
         .collect();
 
-    canonical_functions_formatted.contains(&formatted_name)
+    canonical_functions_formatted
+        .iter()
+        .any(|cf| edit_distance(formatted_name.as_str(), cf) <= 1)
 }

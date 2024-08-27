@@ -1,5 +1,5 @@
 [package]
-name = "token-interface-events-remediated-1"
+name = "token-interface-inference-remediated-1"
 version = "0.1.0"
 edition = "2021"
 
@@ -35,5 +35,5 @@ debug-assertions = true
 
 [workspace.metadata.dylint]
 libraries = [
-    { path="/home/sofia/Documentos/scout/scout-soroban/detectors/token-interface-events" },
+    { path="/home/sofia/Documentos/scout/scout-soroban/detectors/token-interface-inference" },
 ]

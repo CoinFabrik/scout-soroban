@@ -115,8 +115,8 @@ impl token::TokenInterface for TokenInterfaceEvents {
         env.storage().instance().set(
             &DataKey::AllowanceFromSpender(from.clone(), spender.clone()),
             &AllowanceFromSpender {
-                amount: amount,
-                expiration_ledger: expiration_ledger.clone(),
+                amount,
+                expiration_ledger,
             },
         );
 

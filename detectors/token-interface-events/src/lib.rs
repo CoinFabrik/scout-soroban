@@ -86,12 +86,13 @@ impl<'tcx> LateLintPass<'tcx> for TokenInterfaceEvents {
     }
 
     fn check_crate_post(&mut self, cx: &LateContext<'tcx>) {
-        let functions_that_emit_events: [String; 5] = [
+        let functions_that_emit_events: [String; 6] = [
             "burn".to_string(),
             "approve".to_string(),
             "transfer_from".to_string(),
             "burn_from".to_string(),
             "transfer".to_string(),
+            "mint".to_string(),
         ];
         // Verify if the contract implements the token interface trait.
         if !self.impl_token_interface_trait {

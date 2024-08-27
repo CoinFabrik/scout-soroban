@@ -5,7 +5,7 @@ extern crate rustc_hir;
 extern crate rustc_span;
 
 mod processor;
-pub use processor::should_include_finding;
+pub use processor::process_findings;
 
 use clippy_wrappers::span_lint_and_help;
 use if_chain::if_chain;

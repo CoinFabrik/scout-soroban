@@ -1,34 +1,40 @@
 use serde::de::Error;
 use serde_json::Value;
-use std::{collections::HashMap, ffi::CStr, os::raw::c_char};
+use std::{collections::HashMap, ffi::CStr, ffi::CString, os::raw::c_char};
 
-/// Determines whether a finding should be included.
+/// Process the findings to filter out unnecessary findings.
 ///
 /// # Safety
 ///
 /// This function is marked as unsafe because it deals with raw pointers.
 /// The caller is responsible for ensuring the safety of the pointers passed as arguments.
 #[no_mangle]
-pub unsafe extern "C" fn should_include_finding(
-    finding_json: *const c_char,
-    all_findings_json: *const c_char,
-) -> bool {
-    // Check for null pointers
-    if finding_json.is_null() || all_findings_json.is_null() {
-        return false;
-    }
-
-    let finding = match parse_json(finding_json) {
-        Ok(v) => v,
-        Err(_) => return false,
-    };
-
-    let all_findings = match parse_json(all_findings_json) {
+pub unsafe extern "C" fn process_findings(
+    successful_findings_json: *const c_char,
+    output_json: *const c_char,
+    inside_vscode: bool,
+) -> *mut c_char {
+    let successful_findings = match parse_json(successful_findings_json) {
         Ok(Value::Array(v)) => v,
-        _ => return false,
+        _ => return std::ptr::null_mut(),
     };
 
-    should_include_finding_impl(&finding, &all_findings)
+    let output = match parse_json(output_json) {
+        Ok(Value::Array(v)) => v,
+        _ => return std::ptr::null_mut(),
+    };
+
+    let (console_findings, output_string_vscode) =
+        process_findings_impl(successful_findings, output, inside_vscode);
+
+    let result = serde_json::json!({
+        "console_findings": console_findings,
+        "output_string_vscode": output_string_vscode
+    });
+
+    let result_string = serde_json::to_string(&result).unwrap_or_default();
+    let c_str = CString::new(result_string).unwrap_or_default();
+    c_str.into_raw()
 }
 
 unsafe fn parse_json(input: *const c_char) -> Result<Value, serde_json::Error> {
@@ -79,6 +85,52 @@ fn parse_finding(finding: &Value) -> Option<Finding> {
         span: (start, end),
         allowed_lint,
     })
+}
+
+fn process_findings_impl(
+    successful_findings: Vec<Value>,
+    output: Vec<Value>,
+    inside_vscode: bool,
+) -> (Vec<Value>, String) {
+    let console_findings: Vec<_> = successful_findings
+        .iter()
+        .filter(|&finding| should_include_finding_impl(finding, &successful_findings))
+        .cloned()
+        .collect();
+
+    let output_vscode: Vec<_> = if inside_vscode {
+        let all_findings: Vec<_> = output
+            .iter()
+            .filter_map(|val| val.get("message").cloned())
+            .collect();
+
+        output
+            .into_iter()
+            .filter(|val| {
+                val.get("message")
+                    .map(|message| should_include_finding_impl(message, &all_findings))
+                    .unwrap_or(true)
+            })
+            .collect()
+    } else {
+        Vec::new()
+    };
+
+    let output_string_vscode = output_vscode
+        .into_iter()
+        .filter_map(|finding| serde_json::to_string(&finding).ok())
+        .collect::<Vec<_>>()
+        .join("\n");
+
+    (console_findings, output_string_vscode)
+}
+
+// Add this function to free the memory allocated by process_findings
+#[no_mangle]
+pub unsafe extern "C" fn free_string(ptr: *mut c_char) {
+    if !ptr.is_null() {
+        let _ = CString::from_raw(ptr);
+    }
 }
 
 pub fn should_include_finding_impl(finding: &Value, all_findings: &[Value]) -> bool {

@@ -9,18 +9,18 @@ pub struct AvoidPanicError;
 #[contracterror]
 #[derive(Copy, Clone, Debug, Eq, PartialEq, PartialOrd, Ord)]
 #[repr(u32)]
-pub enum Error {
+pub enum PanicError {
     OverflowError = 1,
 }
 
 #[contractimpl]
 impl AvoidPanicError {
-    pub fn add(env: Env, value: u32) -> Result<u32, Error> {
+    pub fn add(env: Env, value: u32) -> Result<u32, PanicError> {
         let storage = env.storage().instance();
         let mut count: u32 = storage.get(&COUNTER).unwrap_or(0);
         match count.checked_add(value) {
             Some(value) => count = value,
-            None => return Err(Error::OverflowError),
+            None => return Err(PanicError::OverflowError),
         }
         storage.set(&COUNTER, &count);
         storage.extend_ttl(100, 100);
@@ -32,7 +32,7 @@ impl AvoidPanicError {
 mod tests {
     use soroban_sdk::Env;
 
-    use crate::{AvoidPanicError, AvoidPanicErrorClient, Error};
+    use crate::{AvoidPanicError, AvoidPanicErrorClient, PanicError};
 
     #[test]
     fn add() {
@@ -64,6 +64,6 @@ mod tests {
         let overflow = client.try_add(&1);
 
         // Then
-        assert_eq!(overflow, Err(Ok(Error::OverflowError)));
+        assert_eq!(overflow, Err(Ok(PanicError::OverflowError)));
     }
 }

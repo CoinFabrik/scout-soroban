@@ -1,10 +1,10 @@
 [workspace]
 exclude = [".cargo", "target"]
-members = ["dynamic-instance-storage-*/*"]
+members = ["dynamic-storage-*/*"]
 resolver = "2"
 
 [workspace.dependencies]
-soroban-sdk = { version = "=21.4.0" }
+soroban-sdk = { version = "=21.5.1" }
 
 [profile.release]
 codegen-units = 1

@@ -1,6 +1,6 @@
 [package]
 edition = "2021"
-name = "dynamic-instance-storage-remediated-3"
+name = "avoid-panic-error-remediated-2"
 version = "0.1.0"
 
 [lib]
@@ -8,9 +8,6 @@ crate-type = ["cdylib"]
 
 [dependencies]
 soroban-sdk = { workspace = true }
-
-[dev-dependencies]
-soroban-sdk = { workspace = true, features = ["testutils"] }
 
 [features]
 testutils = ["soroban-sdk/testutils"]

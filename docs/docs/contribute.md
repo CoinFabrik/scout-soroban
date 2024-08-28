@@ -18,7 +18,7 @@ If your detector or test case doesn't belong to an existing [vulnerability class
 
 To contribute a new detector:
 
-1. Choose an appropriate template. Browse our templates at [`templates/detectors`](https://github.com/CoinFabrik/scout-soroban/tree/main/templates/detectors). Decide on the `early-lint` or `late-lint` template, based on whether you want to lint before or after macro expansion.
+1. Choose an appropriate template. Browse our templates at [`templates/detector`](https://github.com/CoinFabrik/scout-soroban/tree/main/templates/detector). Decide on the `early-lint` or `late-lint` template, based on whether you want to lint before or after macro expansion.
 
 2. Add your modified detector files to a new folder, naming it after your detector, inside the [`detectors`](https://github.com/CoinFabrik/scout-soroban/tree/main/detectors) directory.
 

@@ -3,6 +3,7 @@
 extern crate rustc_ast;
 extern crate rustc_span;
 
+use clippy_utils::{diagnostics::span_lint_and_help, sym};
 use if_chain::if_chain;
 use rustc_ast::{
     ptr::P,
@@ -11,7 +12,6 @@ use rustc_ast::{
 };
 use rustc_lint::{EarlyContext, EarlyLintPass};
 use rustc_span::{sym, Span};
-use scout_audit_clippy_utils::{diagnostics::span_lint_and_help, sym};
 
 const LINT_MESSAGE: &str = "Assert causes panic. Instead, return a proper error.";
 
@@ -20,7 +20,6 @@ dylint_linting::impl_pre_expansion_lint! {
     /// Checks for `assert!` usage.
     /// ### Why is this bad?
     /// `assert!` causes a panic, and panicking it's not a good practice. Instead, use proper error handling.
-
     pub ASSERT_VIOLATION,
     Warn,
     LINT_MESSAGE,

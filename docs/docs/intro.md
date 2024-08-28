@@ -28,33 +28,7 @@ The command line interface is designed to allow you to run Scout on an entire pr
 
 ### Installation
 
-Install Scout in 5 simple steps:
-
-**1. Install Rust Nightly Toolchain:**
-
-```bash
-rustup toolchain install nightly-2023-12-16
-```
-
-**2. Set Default Nightly Toolchain:**
-
-```bash
-rustup default nightly-2023-12-16
-```
-
-**3. Add rust-src Component:**
-
-```bash
-rustup component add rust-src --toolchain nightly-2023-12-16
-```
-
-**4. Install additional tools required by Scout:**
-
-```bash
-cargo install cargo-dylint dylint-link mdbook
-```
-
-**5. Install Scout Audit:**
+Make sure that [Cargo](https://doc.rust-lang.org/cargo/getting-started/installation.html) is installed on your computer. Then, install Scout with the following command:
 
 ```bash
 cargo install cargo-scout-audit
@@ -62,11 +36,15 @@ cargo install cargo-scout-audit
 
 ### Usage
 
-To run Scout on your project, navigate to the root directory of your smart contract (where the `Cargo.toml` file is) and execute the following command:
+To run Scout on your project execute the following command:
 
 ```bash
 cargo scout-audit
 ```
+
+:bulb: Scout supports [Cargo Workspaces](https://doc.rust-lang.org/book/ch14-03-cargo-workspaces.html). When run on a workspace, Scout will be executed on all packages specified as members of the workspace.
+
+:warning: Make sure that your smart contracts compile properly. Scout won't run if any compilation errors exist.
 
 In the table below, we specify all the option available for the CLI.
 

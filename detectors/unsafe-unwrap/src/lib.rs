@@ -1,21 +1,22 @@
 #![feature(rustc_private)]
 #![allow(clippy::enum_variant_names)]
 
+extern crate rustc_ast;
 extern crate rustc_hir;
 extern crate rustc_span;
 
 use std::{collections::HashSet, hash::Hash};
 
+use clippy_utils::{diagnostics::span_lint_and_help, higher};
 use if_chain::if_chain;
 use rustc_hir::{
     def::Res,
     def_id::LocalDefId,
     intravisit::{walk_expr, FnKind, Visitor},
-    BinOpKind, Body, Expr, ExprKind, FnDecl, HirId, Local, PathSegment, QPath, UnOp,
+    BinOpKind, Body, Expr, ExprKind, FnDecl, HirId, PathSegment, QPath, UnOp,
 };
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_span::{sym, Span, Symbol};
-use scout_audit_clippy_utils::{diagnostics::span_lint_and_help, higher};
 
 const LINT_MESSAGE: &str = "Unsafe usage of `unwrap`";
 const PANIC_INDUCING_FUNCTIONS: [&str; 2] = ["panic", "bail"];
@@ -251,7 +252,7 @@ impl UnsafeUnwrapVisitor<'_, '_> {
 }
 
 impl<'a, 'tcx> Visitor<'tcx> for UnsafeUnwrapVisitor<'a, 'tcx> {
-    fn visit_local(&mut self, local: &'tcx Local<'tcx>) {
+    fn visit_local(&mut self, local: &'tcx rustc_hir::LetStmt<'tcx>) -> Self::Result {
         if let Some(init) = local.init {
             match init.kind {
                 ExprKind::MethodCall(path_segment, receiver, args, _) => {

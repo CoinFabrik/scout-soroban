@@ -14,43 +14,23 @@ Our interest in this project comes from our experience in manual auditing and vu
 
 ## Quick Start
 
-Make sure that [Cargo](https://doc.rust-lang.org/cargo/getting-started/installation.html) is installed on your computer. Then, follow these 5 simple steps:
+**Install Scout Audit:**
 
-**1. Install Rust Nightly Toolchain:**
-
-```bash
-rustup toolchain install nightly-2023-12-16
-```
-
-**2. Set Default Nightly Toolchain:**
-
-```bash
-rustup default nightly-2023-12-16
-```
-
-**3. Add rust-src Component:**
-
-```bash
-rustup component add rust-src --toolchain nightly-2023-12-16
-```
-
-**4. Install additional tools required by Scout:**
-
-```bash
-cargo install cargo-dylint dylint-link mdbook
-```
-
-**5. Install Scout Audit:**
+Make sure that [Cargo](https://doc.rust-lang.org/cargo/getting-started/installation.html) is installed on your computer. Then, install Scout with the following command:
 
 ```bash
 cargo install cargo-scout-audit
 ```
 
-Finally, to run Scout on your project, navigate to the root directory of your smart contract (where the `Cargo.toml` file is) and execute the following command:
+**Run Scout Audit:**
+
+To run Scout on your project execute the following command:
 
 ```bash
 cargo scout-audit
 ```
+
+:bulb: Scout supports [Cargo Workspaces](https://doc.rust-lang.org/book/ch14-03-cargo-workspaces.html). When run on a workspace, Scout will be executed on all packages specified as members of the workspace.
 
 :warning: Make sure that your smart contracts compile properly. Scout won't run if any compilation errors exist.
 
@@ -78,7 +58,7 @@ Currently Scout includes the following detectors.
 | [iterators-over-indexing](https://github.com/CoinFabrik/scout-soroban/tree/main/detectors/iterators-over-indexing)             |Iterating with hardcoded indexes is slower than using an iterator. Also, if the index is out of bounds, it will panic. | [1](https://github.com/CoinFabrik/scout-soroban/tree/main/test-cases/iterators-over-indexing-1)                   | Enhancement  |
 | [assert-violation](https://github.com/CoinFabrik/scout-soroban/tree/main/detectors/assert-violation)                           | Avoid the usage of the macro assert!, it can panic.| [1](https://github.com/CoinFabrik/scout-soroban/tree/main/test-cases/assert-violation/assert-violation-1)                                                                            | Enhancement    |
 | [unprotected-mapping-operation](https://github.com/CoinFabrik/scout-soroban/tree/main/detectors/unprotected-mapping-operation)                           | Modifying mappings with an arbitrary key given by users can be a significant vulnerability. | [1](https://github.com/CoinFabrik/scout-soroban/tree/main/test-cases/unprotected-mapping-operation/unprotected-mapping-operation-1), [2](https://github.com/CoinFabrik/scout-soroban/tree/main/test-cases/unprotected-mapping-operation/unprotected-mapping-operation-2)                   | Critical  |
-| [dos-unexpected-revert-with-vector](https://github.com/CoinFabrik/scout-soroban/tree/main/detectors/dos-unexpected-revert-with-vector)                           | DoS due to improper storage. | [1](https://github.com/CoinFabrik/scout-soroban/tree/main/test-cases/dos-unexpected-revert-with-vector/dos-unexpected-revert-with-vector-1)          | Medium  |
+| [dos-unexpected-revert-with-vector](https://github.com/CoinFabrik/scout-soroban/tree/main/detectors/dos-unexpected-revert-with-vector)                           | DoS due to improper storage. | [1](https://github.com/CoinFabrik/scout-soroban/tree/main/test-cases/dos-unexpected-revert-with-vector/dos-unexpected-revert-with-vector-1), [2](https://github.com/CoinFabrik/scout-soroban/tree/main/test-cases/dos-unexpected-revert-with-vector/dos-unexpected-revert-with-vector-2)            | Medium  |
 | [unrestricted-transfer-from](https://github.com/CoinFabrik/scout-soroban/tree/main/detectors/unrestricted-transfer-from)                           | Avoid passing an user-defined parameter as a `from` field in transfer-from. | [1](https://github.com/CoinFabrik/scout-soroban/tree/main/test-cases/unrestricted-transfer-from/unrestricted-transfer-from-1)                   | Critical  |
 | [unsafe-map-get](https://github.com/CoinFabrik/scout-soroban/tree/main/detectors/unsafe-map-get)                           | Inappropriate usage of the `get` method for `Map` in soroban | [1](https://github.com/CoinFabrik/scout-soroban/tree/main/test-cases/unsafe-map-get/unsafe-map-get-1)              | Medium |
 | [zero-or-test-address](https://github.com/CoinFabrik/scout-soroban/tree/main/detectors/zero-or-test-address)                           | Avoid zero or test address assignment to prevent contract control loss. | [1](https://github.com/CoinFabrik/scout-soroban/tree/main/test-cases/zero-or-test-address/zero-or-test-address-1)                   | Medium  |
@@ -86,23 +66,21 @@ Currently Scout includes the following detectors.
 
 ## Output formats
 
-You can choose the output format that best suit your needs (html or markdown). To specify the desired output run the following command:
+You can choose the output format that best suit your needs. Scout offers html, markdown, json, pdf and sarif reports. To specify the desired output run the following command:
 
 ```
-cargo scout-audit --output-format [html|md]
+cargo scout-audit --output-format [html|md|pdf|json|sarif]
 ```
 
-**Example HTML report**
+**HTML report**
 
-![Scout HTML report.](/docs/static/img/scout-soroban-html.jpg)
+![Scout HTML report.](/docs/static/img/html-report.png)
 
 ## Scout VS Code extension
 
 Add Scout to your development workspace with Scout's VS Code extension to run Scout automatically upon saving your file.
 
 ![Scout VS Code extension.](/assets/vscode-extension.png)
-
-:warning: To ensure the extension runs properly, make sure that you open the directory containing your smart contract, rather than the entire project. For example, if your smart contracts are located in `myproject/contracts`, and you want to work on the `token` contract while using the Scout VS Code Extension, open `myproject/contracts/token`.
 
 :bulb: Tip: To see the errors highlighted in your code, we recommend installing the [Error Lens Extension](https://marketplace.visualstudio.com/items?itemName=usernamehw.errorlens).
 
@@ -127,9 +105,13 @@ Join us for an exciting series of video tutorials where you'll learn how to inst
 - [How to run Scout](https://www.youtube.com/watch?v=_6F24AwscKc)
 - [Detecting and fixing issues: Divide before multiply](https://www.youtube.com/watch?v=aLtXyYvw27o)
 - [Detecting and fixing issues: Incorrect exponentiation](https://www.youtube.com/watch?v=qjnHwKCD_hM)
+- [Detecting and fixing issues: Overflow check](https://www.youtube.com/watch?v=Mi7AcJRPgvU)
+- [Detecting and fixing issues: Insufficiently random values](https://www.youtube.com/watch?v=LPBMDPXmczQ)
+- [Detecting and fixing issues: DoS - Unexpected revert with vector](https://www.youtube.com/watch?v=H79mMnnWyvA)
+- [Detecting and fixing issues: DoS - Unbounded operation](https://www.youtube.com/watch?v=DFM0yNNDiyw)
+- [Detecting and fixing issues: Set contract storage](https://www.youtube.com/watch?v=z6RNfhQt6EI)
 
 :clapper: More videos comming soon!
-
 
 ## Tests
 
@@ -173,4 +155,3 @@ Our team has an academic background in computer science and mathematics, with wo
 ## License
 
 Scout is licensed and distributed under a MIT license. [Contact us](https://www.coinfabrik.com/) if you're looking for an exception to the terms.
-

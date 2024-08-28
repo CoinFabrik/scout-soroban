@@ -8,3 +8,6 @@ pub use soroban_utils::*;
 
 mod lint_utils;
 pub use lint_utils::*;
+
+mod constant_analyzer;
+pub use constant_analyzer::*;

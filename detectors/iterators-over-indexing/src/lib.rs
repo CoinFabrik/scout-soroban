@@ -7,18 +7,20 @@ extern crate rustc_middle;
 extern crate rustc_span;
 extern crate rustc_type_ir;
 
+use clippy_utils::diagnostics::span_lint_and_help;
 use rustc_ast::{Label, LitIntType, LitKind};
 use rustc_hir::{
     def::Res,
     def_id::LocalDefId,
     intravisit::{walk_expr, FnKind, Visitor},
-    BindingAnnotation, Block, Expr, ExprField, ExprKind, HirId, LangItem, LoopSource, MatchSource,
-    Pat, PatField, PatKind, Path, PathSegment, QPath, StmtKind, Ty,
+    BindingMode, Block, Expr, ExprField, ExprKind, HirId, LangItem, LoopSource, MatchSource, Pat,
+    PatField, PatKind, Path, PathSegment, QPath, StmtKind, Ty,
 };
 use rustc_lint::{LateContext, LateLintPass};
-use rustc_middle::ty::{Interner, TyCtxt, TyKind};
+use rustc_middle::ty::{TyCtxt, TyKind};
 use rustc_span::{symbol::Ident, Span};
-use scout_audit_clippy_utils::diagnostics::span_lint_and_help;
+use rustc_type_ir::Interner;
+use utils::get_node_type;
 
 const LINT_MESSAGE: &str =
     "Hardcoding an index could lead to panic if the top bound is out of bounds.";
@@ -44,10 +46,6 @@ struct VectorAccessVisitor<'a, 'b> {
     index_id: HirId,
     has_vector_access: bool,
     cx: &'b LateContext<'a>,
-}
-
-fn get_node_type<'a>(cx: &LateContext<'a>, hir_id: &HirId) -> rustc_middle::ty::Ty<'a> {
-    cx.typeck_results().node_type(*hir_id)
 }
 
 impl<'a, 'b> Visitor<'a> for VectorAccessVisitor<'a, 'b> {
@@ -104,7 +102,7 @@ fn type_to_adt<'hir>(
     (),
 > {
     if let TyKind::Adt(a, b) = kind {
-        Ok((&a, &b))
+        Ok((a, b))
     } else {
         Err(())
     }
@@ -245,7 +243,7 @@ fn resolution_to_local(resolution: &Res) -> Result<&HirId, ()> {
 
 fn lit_to_int(kind: &LitKind) -> Result<(u128, LitIntType), ()> {
     if let LitKind::Int(a, b) = kind {
-        Ok((*a, *b))
+        Ok((a.get(), *b))
     } else {
         Err(())
     }
@@ -265,7 +263,7 @@ fn pattern_to_struct<'hir>(
 
 fn pattern_to_binding<'hir>(
     pat: &'hir PatKind<'hir>,
-) -> Result<(&BindingAnnotation, &HirId, &Ident, &Option<&'hir Pat<'hir>>), ()> {
+) -> Result<(&BindingMode, &HirId, &Ident, &Option<&'hir Pat<'hir>>), ()> {
     if let PatKind::Binding(a, b, c, d) = pat {
         Ok((a, b, c, d))
     } else {

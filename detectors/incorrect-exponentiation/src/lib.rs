@@ -4,6 +4,7 @@
 extern crate rustc_hir;
 extern crate rustc_span;
 
+use clippy_utils::diagnostics::span_lint_and_help;
 use rustc_hir::def_id::LocalDefId;
 use rustc_hir::intravisit::Visitor;
 use rustc_hir::intravisit::{walk_expr, FnKind};
@@ -11,7 +12,6 @@ use rustc_hir::{Body, FnDecl};
 use rustc_hir::{Expr, ExprKind};
 use rustc_lint::{LateContext, LateLintPass};
 use rustc_span::Span;
-use scout_audit_clippy_utils::diagnostics::span_lint_and_help;
 
 const LINT_MESSAGE: &str = "'^' It is not an exponential operator. It is a bitwise XOR.";
 const LINT_HELP: &str = "If you want to use XOR, use bitxor(). If you want to raise a number use .checked_pow() or .pow() ";
@@ -47,6 +47,13 @@ impl<'tcx> LateLintPass<'tcx> for IncorrectExponentiation {
 
         impl<'tcx> Visitor<'tcx> for IncorrectExponentiationStorage {
             fn visit_expr(&mut self, expr: &'tcx Expr<'_>) {
+                if let ExprKind::AssignOp(binop, _, _) = &expr.kind {
+                    if binop.node == rustc_hir::BinOpKind::BitXor {
+                        self.incorrect_exponentiation = true;
+                        self.span.push(expr.span);
+                    }
+                }
+
                 if let ExprKind::Binary(op, _, _) = &expr.kind {
                     if op.node == rustc_hir::BinOpKind::BitXor {
                         self.incorrect_exponentiation = true;

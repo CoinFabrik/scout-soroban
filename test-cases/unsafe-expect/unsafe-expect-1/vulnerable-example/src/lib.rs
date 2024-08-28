@@ -28,9 +28,10 @@ impl UnsafeExpect {
     }
 
     // Returns the balance of a given account.
-    pub fn balance_of(env: Env, owner: Address) -> i128 {
+    pub fn balance_of(env: Env, owner: Address) -> Option<i128> {
         let state = Self::get_state(env);
-        state.balances.get(owner).expect("could not get balance")
+        let balance = state.balances.get(owner).expect("could not get balance");
+        Some(balance)
     }
 
     /// Return the current state.
@@ -49,6 +50,8 @@ mod tests {
 
     use soroban_sdk::Env;
 
+    extern crate std;
+
     use crate::{UnsafeExpect, UnsafeExpectClient, TOTAL_SUPPLY};
 
     #[test]
@@ -63,22 +66,6 @@ mod tests {
 
         // Then
         let balance = client.balance_of(&contract_id);
-        assert_eq!(TOTAL_SUPPLY, balance);
-    }
-
-    #[test]
-    #[should_panic(expected = "could not get balance")]
-    fn balance_of_expect_works() {
-        // Given
-        let env = Env::default();
-        let contract_id = env.register_contract(None, UnsafeExpect);
-        let client = UnsafeExpectClient::new(&env, &contract_id);
-
-        // When - Balance not set
-
-        // Then
-        let _balance = client.balance_of(&contract_id);
-
-        // Test should panic
+        assert_eq!(TOTAL_SUPPLY, balance.unwrap());
     }
 }

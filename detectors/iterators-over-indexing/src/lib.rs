@@ -7,7 +7,7 @@ extern crate rustc_middle;
 extern crate rustc_span;
 extern crate rustc_type_ir;
 
-use clippy_utils::diagnostics::span_lint_and_help;
+use clippy_wrappers::span_lint_and_help;
 use rustc_ast::{Label, LitIntType, LitKind};
 use rustc_hir::{
     def::Res,

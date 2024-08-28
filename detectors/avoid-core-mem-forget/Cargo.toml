@@ -9,6 +9,7 @@ crate-type = ["cdylib"]
 [dependencies]
 clippy_utils = { workspace = true }
 dylint_linting = { workspace = true }
+clippy_wrappers = { workspace = true }
 if_chain = { workspace = true }
 
 [package.metadata.rust-analyzer]

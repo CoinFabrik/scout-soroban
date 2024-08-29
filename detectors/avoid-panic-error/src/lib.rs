@@ -5,6 +5,7 @@ extern crate rustc_span;
 
 use clippy_utils::diagnostics::span_lint_and_help;
 use rustc_ast::{
+    ptr::P,
     tokenstream::TokenTree,
     visit::{walk_expr, Visitor},
     AssocItemKind, AttrArgs, AttrKind, Block, Expr, ExprKind, FnRetTy, Item, ItemKind, MacCall,
@@ -93,16 +94,12 @@ impl EarlyLintPass for AvoidPanicError {
             ItemKind::Impl(impl_item) => {
                 for assoc_item in &impl_item.items {
                     if let AssocItemKind::Fn(fn_item) = &assoc_item.kind {
-                        self.check_function(
-                            cx,
-                            &fn_item.sig.decl.output,
-                            fn_item.body.as_ref().unwrap(),
-                        );
+                        self.check_function(cx, &fn_item.sig.decl.output, &fn_item.body);
                     }
                 }
             }
             ItemKind::Fn(fn_item) => {
-                self.check_function(cx, &fn_item.sig.decl.output, fn_item.body.as_ref().unwrap());
+                self.check_function(cx, &fn_item.sig.decl.output, &fn_item.body);
             }
             ItemKind::Mod(_, ModKind::Loaded(items, _, _)) => {
                 for item in items {
@@ -112,11 +109,7 @@ impl EarlyLintPass for AvoidPanicError {
             ItemKind::Trait(trait_item) => {
                 for item in &trait_item.items {
                     if let AssocItemKind::Fn(fn_item) = &item.kind {
-                        self.check_function(
-                            cx,
-                            &fn_item.sig.decl.output,
-                            fn_item.body.as_ref().unwrap(),
-                        );
+                        self.check_function(cx, &fn_item.sig.decl.output, &fn_item.body);
                     }
                 }
             }
@@ -126,10 +119,12 @@ impl EarlyLintPass for AvoidPanicError {
 }
 
 impl AvoidPanicError {
-    fn check_function(&self, cx: &EarlyContext, output: &FnRetTy, body: &Block) {
-        if is_result_type(output) {
-            let mut visitor = PanicVisitor { cx };
-            visitor.visit_block(body);
+    fn check_function(&self, cx: &EarlyContext, output: &FnRetTy, body: &Option<P<Block>>) {
+        if let Some(body) = body {
+            if is_result_type(output) {
+                let mut visitor = PanicVisitor { cx };
+                visitor.visit_block(body);
+            }
         }
     }
 }

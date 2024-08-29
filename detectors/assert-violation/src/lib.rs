@@ -3,7 +3,8 @@
 extern crate rustc_ast;
 extern crate rustc_span;
 
-use clippy_utils::{diagnostics::span_lint_and_help, sym};
+use clippy_utils::sym;
+use clippy_wrappers::span_lint_and_help;
 use if_chain::if_chain;
 use rustc_ast::{
     ptr::P,

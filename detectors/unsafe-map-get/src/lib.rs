@@ -4,6 +4,7 @@ extern crate rustc_errors;
 extern crate rustc_hir;
 extern crate rustc_span;
 
+use clippy_wrappers::span_lint_and_sugg;
 use if_chain::if_chain;
 use rustc_errors::Applicability;
 use rustc_hir::{

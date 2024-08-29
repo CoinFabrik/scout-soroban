@@ -1,30 +1,34 @@
 # Unused return enum
 
-### What it does
+## Description
 
-It warns if a function that returns a Result type does not return the Result enum variant (Ok/Err).
+- Vulnerability Category: `Validations and error handling`
+- Vulnerability Severity: `Minor`
+- Detectors: [`unused-return-enum`](https://github.com/CoinFabrik/scout-soroban/tree/main/detectors/unused-return-enum)
+- Test Cases: [`unused-return-enum-1`](https://github.com/CoinFabrik/scout-soroban/tree/main/test-cases/unused-return-enum/unused-return-enum-1) [`unused-return-enum-2`](https://github.com/CoinFabrik/scout-soroban/tree/main/test-cases/unused-return-enum/unused-return-enum-2)
+ 
+Soroban	 messages can return a `Result` enum with a custom error type. This is useful for the caller to know what went wrong when the message fails.
 
-### Why is this bad?
-
-If any of the variants (Ok/Err) is not used, the code could be simplified or it could imply a bug.
-
-### Known problems
-
-If definitions of `Err()` and/or `Ok()` are in the code but do not flow to the return value due to the definition of a variable or because they are defined in a dead code block, the warning will not be shown. If the definitions are made in an auxiliary method, the warning will be shown, resulting in a false positive.
-
-### Example
-
-Instead of using:
+The definition in Rust of the `Result` enum is:
 
 ```rust
-#![no_std]
+enum Result<T, E> {
+    Ok(T),
+    Err(E),
+}
+```
 
-use soroban_sdk::{contract, contracterror, contractimpl};
+## Why is this bad?
 
-#[contract]
-pub struct UnusedReturnEnum;
+If either variant (`Ok` or `Err`) is not used in the code, it could indicate that the `Result` type is unnecessary and that the code could be simplified. Alternatively, it might suggest a bug where a possible outcome is not being handled properly.
 
-#[contracterror]
+
+
+## Issue example
+
+Consider the following `Soroban` contract:
+
+```rust
 #[derive(Copy, Clone, Debug, Eq, PartialEq, PartialOrd, Ord)]
 #[repr(u32)]
 pub enum Error {
@@ -32,10 +36,9 @@ pub enum Error {
     Overflow = 1,
 }
 
-#[contractimpl]
-impl UnusedReturnEnum {
-    /// Returns the percentage difference between two values.
-    pub fn get_percentage_difference(balance1: u128, balance2: u128) -> Result<u128, Error> {
+
+
+pub fn get_percentage_difference(balance1: u128, balance2: u128) -> Result<u128, Error> {
         let absolute_difference = balance1.abs_diff(balance2);
         let sum = balance1 + balance2;
 
@@ -45,21 +48,25 @@ impl UnusedReturnEnum {
         };
 
         Err(Error::Overflow)
-    }
-}
+    }	
 ```
 
-Use this:
+This is a `Soroban` message that returns the percentage difference between two values.
+
+The function then returns an error enum variant `TradingPairErrors::Overflow`.
+However, the function never returns a `Result` enum variant `Ok`, thus always 
+failing.
+
+The vulnerable code example can be found [here](https://github.com/CoinFabrik/scout-soroban/tree/main/test-cases/unused-return-enum/unused-return-enum-1/remediated-example	).
+
+## Remediated example
+
+This function could be easily fixed by returning a `Result` enum variant `Ok`
+when the percentage difference is calculated successfully. By providing a check in 
+the linter that ensures that all the variants of the `Result` enum are used, this 
+bug could have been avoided. This is shown in the example below:
 
 ```rust
-#![no_std]
-
-use soroban_sdk::{contract, contracterror, contractimpl, testutils::arbitrary::arbitrary::Result};
-
-#[contract]
-pub struct UnusedReturnEnum;
-
-#[contracterror]
 #[derive(Copy, Clone, Debug, Eq, PartialEq, PartialOrd, Ord)]
 #[repr(u32)]
 pub enum Error {
@@ -67,10 +74,8 @@ pub enum Error {
     Overflow = 1,
 }
 
-#[contractimpl]
-impl UnusedReturnEnum {
-    /// Returns the percentage difference between two values.
-    pub fn get_percentage_difference(balance1: u128, balance2: u128) -> Result<u128, Error> {
+
+pub fn get_percentage_difference(balance1: u128, balance2: u128) -> Result<u128, Error> {
         let absolute_difference = balance1.abs_diff(balance2);
         let sum = balance1 + balance2;
 
@@ -79,9 +84,10 @@ impl UnusedReturnEnum {
             None => Err(Error::Overflow),
         }
     }
-}
 ```
 
-### Implementation
+The remediated code example can be found [here](https://github.com/CoinFabrik/scout-soroban/tree/main/test-cases/unused-return-enum//unused-return-enum-1/remediated-example).
 
-The detector's implementation can be found at [this link](https://github.com/CoinFabrik/scout-soroban/tree/main/detectors/unused-return-enum).
+## How is it detected?
+
+It warns if a function that returns a Result type does not return the Result enum variant (Ok/Err).

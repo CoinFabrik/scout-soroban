@@ -3,21 +3,21 @@
 extern crate rustc_ast;
 extern crate rustc_span;
 
-use clippy_utils::{diagnostics::span_lint_and_help, sym};
-use if_chain::if_chain;
+use clippy_utils::diagnostics::span_lint_and_help;
 use rustc_ast::{
-    ptr::P,
-    token::{LitKind, TokenKind},
-    tokenstream::{TokenStream, TokenTree},
-    AttrArgs, AttrKind, Expr, ExprKind, Item, MacCall, StmtKind,
+    tokenstream::TokenTree,
+    visit::{walk_expr, Visitor},
+    AssocItemKind, AttrArgs, AttrKind, Block, Expr, ExprKind, FnRetTy, Item, ItemKind, MacCall,
+    ModKind, TyKind,
 };
 use rustc_lint::{EarlyContext, EarlyLintPass};
 use rustc_span::{sym, Span};
 
-const LINT_MESSAGE: &str = "The panic! macro is used to stop execution when a condition is not met. Even when this does not break the execution of the contract, it is recommended to use Result instead of panic! because it will stop the execution of the caller contract";
+const LINT_MESSAGE: &str = "The panic! macro is used in a function that returns Result. \
+    Consider using the ? operator or return Err() instead.";
 
 dylint_linting::impl_pre_expansion_lint! {
-    /// ### What it does
+        /// ### What it does
     /// The panic! macro is used to stop execution when a condition is not met.
     /// This is useful for testing and prototyping, but should be avoided in production code
     ///
@@ -61,7 +61,8 @@ dylint_linting::impl_pre_expansion_lint! {
     AvoidPanicError::default(),
     {
         name: "Avoid panic! macro",
-        long_message: "The use of the panic! macro to stop execution when a condition is not met is useful for testing and prototyping but should be avoided in production code. Using Result as the return type for functions that can fail is the idiomatic way to handle errors in Rust.    ",
+        long_message: "Using panic! in functions that return Result defeats the purpose of error handling. \
+            Consider propagating the error using ? or return Err() instead.",
         severity: "Enhancement",
         help: "https://coinfabrik.github.io/scout-soroban/docs/detectors/avoid-panic-error",
         vulnerability_class: "Validations and error handling",
@@ -74,123 +75,120 @@ pub struct AvoidPanicError {
 }
 
 impl EarlyLintPass for AvoidPanicError {
-    fn check_item(&mut self, _cx: &EarlyContext, item: &Item) {
-        match (is_test_item(item), self.in_test_span) {
-            (true, None) => self.in_test_span = Some(item.span),
-            (true, Some(test_span)) => {
-                if !test_span.contains(item.span) {
-                    self.in_test_span = Some(item.span);
-                }
-            }
-            (false, None) => {}
-            (false, Some(test_span)) => {
-                if !test_span.contains(item.span) {
-                    self.in_test_span = None;
-                }
-            }
-        };
-    }
+    fn check_item(&mut self, cx: &EarlyContext, item: &Item) {
+        if is_test_item(item) {
+            self.in_test_span = Some(item.span);
+            return;
+        }
 
-    fn check_stmt(&mut self, cx: &EarlyContext<'_>, stmt: &rustc_ast::Stmt) {
-        if_chain! {
-            if !self.in_test_item();
-            if let StmtKind::MacCall(mac) = &stmt.kind;
-            then {
-                check_macro_call(cx, stmt.span, &mac.mac)
+        if let Some(test_span) = self.in_test_span {
+            if !test_span.contains(item.span) {
+                self.in_test_span = None;
+            } else {
+                return;
             }
         }
-    }
 
-    fn check_expr(&mut self, cx: &EarlyContext, expr: &Expr) {
-        if_chain! {
-            if !self.in_test_item();
-            if let ExprKind::MacCall(mac) = &expr.kind;
-            then {
-                check_macro_call(cx, expr.span, mac)
+        match &item.kind {
+            ItemKind::Impl(impl_item) => {
+                for assoc_item in &impl_item.items {
+                    if let AssocItemKind::Fn(fn_item) = &assoc_item.kind {
+                        self.check_function(
+                            cx,
+                            &fn_item.sig.decl.output,
+                            fn_item.body.as_ref().unwrap(),
+                        );
+                    }
+                }
             }
+            ItemKind::Fn(fn_item) => {
+                self.check_function(cx, &fn_item.sig.decl.output, fn_item.body.as_ref().unwrap());
+            }
+            ItemKind::Mod(_, ModKind::Loaded(items, _, _)) => {
+                for item in items {
+                    self.check_item(cx, item);
+                }
+            }
+            ItemKind::Trait(trait_item) => {
+                for item in &trait_item.items {
+                    if let AssocItemKind::Fn(fn_item) = &item.kind {
+                        self.check_function(
+                            cx,
+                            &fn_item.sig.decl.output,
+                            fn_item.body.as_ref().unwrap(),
+                        );
+                    }
+                }
+            }
+            _ => {}
         }
     }
 }
 
-fn check_macro_call(cx: &EarlyContext, span: Span, mac: &P<MacCall>) {
-    if_chain! {
-        if mac.path == sym!(panic);
-        if let [TokenTree::Token(token, _)] = mac
-            .args
-            .tokens
-            .clone()
-            .trees()
-            .collect::<Vec<_>>()
-            .as_slice();
-        if let TokenKind::Literal(lit) = token.kind;
-        if lit.kind == LitKind::Str;
-        then {
-            span_lint_and_help(
-                cx,
-                AVOID_PANIC_ERROR,
-                span,
-                LINT_MESSAGE,
-                None,
-                format!("You could use instead an Error enum and then 'return Err(Error::{})'", capitalize_err_msg(lit.symbol.as_str()).replace(' ', ""))
-            )
+impl AvoidPanicError {
+    fn check_function(&self, cx: &EarlyContext, output: &FnRetTy, body: &Block) {
+        if is_result_type(output) {
+            let mut visitor = PanicVisitor { cx };
+            visitor.visit_block(body);
         }
+    }
+}
+
+struct PanicVisitor<'a, 'tcx> {
+    cx: &'a EarlyContext<'tcx>,
+}
+
+impl<'a, 'tcx> Visitor<'tcx> for PanicVisitor<'a, 'tcx> {
+    fn visit_expr(&mut self, expr: &'tcx Expr) {
+        if let ExprKind::MacCall(mac) = &expr.kind {
+            check_macro_call(self.cx, expr.span, mac);
+        }
+        walk_expr(self, expr);
+    }
+}
+
+fn check_macro_call(cx: &EarlyContext, span: Span, mac: &MacCall) {
+    if mac.path == sym::panic {
+        let suggestion = "Consider using '?' to propagate errors or 'return Err()' to return early with an error";
+        span_lint_and_help(cx, AVOID_PANIC_ERROR, span, LINT_MESSAGE, None, suggestion);
     }
 }
 
 fn is_test_item(item: &Item) -> bool {
     item.attrs.iter().any(|attr| {
-        // Find #[cfg(all(test, feature = "e2e-tests"))]
-        if_chain!(
-            if let AttrKind::Normal(normal) = &attr.kind;
-            if let AttrArgs::Delimited(delim_args) = &normal.item.args;
-            if is_test_token_present(&delim_args.tokens);
-            then {
-                return true;
-            }
-        );
-
-        // Find unit or integration tests
-        if attr.has_name(sym::test) {
-            return true;
-        }
-
-        if_chain! {
-            if attr.has_name(sym::cfg);
-            if let Some(items) = attr.meta_item_list();
-            if let [item] = items.as_slice();
-            if let Some(feature_item) = item.meta_item();
-            if feature_item.has_name(sym::test);
-            then {
-                return true;
-            }
-        }
-
-        false
+        attr.has_name(sym::test)
+            || (attr.has_name(sym::cfg)
+                && attr.meta_item_list().map_or(false, |list| {
+                    list.iter().any(|item| item.has_name(sym::test))
+                }))
+            || matches!(
+                &attr.kind,
+                AttrKind::Normal(normal) if is_test_token_present(&normal.item.args)
+            )
     })
 }
 
-impl AvoidPanicError {
-    fn in_test_item(&self) -> bool {
-        self.in_test_span.is_some()
+fn is_test_token_present(args: &AttrArgs) -> bool {
+    if let AttrArgs::Delimited(delim_args) = args {
+        delim_args.tokens.trees().any(
+            |tree| matches!(tree, TokenTree::Token(token, _) if token.is_ident_named(sym::test)),
+        )
+    } else {
+        false
     }
 }
 
-fn capitalize_err_msg(s: &str) -> String {
-    s.split_whitespace()
-        .map(|word| {
-            let mut chars = word.chars();
-            match chars.next() {
-                None => String::new(),
-                Some(f) => f.to_uppercase().collect::<String>() + chars.as_str(),
+fn is_result_type(output: &FnRetTy) -> bool {
+    match output {
+        FnRetTy::Default(_) => false,
+        FnRetTy::Ty(ty) => {
+            if let TyKind::Path(None, path) = &ty.kind {
+                path.segments
+                    .last()
+                    .map_or(false, |seg| seg.ident.name == sym::Result)
+            } else {
+                false
             }
-        })
-        .collect::<Vec<String>>()
-        .join(" ")
-}
-
-fn is_test_token_present(token_stream: &TokenStream) -> bool {
-    token_stream.trees().any(|tree| match tree {
-        TokenTree::Token(token, _) => token.is_ident_named(sym::test),
-        TokenTree::Delimited(_, _, _, token_stream) => is_test_token_present(token_stream),
-    })
+        }
+    }
 }

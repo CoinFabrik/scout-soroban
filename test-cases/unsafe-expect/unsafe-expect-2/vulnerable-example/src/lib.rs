@@ -66,4 +66,20 @@ mod tests {
         let balance = client.balance_of(&contract_id);
         assert_eq!(TOTAL_SUPPLY, balance.unwrap());
     }
+
+    #[test]
+    #[should_panic(expected = "could not get balance")]
+    fn balance_of_expect_works() {
+        // Given
+        let env = Env::default();
+        let contract_id = env.register_contract(None, UnsafeExpect);
+        let client = UnsafeExpectClient::new(&env, &contract_id);
+
+        // When - Balance not set
+
+        // Then
+        let _balance = client.balance_of(&contract_id);
+
+        // Test should panic
+    }
 }

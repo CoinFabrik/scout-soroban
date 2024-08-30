@@ -31,9 +31,10 @@ impl UnsafeExpect {
     }
 
     // Returns the balance of a given account.
-    pub fn balance_of(env: Env, owner: Address) -> i128 {
+    pub fn balance_of(env: Env, owner: Address) -> Option<i128> {
         let state = Self::get_state(env);
-        state.balances.get(owner).unwrap_or(0)
+        let balance = state.balances.get(owner).unwrap_or(0);
+        Some(balance)
     }
 
     /// Return the current state.
@@ -68,7 +69,7 @@ mod tests {
 
         // Then
         let balance = client.balance_of(&contract_id);
-        assert_eq!(TOTAL_SUPPLY, balance);
+        assert_eq!(TOTAL_SUPPLY, balance.unwrap());
     }
 
     #[test]
@@ -82,6 +83,6 @@ mod tests {
 
         // Then
         let balance = client.balance_of(&contract_id);
-        assert_eq!(0, balance);
+        assert_eq!(0, balance.unwrap());
     }
 }

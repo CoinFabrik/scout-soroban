@@ -4,6 +4,7 @@ extern crate rustc_hir;
 extern crate rustc_span;
 
 use clippy_wrappers::span_lint_and_help;
+use edit_distance::edit_distance;
 use if_chain::if_chain;
 use rustc_hir::{
     def::Res,
@@ -85,7 +86,7 @@ impl<'tcx> LateLintPass<'tcx> for UnnecessaryAdminParameter {
 
         // Skip analysis for functions named "initialize"
         let fn_name = cx.tcx.item_name(def_id);
-        if fn_name == Symbol::intern("initialize") {
+        if is_similar_to(&fn_name.as_str().to_lowercase(), "initialize") {
             return;
         }
 
@@ -116,10 +117,14 @@ fn find_admin_param<'tcx>(
 ) -> Option<&'tcx Param<'tcx>> {
     params.iter().find(|param| {
         matches!(param.pat.kind, PatKind::Binding(_, _, ident, _)
-            if ident.name.as_str().to_lowercase() == "admin")
+            if is_similar_to(&ident.name.as_str().to_lowercase(), "admin"))
             && get_node_type_opt(cx, &param.hir_id)
                 .map_or(false, |type_| is_soroban_address(cx, type_))
     })
+}
+
+fn is_similar_to(s1: &str, s2: &str) -> bool {
+    edit_distance(s1, s2) <= 1
 }
 
 struct UnnecessaryAdminParameterVisitor {

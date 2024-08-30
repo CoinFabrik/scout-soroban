@@ -5,7 +5,7 @@ resolver = "2"
 
 [workspace.dependencies]
 soroban-sdk = { version = "=21.4.0" }
-soroban-token-sdk = { version = "21.4.0" }
+soroban-token-sdk = { version = "=21.4.0" }
 
 [profile.release]
 codegen-units = 1

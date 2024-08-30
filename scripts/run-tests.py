@@ -63,6 +63,7 @@ def run_integration_tests(detector, root):
         root,
     )
 
+    #print("stderr: ", stderr.read())
     if stdout is None:
         print(
             f"{RED}Failed to run integration tests in {root} - Metadata returned empty.{ENDC}"
@@ -78,7 +79,7 @@ def run_integration_tests(detector, root):
     detector_key = detector.replace("-", "_")
     short_message = detector_metadata.get(detector_key, {}).get("short_message")
 
-    returncode, _, stderr = run_subprocess(
+    returncode, stdout, stderr = run_subprocess(
         [
             "cargo",
             "scout-audit",
@@ -91,12 +92,12 @@ def run_integration_tests(detector, root):
     )
 
     should_lint = root.endswith("vulnerable-example")
-    if should_lint and short_message and short_message not in stderr:
+    if should_lint and short_message and short_message not in stdout:
         returncode = 1
 
     print_results(
         returncode,
-        stderr,
+        stdout,
         "integration-test",
         root,
         time.time() - start_time,

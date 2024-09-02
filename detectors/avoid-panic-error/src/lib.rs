@@ -3,7 +3,7 @@
 extern crate rustc_ast;
 extern crate rustc_span;
 
-use clippy_utils::diagnostics::span_lint_and_help;
+use clippy_wrappers::span_lint_and_help;
 use rustc_ast::{
     ptr::P,
     tokenstream::TokenTree,

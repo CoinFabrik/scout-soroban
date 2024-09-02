@@ -1,25 +1,20 @@
 #![feature(rustc_private)]
 
 extern crate rustc_hir;
-extern crate rustc_middle;
 extern crate rustc_span;
 
-use clippy_utils::diagnostics::span_lint_and_help;
-
+use clippy_wrappers::span_lint_and_help;
 use rustc_hir::{
     intravisit::{walk_expr, Visitor},
     Expr, ExprKind,
 };
 use rustc_lint::{LateContext, LateLintPass};
-
-use rustc_span::Span;
-
-use std::collections::HashMap;
-use std::collections::HashSet;
-use std::vec;
+use rustc_span::{def_id::DefId, Span};
+use std::{
+    collections::{HashMap, HashSet},
+    vec,
+};
 use utils::{is_soroban_function, FunctionCallVisitor};
-
-use rustc_span::def_id::DefId;
 
 const LINT_MESSAGE: &str = "Consider emiting an event when storage is modified";
 

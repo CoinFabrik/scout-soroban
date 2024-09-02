@@ -103,13 +103,19 @@ Join us for an exciting series of video tutorials where you'll learn how to inst
 - [Introduction to Scout](https://www.youtube.com/watch?v=L4kGwPDuWgA)
 - [Installing Scout](https://www.youtube.com/watch?v=lStQxKQ_l2Q&t=1s)
 - [How to run Scout](https://www.youtube.com/watch?v=_6F24AwscKc)
-- [Detecting and fixing issues: Divide before multiply](https://www.youtube.com/watch?v=aLtXyYvw27o)
-- [Detecting and fixing issues: Incorrect exponentiation](https://www.youtube.com/watch?v=qjnHwKCD_hM)
-- [Detecting and fixing issues: Overflow check](https://www.youtube.com/watch?v=Mi7AcJRPgvU)
-- [Detecting and fixing issues: Insufficiently random values](https://www.youtube.com/watch?v=LPBMDPXmczQ)
-- [Detecting and fixing issues: DoS - Unexpected revert with vector](https://www.youtube.com/watch?v=H79mMnnWyvA)
-- [Detecting and fixing issues: DoS - Unbounded operation](https://www.youtube.com/watch?v=DFM0yNNDiyw)
-- [Detecting and fixing issues: Set contract storage](https://www.youtube.com/watch?v=z6RNfhQt6EI)
+- [Learning to Scout Soroban: Divide before multiply](https://www.youtube.com/watch?v=aLtXyYvw27o)
+- [Learning to Scout Soroban: Incorrect exponentiation](https://www.youtube.com/watch?v=qjnHwKCD_hM)
+- [Learning to Scout Soroban: Overflow check](https://www.youtube.com/watch?v=Mi7AcJRPgvU)
+- [Learning to Scout Soroban: Insufficiently random values](https://www.youtube.com/watch?v=LPBMDPXmczQ)
+- [Learning to Scout Soroban: DoS - Unexpected revert with vector](https://www.youtube.com/watch?v=H79mMnnWyvA)
+- [Learning to Scout Soroban: DoS - Unbounded operation](https://www.youtube.com/watch?v=DFM0yNNDiyw)
+- [Learning to Scout Soroban: Set contract storage](https://www.youtube.com/watch?v=z6RNfhQt6EI)
+- [Learning to Scout Soroban: Unprotected mapping operation](https://www.youtube.com/watch?v=8yayEpKeles)
+- [Learning to Scout Soroban: Unprotected update current contract wasm](https://www.youtube.com/watch?v=05WnTt4gw5o)
+- [Learning to Scout Soroban: Unrestricted transfer from](https://www.youtube.com/watch?v=jnorbpq3ZXk)
+- [Learning to Scout Soroban: Assert violation](https://www.youtube.com/watch?v=-8iv4qXjx-M)
+- [Learning to Scout Soroban: Iterators over indexing](https://www.youtube.com/watch?v=PN7sD-W0_Qg)
+- [Learning to Scout Soroban: Unsafe expect](https://www.youtube.com/watch?v=sheqaOBOBfo)
 
 :clapper: More videos comming soon!
 
@@ -139,6 +145,7 @@ Follow our documentation links below and learn more about the vulnerabilities de
 - [Scout GitHub Action](https://coinfabrik.github.io/scout-soroban/docs/github-action)
 - [Scout VS Code Extension](https://coinfabrik.github.io/scout-soroban/docs/vscode-extension)
 - [Scout Soroban Examples](https://coinfabrik.github.io/scout-soroban/docs/soroban-examples)
+- [Toggle detections on and off](https://coinfabrik.github.io/scout-soroban/docs/toggle-detections-on-off)
 
 ## Acknowledgements
 

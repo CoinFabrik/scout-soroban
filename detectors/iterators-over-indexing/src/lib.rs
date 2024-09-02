@@ -20,6 +20,7 @@ use rustc_lint::{LateContext, LateLintPass};
 use rustc_middle::ty::{TyCtxt, TyKind};
 use rustc_span::{symbol::Ident, Span};
 use rustc_type_ir::Interner;
+use std::collections::HashSet;
 use utils::get_node_type;
 
 const LINT_MESSAGE: &str =
@@ -39,7 +40,7 @@ dylint_linting::declare_late_lint! {
 }
 
 struct ForLoopVisitor<'a, 'b> {
-    span_constant: Vec<Span>,
+    span_constant: HashSet<Span>,
     cx: &'b LateContext<'a>,
 }
 struct VectorAccessVisitor<'a, 'b> {
@@ -351,7 +352,7 @@ fn handle_expr<'a>(me: &mut ForLoopVisitor<'a, '_>, expr: &'a Expr<'a>) -> Resul
     }
 
     if visitor.has_vector_access {
-        me.span_constant.push(expr.span);
+        me.span_constant.insert(expr.span);
     }
 
     Ok(())
@@ -377,7 +378,7 @@ impl<'tcx> LateLintPass<'tcx> for IteratorOverIndexing {
         if let FnKind::Method(_ident, _sig) = kind {
             let span_constant = {
                 let mut visitor = ForLoopVisitor {
-                    span_constant: vec![],
+                    span_constant: HashSet::new(),
                     cx,
                 };
                 walk_expr(&mut visitor, body.value);

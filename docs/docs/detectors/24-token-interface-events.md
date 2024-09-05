@@ -12,7 +12,15 @@ In Rust, the token contracts have a special interface with certain requirements.
 
 ## Why is this bad? 
 
-If the token's functions do not emit events, the contract may have potential errors in handling the token.
+If the token functions do not emit events, the following errors may occur:
+
+* Token standard compliance
+
+* Transparency: Events provide a transparent way to log and broadcast important actions like token transfers, approvals, and minting/burning. This transparency is crucial for users, developers, and external systems to monitor and react to contract activities.
+
+* Interoperability: Many decentralized applications (dApps) rely on events to interact with tokens. Without events, these applications might not be able to function correctly, as they would have no way of knowing when a transfer or other important action has occurred. Also, off-chain systems, like wallets, exchanges, and block explorers, use events to track token activity. If events are not implemented, these systems may encounter errors in providing accurate and real-time information about the token.
+
+* Debugging and Auditing: Events are very helpful for debugging and auditing smart contracts. They are useful because they provide detailed information about what happened in the contract during execution.
 
 ## Issue example 
 

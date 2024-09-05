@@ -9,28 +9,16 @@ pub struct ConditionalChecker {
 }
 
 impl ConditionalChecker {
-    fn get_res_hir_id(&self, expr: &Expr) -> Option<HirId> {
-        if let ExprKind::Path(QPath::Resolved(_, path)) = &expr.kind {
-            if let Res::Local(hir_id) = path.res {
-                Some(hir_id)
-            } else {
-                None
-            }
-        } else {
-            None
-        }
-    }
-
     fn handle_binary_op(&mut self, op: BinOpKind, left: &Expr, right: &Expr) -> bool {
         match op {
             BinOpKind::Ge | BinOpKind::Gt => {
-                self.greater_expr = self.get_res_hir_id(left);
-                self.lesser_expr = self.get_res_hir_id(right);
+                self.greater_expr = get_res_hir_id(left);
+                self.lesser_expr = get_res_hir_id(right);
                 true
             }
             BinOpKind::Le | BinOpKind::Lt => {
-                self.lesser_expr = self.get_res_hir_id(left);
-                self.greater_expr = self.get_res_hir_id(right);
+                self.lesser_expr = get_res_hir_id(left);
+                self.greater_expr = get_res_hir_id(right);
                 true
             }
             _ => false,
@@ -49,6 +37,18 @@ impl ConditionalChecker {
             }
             _ => false,
         }
+    }
+}
+
+pub fn get_res_hir_id(expr: &Expr) -> Option<HirId> {
+    if let ExprKind::Path(QPath::Resolved(_, path)) = &expr.kind {
+        if let Res::Local(hir_id) = path.res {
+            Some(hir_id)
+        } else {
+            None
+        }
+    } else {
+        None
     }
 }
 

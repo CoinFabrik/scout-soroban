@@ -34,11 +34,11 @@ dylint_linting::impl_late_lint! {
     "",
     TokenInterfaceInference::default(),
     {
-        name: "The contract appears to be a Token but does not implement the Token Interface trait.",
-        long_message: "Implementing the trait can improve the compliance of the token interface.",
-        severity: "",
-        help: "",
-        vulnerability_class: "",
+        name: "Token Interface Implementation Analyzer",
+        long_message: "Implementing the Token Interface trait helps to ensure proper compliance of the SEP-41 standard.",
+        severity: "Enhancement",
+        help: "https://coinfabrik.github.io/scout-soroban/docs/detectors/token-interface-inference",
+        vulnerability_class: "Best Practices",
     }
 }
 

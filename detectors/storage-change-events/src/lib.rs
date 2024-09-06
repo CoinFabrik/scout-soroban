@@ -24,11 +24,11 @@ dylint_linting::impl_late_lint! {
     "",
     StorageChangeEvents::default(),
     {
-        name: "Storage Changed without Emiting an Event",
-        long_message: "",
-        severity: "",
-        help: "",
-        vulnerability_class: "",
+        name: "Storage change event checker",
+        long_message: "Emiting an event when storage changes is a good practice to make the contracts more transparent and usable to its clients and observers",
+        severity: "Enhancement",
+        help: "https://coinfabrik.github.io/scout-soroban/docs/detectors/storage-change-events",
+        vulnerability_class: "Best Practices",
     }
 }
 

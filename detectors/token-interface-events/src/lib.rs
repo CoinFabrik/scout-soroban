@@ -24,11 +24,11 @@ dylint_linting::impl_late_lint! {
     "",
     TokenInterfaceEvents::default(),
     {
-        name: "Storage Changed without Emiting an Event in Token Interface implementations",
-        long_message: " It can originate a problem when a canonical function does not emit an event expected by the contract's clients.",
-        severity: "",
-        help: "",
-        vulnerability_class: "",
+        name: "Token Interface events checker",
+        long_message: "Not emiting the established events breaks compatibility with the token standard and can lead to interoperability problems between the contract and its observers",
+        severity: "Medium",
+        help: "https://coinfabrik.github.io/scout-soroban/docs/detectors/token-interface-events",
+        vulnerability_class: "Standard Compliance",
     }
 }
 

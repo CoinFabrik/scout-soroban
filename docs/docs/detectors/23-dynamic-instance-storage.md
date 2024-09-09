@@ -1,5 +1,4 @@
-# Dynamic instance storage
-
+# dynamic instance storage
 ## Description 
 
 - Category: `Authorization`
@@ -11,7 +10,7 @@ In Rust, it is very useful to use `storage.instance()` to store data that is sha
 
 ## Why is this bad? 
 
-Using dynamic values with `storage.instance()` can cause excessive storage use and may risk DoS attacks on the contract.
+Using dynamic values with `storage.instance()` and `storage.persistent()` can cause excessive storage use and may risk DoS attacks on the contract.
 
 ## Issue example 
 
@@ -21,12 +20,12 @@ Consider the following `Soroban` contract:
 
   pub fn store_vector(e: Env, data: Vec<i32>) {
         e.storage()
-            .instance()
+            .persistent()
             .set(&Symbol::new(&e, "vector_data"), &data);
     }
 
 ```
-In this example, the function is storing a vector using `storage.instance()`.
+In this example, the function is storing a vector using `storage.persistent()`.
 
 The code example can be found [here](https://github.com/CoinFabrik/scout-soroban/tree/main/test-cases/dynamic-instance-storage/dynamic-instance-storage-1/vulnerable-example).
 
@@ -35,18 +34,19 @@ The code example can be found [here](https://github.com/CoinFabrik/scout-soroban
 Consider the following `Soroban` contract:
 
 ```rust
-pub fn store_vector(e: Env, data: Vec<i32>) {
-        e.storage()
-            .persistent()
-            .set(&Symbol::new(&e, "vector_data"), &data);
-    } 
+ pub fn store_vector(e: Env, data: Vec<i32>) {
+        for (i, value) in data.iter().enumerate() {
+            let key = DataKey::VecElement(i as u32);
+            e.storage().persistent().set(&key, &value);
+        }
+    }
 ```
 
-Instead of using `storage.instance()` to store a vector, you could use `storage.persistent()` to avoid memory issues or the risk of attacks. 
+Instead of using `storage.persistent()` to store a vector in the storage, the data belonging to the vector can be stored directly in the storage. 
 
 The remediated code example can be found [here](https://github.com/CoinFabrik/scout-soroban/tree/main/test-cases/dynamic-instance-storage/dynamic-instance-storage-1/remediated-example).
 
 
 ## How is it detected?
 
-Checks the usage of `storage().instance()` with dynamic types.
+Checks the usage of `storage().instance()` and `storage().persistent()`with dynamic types.

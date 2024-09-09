@@ -1,10 +1,11 @@
 [workspace]
 exclude = [".cargo", "target"]
-members = ["zero-address-*/*"]
+members = ["token-interface-inference-*/*"]
 resolver = "2"
 
 [workspace.dependencies]
 soroban-sdk = { version = "=21.4.0" }
+soroban-token-sdk = { version = "=21.4.0" }
 
 [profile.release]
 codegen-units = 1
@@ -19,3 +20,4 @@ strip = "symbols"
 [profile.release-with-logs]
 debug-assertions = true
 inherits = "release"
+

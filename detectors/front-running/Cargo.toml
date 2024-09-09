@@ -1,6 +1,6 @@
 [package]
 edition = "2021"
-name = "zero-address"
+name = "front-running"
 version = "0.1.0"
 
 [lib]

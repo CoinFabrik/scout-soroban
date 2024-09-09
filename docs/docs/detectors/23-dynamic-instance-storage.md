@@ -1,4 +1,4 @@
-# dynamic instance storage
+# Dynamic instance storage
 ## Description 
 
 - Category: `Authorization`

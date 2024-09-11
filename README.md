@@ -62,6 +62,7 @@ Currently Scout includes the following detectors.
 | [unrestricted-transfer-from](https://github.com/CoinFabrik/scout-soroban/tree/main/detectors/unrestricted-transfer-from)                           | Avoid passing an user-defined parameter as a `from` field in transfer-from. | [1](https://github.com/CoinFabrik/scout-soroban/tree/main/test-cases/unrestricted-transfer-from/unrestricted-transfer-from-1)                   | Critical  |
 | [unsafe-map-get](https://github.com/CoinFabrik/scout-soroban/tree/main/detectors/unsafe-map-get)                           | Inappropriate usage of the `get` method for `Map` in soroban | [1](https://github.com/CoinFabrik/scout-soroban/tree/main/test-cases/unsafe-map-get/unsafe-map-get-1)              | Medium |
 | [incorrect-exponentation](https://github.com/CoinFabrik/scout-soroban/tree/main/detectors/incorrect-exponentiation)                           | Warns against incorrect usage of ´^´.  | [1](https://github.com/CoinFabrik/scout-soroban/tree/main/test-cases/incorrect-exponentiation/incorrect-exponentiation-1)                   | Critical  |
+| [token-interface-events](https://github.com/CoinFabrik/scout-soroban/tree/main/detectors/token-interface-events)                           | Warns if any of the token functions does not emit an event.  | [1](https://github.com/CoinFabrik/scout-soroban/tree/main/test-cases/token-interface-events/token-interface-events-1)                   | Medium  |
 
 ## Output formats
 

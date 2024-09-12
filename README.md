@@ -66,6 +66,7 @@ Currently Scout includes the following detectors.
 | [storage-change-events](https://github.com/CoinFabrik/scout-soroban/tree/main/detectors/token-interface-events)                           | Warns if an event is not emitted when a change has occurred in the storage.  | [1](https://github.com/CoinFabrik/scout-soroban/tree/main/test-cases/storage-change-events/storage-change-events-1)                   | Minor  |
 | [token-interface-events](https://github.com/CoinFabrik/scout-soroban/tree/main/detectors/token-interface-events)                           | Warns if any of the token functions does not emit an event.  | [1](https://github.com/CoinFabrik/scout-soroban/tree/main/test-cases/token-interface-events/token-interface-events-1)                   | Medium  |
 [front-running](https://github.com/CoinFabrik/scout-soroban/tree/main/detectors/front-running)                           | Front-running attacks can be avoided by comparing the transfer amount with a minimum value.  | [1](https://github.com/CoinFabrik/scout-soroban/tree/main/test-cases/front-running/front-running-1)                   | Warning  |
+[token-interface-inference](https://github.com/CoinFabrik/scout-soroban/tree/main/detectors/token-interface-inference)                           | Recommend using the trait `soroban_sdk::token::TokenInterface` if a token contract does not implement it.  | [1](https://github.com/CoinFabrik/scout-soroban/tree/main/test-cases/token-interface-inference/token-interface-inference-1)                   | Best practices  |
 
 ## Output formats
 
